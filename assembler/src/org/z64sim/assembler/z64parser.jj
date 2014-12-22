@@ -1,0 +1,229 @@
+options {
+    DEBUG_TOKEN_MANAGER = true;
+    JAVA_UNICODE_ESCAPE = true;
+    ERROR_REPORTING = false;
+    STATIC = false;
+    COMMON_TOKEN_ACTION = false;
+    TOKEN_FACTORY = "Token";
+    JDK_VERSION = "1.5";
+    BUILD_PARSER = true;
+    IGNORE_CASE = true;
+}
+
+
+
+PARSER_BEGIN(Assembler)
+package org.z64sim.assembler;
+
+public class Assembler {
+
+    public static void run() {
+    }
+}
+PARSER_END(Assembler)
+
+
+/*********
+ * LEXER *
+ *********/
+
+SKIP :
+{ " "
+| "\t" 
+}
+
+SPECIAL_TOKEN :
+{
+  <COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+ 
+TOKEN:
+{ <PROGRAM_BEGIN: ".org">
+| <PROGRAM_END: ".end">
+| <SCALE: "1" | "2" | "4" | "8">
+| <CONSTANT: "$"<NUMBER>>
+| <NUMBER: <DEC> | <HEX>>
+|   <#DEC: (["0"-"9"])+>
+|   <#HEX: "0x"(["0"-"9","a"-"f"])+>
+| <REG_8: "%al" | "%cl" | "%dl" | "%bl">
+| <REG_16: "%ax" | "%bx" | "%cx" | "%dx" | "%sp" | "%bp" | "%si" | "%di">
+| <REG_32: "%eax" | "%ebx" | "%ecx" | "%edx" | "%esp" | "%ebp" | "%esi" | "%edi">
+| <REG_64: "%rax" | "%rbx" | "%rcx" | "%rdx" | "%rsp" | "%rbp" | "%rsi" | "%rdi" | "%r8" | "%r9" | "%r10" | "%r11" | "%r12" | "%r13" | "%r14" | "%r15">
+| <INSN_0: ( "pushf" 
+           | "popf" 
+           | "movsx" 
+           | "stos" 
+           | "in" 
+           | "out" 
+           | "ins" 
+           | "outs")<SUFFIX>>
+| <INSN_0_NOSUFF:  "ret" 
+                 | "iret"
+                 | "clc" 
+                 | "clp" 
+                 | "clz" 
+                 | "cls" 
+                 | "cli" 
+                 | "cld" 
+                 | "clo" 
+                 | "stc" 
+                 | "stp"
+                 | "stz" 
+                 | "sts" 
+                 | "sti"
+                 | "std" 
+                 | "sto" 
+                 | "hlt" 
+                 | "nop">
+| <INSN_1_S: "int">
+| <INSN_1_E: ("push"
+           | "pop"
+           | "sar"
+           | "shr"
+           | "rcl"
+           | "rcr"
+           | "rol"
+           | "ror"
+           | "jmp"
+           | "call")<SUFFIX>>
+| <#SUFFIX: "b" | "w" | "l" | "q">
+}
+
+
+/****************
+ * PARSER RULES *
+ ****************/
+
+
+void Program() :
+{}
+{<PROGRAM_BEGIN>
+ (Instruction())+
+ <PROGRAM_END>
+ <EOF>
+}
+
+
+void Instruction() :
+{}
+{
+   <INSN_0>
+ | <INSN_0_NOSUFF>
+ | <INSN_1_S> <NUMBER>
+ | <INSN_1_E> FormatE()
+}
+
+
+void Register() :
+{}
+{ <REG_8> | <REG_16> | <REG_32> | <REG_64> }
+
+
+void Memory() :
+{}
+{ 
+  ( <CONSTANT> /* | <LABEL> */ )?
+  ( "("
+   (<REG_8> | <REG_16> | <REG_32> | <REG_64>)
+   "," 
+   (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <SCALE>
+  ")" )?
+}
+
+
+void FormatE() :
+{}
+{ (Register() | <CONSTANT> | Memory())}
+
+
+
+
+/*
+
+FORMAT_0 --> NUM_PORT_I/O <VIRG> ACCUMULATORE_1 | NUM_PORT_I/O <VIRG> ACCUMULATORE_2 | NUM_PORT_I/O <VIRG> ACCUMULATORE_3 | NUM_PORT_I/O <VIRG> ACCUMULATORE_4
+
+			| ACCUMULATORE_1 <VIRG> NUM_PORT_I/O | ACCUMULATORE_2 <VIRG> NUM_PORT_I/O | ACCUMULATORE_3 <VIRG> NUM_PORT_I/O | ACCUMULATORE_4 <VIRG> NUM_PORT_I/O
+
+NUM_PORT_I/O --> %DX
+
+INSN_1 --> INSN_1_S | INSN_1_E | INSN_1_G | INSN_1_M | INSN_1_P 
+
+INSN_2 --> INSN_2_B_E | INSN_2_E_G | INSN_2_K_G | INSN_2_P_M
+
+DISPL --> NUMBER | <DEC><OPERAZIONI> <DEC> | <HEX> <OPERRAZIONI> <HEX> | REG<OPERAZIONI>REG | REG<OPERAZIONI>NUMBER
+
+INSN_1_E --> ("PUSHX"|"POPX"|"SAR"|"SHR"|"RCL"|"RCR"|"ROL"|"ROR"|"JMP"|"CALL") FORMAT_E
+
+FORMAT_E --> REG| MEM
+
+
+
+MEM --> FORMAT_M
+
+INDICE --> REG_32
+
+SCALA --> 1|2|3|4|8
+
+INSN_1_G --> ("SAL" | "SHL"|"SAR"|"SHR"|"RCL"|"ROL"|"ROR"|"JMP"|"CALL") FORMAT_G
+
+FORMAT_G --> REG
+
+INSN_1_M --> ("JMP"|"CALL"|"JC"|"JP"|"JZ"|"JS"|"JO"|"JNC"|"JNP"|"JNZ"|"JNS"|"JNO") FORMAT_M
+
+FORMAT_M --> FORMAT_M_1 | FORMAT_M_2 | FORMAT_M_3 | FORMAT_M_4 | FORMAT_M
+
+FORMAT_M_1 --> <TONDAAP>REG_8<VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP><SPAZ><VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP>REG_8<TONDACH>
+
+FORMAT_M_2 --> <TONDAAP>REG_16<VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP><SPAZ><VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP>REG_16<TONDACH>
+
+FORMAT_M_3 --> <TONDAAP>REG_32<VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP><SPAZ><VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP>REG_32<TONDACH>
+
+FORMAT_M_4 --> <TONDAAP>REG_64<VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP><SPAZ><VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP>REG_64<TONDACH>
+
+FORMAT_M  ---> <TONDAAP>REG<VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP><SPAZ><VIRG>INDICE<VIRG>SCALA<TONDACH> | <TONDAAP>REG<TONDACH>
+
+INSN_1_P --> ("START"|"CLEAR") FORMAT_P
+
+FORMAT_P --> NUM_PORT_I/O
+
+INSN_2_B_E --> ("MOV"|"ADD"|"SUB"|"ADC"|"SBB"|"CMP"|"TEST"|"AND"|"OR"|"XOR")FORMAT_B_E_GEN
+
+FORMAT_B_E_GEN --> FORMAT_B_E_1 | FORMAT_B_E_2 | FORMAT_B_E_3 | FORMAT_B_E_4 
+
+FORMAT_B_E_1 -->REG_8<VIRG>REG_8 | REG_8<VIRG> FORMAT_M_1 | REG_8<VIRG>DISPL FORMAT_M_1 | REG_8<VIRG>DISPL | INDICE <VIRG> REG_8 | INDICE <VIRG> DISPL FORMAT_M_1 
+
+				| INDICE<VIRG> DISPL FORMAT_M_1 | INDICE <VIRG> DISPL | FORMAT_M_1 <VIRG> REG_8 | FORMAT_M_1 <VIRG> REG_8 | DISPL FORMAT_M_1 <VIRG> REG_8 
+				
+				| DISPL <VIRG> REG_8 
+				
+FORMAT_B_E_2 --> REG_16 <VIRG> REG_16 | REG_16 <VIRG> FORMAT_M_2 | REG_16 <VIRG> DISPL FORMAT_M_2 | REG_16 <VIRG> DISPL | INDICE <VIRG> REG_16 
+
+				| INDICE<VIRG>DISPL FORMAT_M_2 | INDICE<VIRG> DISPL FORMAT_M_2 | INDICE <VIRG> DISPL | FORMAT_M_2 <VIRG> REG_16 | FORMAT_M_2 <VIRG> REG_16 
+				
+				| DISPL FORMAT_M_2 <VIRG> REG_16 | DISPL <VIRG> REG_16 
+				
+FORMAT_B_E_3 --> REG_32 <VIRG> REG_32 | REG_32 <VIRG> FORMAT_M_3 | REG_32<VIRG>DISPL FORMAT_M_3 | REG_32 <VIRG> DISPL | INDICE <VIRG> REG_32 
+
+				| INDICE <VIRG> DISPL FORMAT_M_3 | INDICE <VIRG> DISPL FORMAT_M_3 | INDICE <VIRG> DISPL | FORMAT_M_3 <VIRG> REG_32 | FORMAT_M_3 <VIRG> REG_32 
+				
+				| DISPL FORMAT_M_3 <VIRG> REG_32 | DISPL <VIRG> REG_32
+				
+FORMAT_B_E_4 --> REG_64 <VIRG> REG_64 | REG_64 <VIRG> FORMAT_M_4 | REG_64<VIRG>DISPL FORMAT_M_4 | REG_64 <VIRG> DISPL | INDICE <VIRG> REG_64 
+
+				| INDICE<VIRG>DISPL FORMAT_M_4 | INDICE <VIRG> DISPL FORMAT_M_4 | INDICE <VIRG> DISPL | FORMAT_M_4 <VIRG> REG_64 | FORMAT_M_4 <VIRG> REG_64 
+				
+				| DISPL FORMAT_M_4 <VIRG> REG_64 | DISPL <VIRG> REG_64 
+
+INSN_2_E_G --> ("MOVSX"|"MOVZX"|"LEA") FORMAT_E_G 
+
+FORMAT_E_G --> REG_8 | REG_16 | REG_32 | REG_64 | MEM 
+
+INSN_2_K_G --> ("SAL" | "SHL"|"SAR"|"SHR"|"RCL"|"RCR"|"ROL"|"ROR") FORMAT_K_G
+
+FORMAT_K_G --> NUMBER <VIRG> FORMAT_G | NUMBER 
+
+INSN_2_P_M --> ("JR"|"JNR") FORMAT_P_M 
+
+FORMAT_P_M --> ACCUMULATORE_1 <VIRG> FORMAT_M | ACCUMULATORE_2 <VIRG> FORMAT_M | ACCUMULATORE_3 <VIRG> FORMAT_M | ACCUMULATORE_4 <VIRG> FORMAT_M 
+
+*/
