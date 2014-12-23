@@ -6,6 +6,15 @@
             <code-name-base>org.z64sim.assembler</code-name-base>
             <suite-component/>
             <module-dependencies/>
+            <test-dependencies>
+                <test-type>
+                    <name>unit</name>
+                    <test-dependency>
+                        <code-name-base>org.netbeans.libs.testng</code-name-base>
+                        <compile-dependency/>
+                    </test-dependency>
+                </test-type>
+            </test-dependencies>
             <public-packages>
                 <package>org.z64sim.assembler</package>
             </public-packages>
