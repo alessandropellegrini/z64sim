@@ -16,7 +16,7 @@ public class Assembler implements AssemblerConstants {
 /****************
  * PARSER RULES *
  ****************/
-  static final public 
+  final public 
 
 void Program() throws ParseException {
     jj_consume_token(PROGRAM_BEGIN);
@@ -48,7 +48,7 @@ void Program() throws ParseException {
     jj_consume_token(0);
   }
 
-  static final public void Instruction() throws ParseException {
+  final public void Instruction() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INSN_0:{
       jj_consume_token(INSN_0);
@@ -187,7 +187,7 @@ void Program() throws ParseException {
     }
   }
 
-  static final public void Register() throws ParseException {
+  final public void Register() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case REG_8:{
       jj_consume_token(REG_8);
@@ -211,7 +211,7 @@ void Program() throws ParseException {
     }
   }
 
-  static final public void Addressing() throws ParseException {
+  final public void Addressing() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case CONSTANT:{
       jj_consume_token(CONSTANT);
@@ -276,7 +276,7 @@ void Program() throws ParseException {
     }
   }
 
-  static final public void FormatE() throws ParseException {
+  final public void FormatE() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case REG_8:
     case REG_16:
@@ -294,32 +294,31 @@ void Program() throws ParseException {
     }
   }
 
-  static final public void FormatK() throws ParseException {
+  final public void FormatK() throws ParseException {
     jj_consume_token(38);
   }
 
-  static final public void FormatG() throws ParseException {
+  final public void FormatG() throws ParseException {
     jj_consume_token(38);
   }
 
 /* Both label and direct address */
-  static final public void FormatM() throws ParseException {
+  final public void FormatM() throws ParseException {
     jj_consume_token(38);
   }
 
-  static final public void FormatB() throws ParseException {
+  final public void FormatB() throws ParseException {
     jj_consume_token(38);
   }
 
-  static private boolean jj_initialized_once = false;
   /** Generated Token Manager. */
-  static public AssemblerTokenManager token_source;
-  static JavaCharStream jj_input_stream;
+  public AssemblerTokenManager token_source;
+  JavaCharStream jj_input_stream;
   /** Current token. */
-  static public Token token;
+  public Token token;
   /** Next token. */
-  static public Token jj_nt;
-  static private int jj_ntk;
+  public Token jj_nt;
+  private int jj_ntk;
 
   /** Constructor with InputStream. */
   public Assembler(java.io.InputStream stream) {
@@ -327,13 +326,6 @@ void Program() throws ParseException {
   }
   /** Constructor with InputStream and supplied encoding */
   public Assembler(java.io.InputStream stream, String encoding) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser.  ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     try { jj_input_stream = new JavaCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source = new AssemblerTokenManager(jj_input_stream);
     token = new Token();
@@ -341,11 +333,11 @@ void Program() throws ParseException {
   }
 
   /** Reinitialise. */
-  static public void ReInit(java.io.InputStream stream) {
+  public void ReInit(java.io.InputStream stream) {
      ReInit(stream, null);
   }
   /** Reinitialise. */
-  static public void ReInit(java.io.InputStream stream, String encoding) {
+  public void ReInit(java.io.InputStream stream, String encoding) {
     try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source.ReInit(jj_input_stream);
     token = new Token();
@@ -354,13 +346,6 @@ void Program() throws ParseException {
 
   /** Constructor. */
   public Assembler(java.io.Reader stream) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser. ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     jj_input_stream = new JavaCharStream(stream, 1, 1);
     token_source = new AssemblerTokenManager(jj_input_stream);
     token = new Token();
@@ -368,7 +353,7 @@ void Program() throws ParseException {
   }
 
   /** Reinitialise. */
-  static public void ReInit(java.io.Reader stream) {
+  public void ReInit(java.io.Reader stream) {
     jj_input_stream.ReInit(stream, 1, 1);
     token_source.ReInit(jj_input_stream);
     token = new Token();
@@ -377,13 +362,6 @@ void Program() throws ParseException {
 
   /** Constructor with generated Token Manager. */
   public Assembler(AssemblerTokenManager tm) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser. ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     token_source = tm;
     token = new Token();
     jj_ntk = -1;
@@ -396,7 +374,7 @@ void Program() throws ParseException {
     jj_ntk = -1;
   }
 
-  static private Token jj_consume_token(int kind) throws ParseException {
+  private Token jj_consume_token(int kind) throws ParseException {
     Token oldToken;
     if ((oldToken = token).next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
@@ -410,7 +388,7 @@ void Program() throws ParseException {
 
 
 /** Get the next Token. */
-  static final public Token getNextToken() {
+  final public Token getNextToken() {
     if (token.next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
     jj_ntk = -1;
@@ -418,7 +396,7 @@ void Program() throws ParseException {
   }
 
 /** Get the specific Token. */
-  static final public Token getToken(int index) {
+  final public Token getToken(int index) {
     Token t = token;
     for (int i = 0; i < index; i++) {
       if (t.next != null) t = t.next;
@@ -427,7 +405,7 @@ void Program() throws ParseException {
     return t;
   }
 
-  static private int jj_ntk_f() {
+  private int jj_ntk_f() {
     if ((jj_nt=token.next) == null)
       return (jj_ntk = (token.next=token_source.getNextToken()).kind);
     else
@@ -435,7 +413,7 @@ void Program() throws ParseException {
   }
 
   /** Generate ParseException. */
-  static public ParseException generateParseException() {
+  public ParseException generateParseException() {
     Token errortok = token.next;
     int line = errortok.beginLine, column = errortok.beginColumn;
     String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
@@ -443,11 +421,11 @@ void Program() throws ParseException {
   }
 
   /** Enable tracing. */
-  static final public void enable_tracing() {
+  final public void enable_tracing() {
   }
 
   /** Disable tracing. */
-  static final public void disable_tracing() {
+  final public void disable_tracing() {
   }
 
 }

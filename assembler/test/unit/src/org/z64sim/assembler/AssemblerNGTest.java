@@ -52,13 +52,10 @@ public class AssemblerNGTest {
         }
     }
 
-    /*
     @Test
-    public void testParser() throws Exception {
-        System.out.println("Program");
-        Assembler instance = null;
-        instance.Program();
-        fail("The test case is a prototype.");
+    public void testParser() throws FileNotFoundException, ParseException {
+        InputStream is = getClass().getResourceAsStream("test.asm");
+        Assembler a = new Assembler(is);
+        a.Program();
     }
-    */
 }
