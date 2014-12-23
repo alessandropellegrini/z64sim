@@ -5,10 +5,7 @@
  */
 package org.z64sim.editor;
 
-import java.awt.Rectangle;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
+import java.awt.Dimension;
 import org.z64sim.editor.jsyntaxpane.DefaultSyntaxKit;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -25,7 +22,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @TopComponent.Description(
         preferredID = "editorTopComponent",
-        iconBase = "org/z86sim/editor/editor.png",
+        iconBase = "org/z64sim/editor/editor.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
@@ -36,9 +33,9 @@ import org.openide.util.NbBundle.Messages;
         preferredID = "editorTopComponent"
 )
 @Messages({
-    "CTL_editorAction=editor",
-    "CTL_editorTopComponent=editor Window",
-    "HINT_editorTopComponent=This is a editor window"
+    "CTL_editorAction=Code Editor",
+    "CTL_editorTopComponent=Code Editor",
+    "HINT_editorTopComponent=Code Editor for z64 Assembly"
 })
 public final class editorTopComponent extends TopComponent {
     
@@ -50,14 +47,18 @@ public final class editorTopComponent extends TopComponent {
         scrollPane.setRowHeaderView(tln);
 
         // Connect the codeEditor with the syntax highlighter component
-//        DefaultSyntaxKit.initKit();
+        DefaultSyntaxKit.initKit();
         codeEditor.setContentType("text/z64asm");
         codeEditor.setText(".org\n\n.data\n\n.end");
         
         setName(Bundle.CTL_editorTopComponent());
         setToolTipText(Bundle.HINT_editorTopComponent());
         putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
-
+        
+        // Enable printing the source code
+        codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
+        codeEditor.putClientProperty("print.name", "new File"); // NOI18N
+        codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
     }
 
     /**
@@ -71,6 +72,7 @@ public final class editorTopComponent extends TopComponent {
         scrollPane = new javax.swing.JScrollPane();
         codeEditor = new javax.swing.JTextPane();
 
+        codeEditor.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
         scrollPane.setViewportView(codeEditor);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
