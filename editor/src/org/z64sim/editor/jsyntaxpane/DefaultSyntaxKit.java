@@ -209,7 +209,7 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
      * This is called to initialize the list of <code>Lexer</code>s we have.
      * You can call  this at initialization, or it will be called when needed.
      * The method will also add the appropriate EditorKit classes to the
-     * corresponding ContentType of the JEditorPane.  After this is called,
+     * corresponding ContentType of the JEditorPane. After this is called,
      * you can simply call the editor.setCOntentType("text/java") on the 
      * control and you will be done.
      */
