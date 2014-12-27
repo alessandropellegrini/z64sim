@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane.actions;
+package org.z64sim.editor.highlighter;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -27,8 +27,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
-import org.z64sim.editor.jsyntaxpane.SyntaxDocument;
-import org.z64sim.editor.jsyntaxpane.Token;
+import org.z64sim.editor.highlighter.SyntaxDocument;
+import org.z64sim.assembler.AsmToken;
 
 /**
  * Various utility methods to work on JEditorPane and its SyntaxDocument
@@ -140,7 +140,7 @@ public class ActionUtils {
     }
 
     /**
-     * Returns the the Token at pos as a String
+     * Returns the the AsmToken at pos as a String
      * @param doc
      * @param pos
      * @return
@@ -148,7 +148,7 @@ public class ActionUtils {
     public static String getTokenStringAt(
             SyntaxDocument doc, int pos) {
         String word = "";
-        Token t = doc.getTokenAt(pos);
+        AsmToken t = doc.getTokenAt(pos);
         if (t != null) {
             try {
                 word = doc.getText(t.start, t.length);
@@ -248,29 +248,6 @@ public class ActionUtils {
             Logger.getLogger(ActionUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return count;
-    }
-
-    /**
-     * Insert the given item into the combo box, and set it as first selected
-     * item.  If the item already exists, it is removed, so there are no
-     * duplicates.
-     * @param combo
-     * @param item
-     */
-    public static void insertIntoCombo(JComboBox combo, Object item) {
-        MutableComboBoxModel model = (MutableComboBoxModel) combo.getModel();
-        if (model.getSize() == 0) {
-            model.insertElementAt(item, 0);
-            return;
-        }
-
-        Object o = model.getElementAt(0);
-        if (o.equals(item)) {
-            return;
-        }
-        model.removeElement(item);
-        model.insertElementAt(item, 0);
-        combo.setSelectedIndex(0);
     }
 
     /**

@@ -11,9 +11,8 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane.components;
+package org.z64sim.editor.highlighter;
 
-import org.z64sim.editor.jsyntaxpane.actions.ActionUtils;
 import java.awt.Color;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,10 +21,8 @@ import java.util.logging.Logger;
 import javax.swing.JEditorPane;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import org.z64sim.editor.jsyntaxpane.SyntaxDocument;
-import org.z64sim.editor.jsyntaxpane.Token;
-import org.z64sim.editor.jsyntaxpane.TokenType;
-import org.z64sim.editor.jsyntaxpane.util.Configuration;
+import org.z64sim.editor.highlighter.SyntaxDocument;
+import org.z64sim.assembler.AsmToken;
 
 /**
  * This class highlights Tokens within a document whenever the caret is moved
@@ -33,18 +30,14 @@ import org.z64sim.editor.jsyntaxpane.util.Configuration;
  * 
  * @author Ayman Al-Sairafi
  */
-public class TokenMarker implements SyntaxComponent, CaretListener {
+public class TokenMarker implements CaretListener {
 
-    public static final String DEFAULT_TOKENTYPES = "IDENTIFIER, TYPE, TYPE2, TYPE3";
-    public static final String PROPERTY_COLOR = "TokenMarker.Color";
-    public static final String PROPERTY_TOKENTYPES = "TokenMarker.TokenTypes";
-    private static final int DEFAULT_COLOR = 16772710;
     private JEditorPane pane;
-    private Set<TokenType> tokenTypes = new HashSet<TokenType>();
+    private Set<Integer> tokenTypes = new HashSet<Integer>();
     private Markers.SimpleMarker marker;
 
     /**
-     * Constructs a new Token highlighter
+     * Constructs a new AsmToken highlighter
      */
     public TokenMarker() {
     }
@@ -53,9 +46,9 @@ public class TokenMarker implements SyntaxComponent, CaretListener {
     public void caretUpdate(CaretEvent e) {
         int pos = e.getDot();
         SyntaxDocument doc = ActionUtils.getSyntaxDocument(pane);
-        Token token = doc.getTokenAt(pos);
+        AsmToken token = doc.getTokenAt(pos);
         removeMarkers();
-        if (token != null && tokenTypes.contains(token.type)) {
+        if (token != null) {
             addMarkers(token);
         }
     }
@@ -71,13 +64,13 @@ public class TokenMarker implements SyntaxComponent, CaretListener {
      * add highlights for the given pattern
      * @param pattern
      */
-    void addMarkers(Token tok) {
+    void addMarkers(AsmToken tok) {
         SyntaxDocument sDoc = (SyntaxDocument) pane.getDocument();
         sDoc.readLock();
         String text = tok.getText(sDoc);
-        Iterator<Token> it = sDoc.getTokens(0, sDoc.getLength());
+        Iterator<AsmToken> it = sDoc.getTokens(0, sDoc.getLength());
         while (it.hasNext()) {
-            Token nextToken = it.next();
+            AsmToken nextToken = it.next();
             if (nextToken.length == tok.length && text.equals(nextToken.getText(sDoc))) {
                 Markers.markToken(pane, nextToken, marker);
             }
@@ -85,32 +78,11 @@ public class TokenMarker implements SyntaxComponent, CaretListener {
         sDoc.readUnlock();
     }
 
-    @Override
-    public void config(Configuration config, String prefix) {
-        Color markerColor = new Color(config.getPrefixInteger(prefix, 
-                PROPERTY_COLOR, DEFAULT_COLOR));
-        this.marker = new Markers.SimpleMarker(markerColor);
-        String types = config.getPrefixProperty(prefix,
-                PROPERTY_TOKENTYPES, DEFAULT_TOKENTYPES);
-
-        for (String type : types.split("\\s*,\\s*")) {
-            try {
-                TokenType tt = TokenType.valueOf(type);
-                tokenTypes.add(tt);
-            } catch (IllegalArgumentException e) {
-                LOG.warning("Error in setting up TokenMarker for " + prefix +
-                        " - Invalid TokenType: " + type);
-            }
-        }
-    }
-
-    @Override
     public void install(JEditorPane editor) {
         this.pane = editor;
         pane.addCaretListener(this);
     }
 
-    @Override
     public void deinstall(JEditorPane editor) {
         removeMarkers();
         pane.removeCaretListener(this);

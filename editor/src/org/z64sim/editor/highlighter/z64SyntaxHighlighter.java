@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane;
+package org.z64sim.editor.highlighter;
 
 import java.awt.Color;
 import java.util.logging.Level;
@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
 import javax.swing.KeyStroke;
@@ -37,46 +36,25 @@ import javax.swing.text.Keymap;
 import javax.swing.text.TextAction;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
-import org.z64sim.editor.jsyntaxpane.actions.SyntaxAction;
-import org.z64sim.editor.jsyntaxpane.components.SyntaxComponent;
-import org.z64sim.editor.jsyntaxpane.util.Configuration;
-//import org.z64sim.editor.jsyntaxpane.util.JarServiceProvider;
 
 /**
- * The DefaultSyntaxKit is the main entry to SyntaxPane.  To use the package, just 
+ * The z64SyntaxHighlighter is the main entry to SyntaxPane.  To use the package, just 
  * set the EditorKit of the EditorPane to a new instance of this class.
  * 
  * You need to pass a proper lexer to the class.
  * 
  * @author ayman
  */
-public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
+public class z64SyntaxHighlighter extends DefaultEditorKit implements ViewFactory {
 
-    public static Font DEFAULT_FONT;
-    private static Set<String> CONTENTS = new HashSet<String>();
-    private static boolean initialized = false;
-    private Lexer lexer;
-    private static final Logger LOG = Logger.getLogger(DefaultSyntaxKit.class.getName());
-    public static final Pattern COMMA_REGEX = Pattern.compile("\\w+,\\w+");
-    private List<SyntaxComponent> editorComponents = new ArrayList<SyntaxComponent>();
-    private Map<String, SyntaxAction> editorActions = new HashMap<String, SyntaxAction>();
-    /**
-     * Main Configuration of JSyntaxPane
-     */
-    private static Configuration CONFIG;
-
-
-    static {
-        initKit();
-    }
-
+//    public static Font DEFAULT_FONT;
+//    private static Set<String> CONTENTS = new HashSet<String>();
+    
     /**
      * Create a new Kit for the given language 
-     * @param lexer 
      */
-    public DefaultSyntaxKit(Lexer lexer) {
+    public z64SyntaxHighlighter() {
         super();
-        this.lexer = lexer;
     }
 
     @Override
@@ -86,7 +64,7 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
 
     @Override
     public View create(Element element) {
-        return new SyntaxView(element, CONFIG, this.getClass().getSimpleName());
+        return new SyntaxView(element);
     }
 
     /**
@@ -99,14 +77,27 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
     @Override
     public void install(JEditorPane editorPane) {
         super.install(editorPane);
-        editorPane.setFont(DEFAULT_FONT);
+        
+//        editorPane.setFont(DEFAULT_FONT);
         Keymap km_parent = JTextComponent.getKeymap(JTextComponent.DEFAULT_KEYMAP);
         Keymap km_new = JTextComponent.addKeymap(null, km_parent);
         String kitName = this.getClass().getSimpleName();
-        Color caretColor = CONFIG.getPrefixColor(kitName, "CaretColor", Color.BLACK);
+        Color caretColor = Color.BLACK;
         editorPane.setCaretColor(caretColor);
-        addSyntaxActions(km_new, kitName);
+//        addSyntaxActions(km_new, kitName);
         editorPane.setKeymap(km_new);
+        
+//        PairsMarker pm = new PairsMarker();
+        TokenMarker tm = new TokenMarker();
+
+        // TODO: si deve chiamare .config() di entrambi!
+        
+//        pm.install(editorPane);
+        tm.install(editorPane);
+//        editorComponents.add(pm);
+        
+//        editorPane.setDocument(this.createDefaultDocument());        
+        /*
         // install the components to the editor:
         String[] components = CONFIG.getPrefixPropertyList(kitName, "Components");
         for (String c : components) {
@@ -125,15 +116,16 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
                 LOG.log(Level.SEVERE, null, ex);
             }
         }
+        */
     }
 
     @Override
     public void deinstall(JEditorPane editorPane) {
-        for (SyntaxComponent c : editorComponents) {
+/*        for (SyntaxComponent c : editorComponents) {
             c.deinstall(editorPane);
         }
         editorComponents.clear();
-    }
+*/    }
 
     /**
      * Add keyboard actions to this control using the Configuration we have
@@ -144,12 +136,14 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
         // look at all keys that either start with prefix.Action, or
         // that start with Action.
 
-        Configuration actionsConf = CONFIG.subConfig(prefix, "Action.");
-
-        for (String actionName : actionsConf.stringPropertyNames()) {
-            String[] values = Configuration.COMMA_SEPARATOR.split(
-                    actionsConf.getProperty(actionName));
-            String actionClass = values[0];
+//        Configuration actionsConf = CONFIG.subConfig(prefix, "Action.");
+/*
+//        for (String actionName : actionsConf.stringPropertyNames()) {
+            String actionName = "";
+            String actionClass = "jsyntaxpane.components.TokenMarker";
+//            String[] values = Configuration.COMMA_SEPARATOR.split(
+//                    actionsConf.getProperty(actionName));
+//            String actionClass = values[0];
             SyntaxAction action = editorActions.get(actionClass);
             if (action == null) {
                 action = createAction(actionClass);
@@ -168,9 +162,9 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
                         actionName);
             }
             map.addActionForKeyStroke(ks, ta);
-        }
-    }
-
+//        }
+ */   }
+/*
     private SyntaxAction createAction(String actionClassName) {
         SyntaxAction action = null;
         try {
@@ -192,7 +186,7 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
         }
         return action;
     }
-
+*/
     /**
      * This is called by Swing to create a Document for the JEditorPane document
      * This may be called before you actually get a reference to the control.
@@ -202,7 +196,7 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
      */
     @Override
     public Document createDefaultDocument() {
-        return new SyntaxDocument(lexer);
+        return new SyntaxDocument();
     }
 
     /**
@@ -213,9 +207,9 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
      * you can simply call the editor.setCOntentType("text/java") on the 
      * control and you will be done.
      */
-    public static void initKit() {
+/*    public static void initKit() {
         // attempt to find a suitable default font
-  //      CONFIG = new Configuration(JarServiceProvider.readProperties("jsyntaxpane.config"));
+        CONFIG = new Configuration(new Properties());
 
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         String[] fonts = ge.getAvailableFontFamilyNames();
@@ -228,16 +222,18 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
             DEFAULT_FONT = new Font("Monospaced", Font.PLAIN, 13);
         }
 
+        registerContentType("text/z64asm", "org.z64sim.editor.jsyntaxpane.syntaxkits.z64SyntaxKit");
+        
         // read the Default Kits and their associated types
-/*        Properties kitsForTypes = JarServiceProvider.readProperties("jsyntaxpane.kitsfortypes");
+        Properties kitsForTypes = JarServiceProvider.readProperties("jsyntaxpane.kitsfortypes");
         for (String type : kitsForTypes.stringPropertyNames()) {
             String classname = kitsForTypes.getProperty(type);
             registerContentType(type, classname);
         }
-*/
+
         initialized = true;
     }
-
+*/
     /**
      * Register the given content type to use the given class name as its kit
      * When this is called, an entry is added into the private HashMap of the
@@ -248,7 +244,7 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
      */
     public static void registerContentType(String type, String classname) {
         JEditorPane.registerEditorKitForContentType(type, classname);
-        CONTENTS.add(type);
+//        CONTENTS.add(type);
     }
 
     /**
@@ -256,45 +252,45 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
      * content types in the file WEB-INF/services/resources/jsyntaxpane.kitsfortypes
      * @return sorted array of all registered content types
      */
-    public static String[] getContentTypes() {
+/*    public static String[] getContentTypes() {
         String[] types = CONTENTS.toArray(new String[0]);
         Arrays.sort(types);
         return types;
     }
-
+*/
     /**
      * returns the current config
      * @return
      */
-    public static Configuration getConfig() {
+/*    public static Configuration getConfig() {
         if (!initialized) {
             initKit();
         }
         return CONFIG;
     }
-
+*/
     /**
      * Merges the given properties with the defaults, which are read from the
      * Jar file
      * @param config
      */
-    public static void setConfig(Properties config) {
-        DefaultSyntaxKit.CONFIG.putAll(config);
+/*    public static void setConfig(Properties config) {
+        z64SyntaxHighlighter.CONFIG.putAll(config);
     }
-
+*/
     /**
      * Sets the given property to the given value.  If the kit is not
      * initialized,  then calls initKit
      * @param key
      * @param value
      */
-    public static void setProperty(String key, String value) {
+/*    public static void setProperty(String key, String value) {
         if (!initialized) {
             initKit();
         }
         CONFIG.put(key, value);
     }
-
+*/
     /**
      * Return the property with the given key.  If the kit is not
      * initialized,  then calls initKit
@@ -302,10 +298,11 @@ public class DefaultSyntaxKit extends DefaultEditorKit implements ViewFactory {
      * @param key
      * @return value for given key
      */
-    public static String getProperty(String key) {
+/*    public static String getProperty(String key) {
         if (!initialized) {
             initKit();
         }
         return CONFIG.getProperty(key);
     }
+*/
 }

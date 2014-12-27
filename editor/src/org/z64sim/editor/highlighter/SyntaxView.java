@@ -11,8 +11,9 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane;
+package org.z64sim.editor.highlighter;
 
+import org.z64sim.assembler.AsmToken;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -24,26 +25,21 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.security.auth.login.Configuration;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.text.PlainView;
 import javax.swing.text.Segment;
 import javax.swing.text.ViewFactory;
-import org.z64sim.editor.jsyntaxpane.util.Configuration;
+import org.z64sim.assembler.AssemblerTokenManager;
 
 public class SyntaxView extends PlainView {
-
-    public static final String PROPERTY_RIGHT_MARGIN_COLOR = "RightMarginColor";
-    public static final String PROPERTY_RIGHT_MARGIN_COLUMN = "RightMarginColumn";
-    public static final String PROPERTY_SINGLE_COLOR_SELECT = "SingleColorSelect";
-    public static final String PROPERTY_TEXTAA = "TextAA";
-    
+   
     private static final Logger log = Logger.getLogger(SyntaxView.class.getName());
-    private SyntaxStyle DEFAULT_STYLE = SyntaxStyles.getInstance().getStyle(TokenType.DEFAULT);
+    private final SyntaxStyle DEFAULT_STYLE = SyntaxStyles.getInstance().getStyle(AssemblerTokenManager.DEFAULT);
     private final boolean singleColorSelect;
     private final int rightMarginColumn;
     private final Color rightMarginColor;
-    private final Object textAAHint;
 
     /**
      * Construct a new view using the given configuration and prefix given
@@ -52,24 +48,18 @@ public class SyntaxView extends PlainView {
      * @param config
      * @param prefix
      */
-    public SyntaxView(Element element, Configuration config, String prefix) {
+    public SyntaxView(Element element) {
         super(element);
-        singleColorSelect = config.getPrefixBoolean(prefix, PROPERTY_SINGLE_COLOR_SELECT, false);
-        rightMarginColor = new Color(config.getPrefixInteger(prefix, PROPERTY_RIGHT_MARGIN_COLOR,
-                0xFF7777));
-        rightMarginColumn = config.getPrefixInteger(prefix, PROPERTY_RIGHT_MARGIN_COLUMN,
-                0);
-        String textaa = config.getPrefixProperty(prefix, PROPERTY_TEXTAA,
-                "DEFAULT");
-        textAAHint = TEXT_AA_HINT_NAMES.get(textaa);
+        singleColorSelect = true;
+        rightMarginColor = Color.GREEN;
+        rightMarginColumn = 10;
     }
 
     @Override
     protected int drawUnselectedText(Graphics graphics, int x, int y, int p0,
             int p1) {
         Graphics2D graphics2D = (Graphics2D) graphics;
-        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                textAAHint);
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         Font saveFont = graphics.getFont();
         Color saveColor = graphics.getColor();
         SyntaxDocument doc = (SyntaxDocument) getDocument();
@@ -84,10 +74,10 @@ public class SyntaxView extends PlainView {
         }
         try {
             // Colour the parts
-            Iterator<Token> i = doc.getTokens(p0, p1);
+            Iterator<AsmToken> i = doc.getTokens(p0, p1);
             int start = p0;
             while (i.hasNext()) {
-                Token t = i.next();
+                AsmToken t = i.next();
                 // if there is a gap between the next token start and where we
                 // should be starting (spaces not returned in tokens), then draw
                 // it in the default type

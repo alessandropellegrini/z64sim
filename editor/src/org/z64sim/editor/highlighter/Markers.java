@@ -1,10 +1,4 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
  * Copyright 2008 Ayman Al-Sairafi ayman.alsairafi@gmail.com
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -17,9 +11,9 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane.components;
+package org.z64sim.editor.highlighter;
 
-import org.z64sim.editor.jsyntaxpane.actions.ActionUtils;
+import org.z64sim.assembler.AsmToken;
 import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,8 +23,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
-import org.z64sim.editor.jsyntaxpane.SyntaxDocument;
-import org.z64sim.editor.jsyntaxpane.Token;
 
 /**
  * This class contains static utility methods to make highliting in text 
@@ -79,12 +71,12 @@ public class Markers {
     }
 
     /**
-     * add highlights for the given Token on the given pane
+     * add highlights for the given AsmToken on the given pane
      * @param pane
      * @param token
      * @param marker
      */
-    public static void markToken(JTextComponent pane, Token token, SimpleMarker marker) {
+    public static void markToken(JTextComponent pane, AsmToken token, SimpleMarker marker) {
         markText(pane, token.start, token.end(), marker);
     }
 

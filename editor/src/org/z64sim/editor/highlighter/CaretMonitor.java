@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.z64sim.editor.jsyntaxpane.actions;
+package org.z64sim.editor.highlighter;
 
 import javax.swing.JLabel;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
-import org.z64sim.editor.jsyntaxpane.SyntaxDocument;
+import org.z64sim.editor.highlighter.SyntaxDocument;
 
 /**
  * This class can be used to display the caret location in friendly manner for

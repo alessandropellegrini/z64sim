@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane;
+package org.z64sim.editor.highlighter;
 
 import java.awt.Color;
 import java.awt.Font;

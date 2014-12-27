@@ -11,10 +11,11 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane;
+package org.z64sim.editor.highlighter;
 
+import org.z64sim.assembler.AsmToken;
 import java.io.CharArrayReader;
-import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -32,24 +33,33 @@ import javax.swing.text.Element;
 import javax.swing.text.PlainDocument;
 import javax.swing.text.Segment;
 import javax.swing.undo.UndoManager;
+import org.openide.util.Exceptions;
+import org.z64sim.assembler.AssemblerTokenManager;
+import org.z64sim.assembler.JavaCharStream;
 
 /**
- * A document that supports being highlighted.  The document maintains an
- * internal List of all the Tokens.  The Tokens are updated using
- * a Lexer, passed to it during construction.
- * 
+ * A document that supports being highlighted. The document maintains an
+ * internal List of all the Tokens. The Tokens are updated using a Lexer, passed
+ * to it during construction.
+ *
  * @author Ayman Al-Sairafi
  */
 public class SyntaxDocument extends PlainDocument {
 
-    Lexer lexer;
-    List<Token> tokens;
-    UndoManager undo = new CompoundUndoManager();
+    AssemblerTokenManager lexer;
+    JavaCharStream stream;
+    
+    List<AsmToken> tokens;
+    UndoManager undo = new UndoManager();
 
-    public SyntaxDocument(Lexer lexer) {
+    public SyntaxDocument() {
         super();
         putProperty(PlainDocument.tabSizeAttribute, 4);
-        this.lexer = lexer;
+        
+        // Lexer is static, so we simply initialize to a dummy null state
+        this.stream = new JavaCharStream((Reader)null);
+        this.lexer = new AssemblerTokenManager(null);
+
         // Listen for undo and redo events
         addUndoableEditListener(new UndoableEditListener() {
 
@@ -64,9 +74,10 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Parse the entire document and return list of tokens that do not already
-     * exist in the tokens list.  There may be overlaps, and replacements, 
-     * which we will cleanup later.
-     * @return list of tokens that do not exist in the tokens field 
+     * exist in the tokens list. There may be overlaps, and replacements, which
+     * we will cleanup later.
+     *
+     * @return list of tokens that do not exist in the tokens field
      */
     private void parse() {
         // if we have no lexer, then we must have no tokens...
@@ -74,30 +85,27 @@ public class SyntaxDocument extends PlainDocument {
             tokens = null;
             return;
         }
-        List<Token> toks = new ArrayList<Token>(getLength() / 10);
-        long ts = System.nanoTime();
-        int len = getLength();
+
+        List<AsmToken> toks = new ArrayList<AsmToken>(getLength() / 10);
+
+        Segment seg = new Segment();
+        
         try {
-            Segment seg = new Segment();
             getText(0, getLength(), seg);
-            CharArrayReader reader = new CharArrayReader(seg.array, seg.offset, seg.count);
-            lexer.yyreset(reader);
-            Token token;
-            while ((token = lexer.yylex()) != null) {
-                toks.add(token);
-            }
         } catch (BadLocationException ex) {
-            log.log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            // This will not be thrown from the Lexer
-            log.log(Level.SEVERE, null, ex);
-        } finally {
-            if (log.isLoggable(Level.FINEST)) {
-                log.finest(String.format("Parsed %d in %d ms, giving %d tokens\n",
-                        len, (System.nanoTime() - ts) / 1000000, toks.size()));
-            }
-            tokens = toks;
+            Exceptions.printStackTrace(ex);
         }
+        
+        CharArrayReader reader = new CharArrayReader(seg.array, seg.offset, seg.count);
+        stream.ReInit(reader);
+        lexer.ReInit(stream);
+
+        AsmToken token;
+        while ((token = lexer.getNextToken()).token.kind != AssemblerTokenManager.EOF) {
+            toks.add(token);
+        }
+
+        tokens = toks;
     }
 
     @Override
@@ -126,22 +134,24 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Replace the token with the replacement string
+     *
      * @param token
      * @param replacement
      */
-    public void replaceToken(Token token, String replacement) {
+    public void replaceToken(AsmToken token, String replacement) {
         try {
             replace(token.start, token.length, replacement, null);
         } catch (BadLocationException ex) {
             log.log(Level.WARNING, "unable to replace token: " + token, ex);
+
         }
     }
 
     /**
      * This class is used to iterate over tokens between two positions
-     * 
+     *
      */
-    class TokenIterator implements ListIterator<Token> {
+    private class TokenIterator implements ListIterator<AsmToken> {
 
         int start;
         int end;
@@ -152,14 +162,14 @@ public class SyntaxDocument extends PlainDocument {
             this.start = start;
             this.end = end;
             if (tokens != null && !tokens.isEmpty()) {
-                Token token = new Token(TokenType.COMMENT, start, end - start);
-                ndx = Collections.binarySearch((List) tokens, token);
+                AsmToken token = new AsmToken(AssemblerTokenManager.COMMENT, start, end - start);
+                ndx = Collections.binarySearch((List)tokens, token);
                 // we will probably not find the exact token...
                 if (ndx < 0) {
                     // so, start from one before the token where we should be...
                     // -1 to get the location, and another -1 to go back..
                     ndx = (-ndx - 1 - 1 < 0) ? 0 : (-ndx - 1 - 1);
-                    Token t = tokens.get(ndx);
+                    AsmToken t = tokens.get(ndx);
                     // if the prev token does not overlap, then advance one
                     if (t.end() <= start) {
                         ndx++;
@@ -177,7 +187,7 @@ public class SyntaxDocument extends PlainDocument {
             if (ndx >= tokens.size()) {
                 return false;
             }
-            Token t = tokens.get(ndx);
+            AsmToken t = tokens.get(ndx);
             if (t.start >= end) {
                 return false;
             }
@@ -185,7 +195,7 @@ public class SyntaxDocument extends PlainDocument {
         }
 
         @Override
-        public Token next() {
+        public AsmToken next() {
             return tokens.get(ndx++);
         }
 
@@ -201,7 +211,7 @@ public class SyntaxDocument extends PlainDocument {
             if (ndx <= 0) {
                 return false;
             }
-            Token t = tokens.get(ndx);
+            AsmToken t = tokens.get(ndx);
             if (t.end() <= start) {
                 return false;
             }
@@ -209,7 +219,7 @@ public class SyntaxDocument extends PlainDocument {
         }
 
         @Override
-        public Token previous() {
+        public AsmToken previous() {
             return tokens.get(ndx--);
         }
 
@@ -224,45 +234,47 @@ public class SyntaxDocument extends PlainDocument {
         }
 
         @Override
-        public void set(Token e) {
+        public void set(AsmToken e) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void add(Token e) {
+        public void add(AsmToken e) {
             throw new UnsupportedOperationException();
         }
     }
 
     /**
      * Return an iterator of tokens between p0 and p1.
+     *
      * @param start start position for getting tokens
      * @param end position for last token
      * @return Iterator for tokens that overal with range from start to end
      */
-    public Iterator<Token> getTokens(int start, int end) {
+    public Iterator<AsmToken> getTokens(int start, int end) {
         return new TokenIterator(start, end);
     }
 
     /**
-     * Find the token at a given position.  May return null if no token is
-     * found (whitespace skipped) or if the position is out of range:
+     * Find the token at a given position. May return null if no token is found
+     * (whitespace skipped) or if the position is out of range:
+     *
      * @param pos
      * @return
      */
-    public Token getTokenAt(int pos) {
+    public AsmToken getTokenAt(int pos) {
         if (tokens == null || tokens.isEmpty() || pos > getLength()) {
             return null;
         }
-        Token tok = null;
-        Token tKey = new Token(TokenType.DEFAULT, pos, 1);
+        AsmToken tok = null;
+        AsmToken tKey = new AsmToken(AssemblerTokenManager.DEFAULT, pos, 1);
         @SuppressWarnings("unchecked")
         int ndx = Collections.binarySearch((List) tokens, tKey);
         if (ndx < 0) {
             // so, start from one before the token where we should be...
             // -1 to get the location, and another -1 to go back..
             ndx = (-ndx - 1 - 1 < 0) ? 0 : (-ndx - 1 - 1);
-            Token t = tokens.get(ndx);
+            AsmToken t = tokens.get(ndx);
             if ((t.start <= pos) && (pos <= t.end())) {
                 tok = t;
             }
@@ -274,19 +286,19 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * This is used to return the other part of a paired token in the document.
-     * A paired part has token.pairValue <> 0, and the paired token will
-     * have the negative of t.pairValue.
-     * This method properly handles nestings of same pairValues, but overlaps
-     * are not checked.
-     * if The document does not contain a paired
+     * A paired part has token.pairValue <> 0, and the paired token will have
+     * the negative of t.pairValue. This method properly handles nestings of
+     * same pairValues, but overlaps are not checked. if The document does not
+     * contain a paired
+     *
      * @param t
      * @return the other pair's token, or null if nothing is found.
      */
-    public Token getPairFor(Token t) {
+/*    public AsmToken getPairFor(AsmToken t) {
         if (t == null || t.pairValue == 0) {
             return null;
         }
-        Token p = null;
+        AsmToken p = null;
         int ndx = tokens.indexOf(t);
         // w will be similar to a stack. The openners weght is added to it
         // and the closers are subtracted from it (closers are already negative)
@@ -299,7 +311,7 @@ public class SyntaxDocument extends PlainDocument {
             if (ndx < 0 || ndx >= tokens.size()) {
                 break;
             }
-            Token current = tokens.get(ndx);
+            AsmToken current = tokens.get(ndx);
             if (Math.abs(current.pairValue) == v) {
                 w += current.pairValue;
                 if (w == 0) {
@@ -311,7 +323,7 @@ public class SyntaxDocument extends PlainDocument {
 
         return p;
     }
-
+*/
     /**
      * Perform an undo action, if possible
      */
@@ -333,8 +345,9 @@ public class SyntaxDocument extends PlainDocument {
     }
 
     /**
-     * Find the location of the given String in the document.  returns -1
-     * if the search string is not found starting at position <code>start</code>
+     * Find the location of the given String in the document. returns -1 if the
+     * search string is not found starting at position <code>start</code>
+     *
      * @param search The String to search for
      * @param start The beginning index of search
      * @return
@@ -350,6 +363,7 @@ public class SyntaxDocument extends PlainDocument {
     /**
      * Find the next position that matches <code>pattern</code> in the document.
      * returns -1 if the pattern is not found.
+     *
      * @param pattern the regex pattern to find
      * @param start The beginning index of search
      * @return
@@ -378,6 +392,7 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Return a matcher that matches the given pattern on the entire document
+     *
      * @param pattern
      * @return matcher object
      */
@@ -387,8 +402,8 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Return a matcher that matches the given pattern in the part of the
-     * document starting at offset start.  Note that the matcher will have
-     * offset starting from <code>start</code>
+     * document starting at offset start. Note that the matcher will have offset
+     * starting from <code>start</code>
      *
      * @param pattern
      * @param start
@@ -401,9 +416,8 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Return a matcher that matches the given pattern in the part of the
-     * document starting at offset start and ending at start + length.
-     * Note that the matcher will have
-     * offset starting from <code>start</code>
+     * document starting at offset start and ending at start + length. Note that
+     * the matcher will have offset starting from <code>start</code>
      *
      * @param pattern
      * @param start
@@ -434,8 +448,9 @@ public class SyntaxDocument extends PlainDocument {
     }
 
     /**
-     * Gets the line at given position.  The line returned will NOT include
-     * the line terminator '\n'
+     * Gets the line at given position. The line returned will NOT include the
+     * line terminator '\n'
+     *
      * @param pos Position (usually from text.getCaretPosition()
      * @return the STring of text at given position
      * @throws BadLocationException
@@ -453,6 +468,7 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Deletes the line at given position
+     *
      * @param pos
      * @throws javax.swing.text.BadLocationException
      */
@@ -465,6 +481,7 @@ public class SyntaxDocument extends PlainDocument {
     /**
      * Replace the line at given position with the given string, which can span
      * multiple lines
+     *
      * @param pos
      * @param newLines
      * @throws javax.swing.text.BadLocationException
@@ -476,8 +493,9 @@ public class SyntaxDocument extends PlainDocument {
     }
 
     /**
-     * Helper method to get the length of an element and avoid getting
-     * a too long element at the end of the document
+     * Helper method to get the length of an element and avoid getting a too
+     * long element at the end of the document
+     *
      * @param e
      * @return
      */
@@ -492,6 +510,7 @@ public class SyntaxDocument extends PlainDocument {
     /**
      * Gets the text without the comments. For example for the string
      * <code>{ // it's a comment</code> this method will return "{ ".
+     *
      * @param aStart start of the text.
      * @param anEnd end of the text.
      * @return String for the line without comments (if exists).
@@ -499,10 +518,10 @@ public class SyntaxDocument extends PlainDocument {
     public synchronized String getUncommentedText(int aStart, int anEnd) {
         readLock();
         StringBuilder result = new StringBuilder();
-        Iterator<Token> iter = getTokens(aStart, anEnd);
+        Iterator<AsmToken> iter = getTokens(aStart, anEnd);
         while (iter.hasNext()) {
-            Token t = iter.next();
-            if (TokenType.COMMENT != t.type && TokenType.COMMENT2 != t.type) {
+            AsmToken t = iter.next();
+            if (AssemblerTokenManager.COMMENT != t.token.kind) {
                 result.append(t.getText(this));
             }
         }
@@ -512,6 +531,7 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Returns the starting position of the line at pos
+     *
      * @param pos
      * @return starting position of the line
      */
@@ -520,9 +540,9 @@ public class SyntaxDocument extends PlainDocument {
     }
 
     /**
-     * Returns the end position of the line at pos.
-     * Does a bounds check to ensure the returned value does not exceed
-     * document length
+     * Returns the end position of the line at pos. Does a bounds check to
+     * ensure the returned value does not exceed document length
+     *
      * @param pos
      * @return
      */
@@ -537,6 +557,7 @@ public class SyntaxDocument extends PlainDocument {
 
     /**
      * Return the number of lines in this document
+     *
      * @return
      */
     public int getLineCount() {
@@ -546,7 +567,8 @@ public class SyntaxDocument extends PlainDocument {
     }
 
     /**
-     * Return the line number at given position.  The line numbers are zero based
+     * Return the line number at given position. The line numbers are zero based
+     *
      * @param pos
      * @return
      */
@@ -557,10 +579,11 @@ public class SyntaxDocument extends PlainDocument {
 
     @Override
     public String toString() {
-        return "SyntaxDocument(" + lexer + ", " + ((tokens == null) ? 0 : tokens.size()) + " tokens)@" +
-                hashCode();
+        return "SyntaxDocument(" + lexer + ", " + ((tokens == null) ? 0 : tokens.size()) + " tokens)@"
+                + hashCode();
     }
 
 // our logger instance...
-    private static final Logger log = Logger.getLogger(SyntaxDocument.class.getName());
+    private static final Logger log = Logger.getLogger(SyntaxDocument.class
+            .getName());
 }

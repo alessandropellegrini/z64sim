@@ -1,11 +1,12 @@
 options {
     DEBUG_TOKEN_MANAGER = true;
+    DEBUG_PARSER = true;
     JAVA_UNICODE_ESCAPE = true;
     ERROR_REPORTING = false;
-    STATIC = false;
-    COMMON_TOKEN_ACTION = false;
-    TOKEN_FACTORY = "Token";
-    JDK_VERSION = "1.5";
+    STATIC = true;
+    TOKEN_EXTENDS = "AsmToken";
+    COMMON_TOKEN_ACTION = true;
+    JDK_VERSION = "1.7";
     BUILD_PARSER = true;
     IGNORE_CASE = true;
 }
@@ -200,3 +201,15 @@ void FormatM() :
 void FormatB() :
 {}
 { "." }
+
+
+TOKEN_MGR_DECLS:
+{
+    static void CommonTokenAction(Token t)
+    {
+        AsmToken token = (AsmToken)t;
+        token.start = input_stream.tokenBegin;
+        token.length = input_stream.bufpos - token.start;
+        token.token = t;
+    }
+}

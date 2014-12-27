@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and 
  * limitations under the License.  
  */
-package org.z64sim.editor.jsyntaxpane;
+package org.z64sim.assembler;
 
 import java.io.Serializable;
 import java.util.logging.Level;
@@ -19,56 +19,38 @@ import java.util.logging.Logger;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-public class Token implements Serializable, Comparable {
+public class AsmToken implements Serializable, Comparable {
 
-    public final TokenType type;
-    public final int start;
-    public final int length;
-    /**
-     * the pair value to use if this token is one of a pair:
-     * This is how it is used:
-     * The openning part will have a positive number X
-     * The closing part will have a negative number X
-     * X should be unique for a pair:
-     *   e.g. for [ pairValue = +1
-     *        for ] pairValue = -1
-     */
-    public final byte pairValue;
+    public int start;
+    public int length;
+    public Token token;
 
     /**
      * Constructs a new token
-     * @param type
-     * @param start
-     * @param length
+     * Actually, this should be never called directly, as this is just a superclass
+     * of Token, which is used to keep the position of the token in the character
+     * stream in a vector-like way, so that when Tokens are used by the Syntax
+     * Highlighter, the identification of the position in the text can be done much
+     * more easily. It is the JavaCC lexer that, upon the creation of a Token,
+     * correctly initializes the elements of this super class as well.
      */
-    public Token(TokenType type, int start, int length) {
-        this.type = type;
-        this.start = start;
-        this.length = length;
-        this.pairValue = 0;
+    public AsmToken() {
     }
-
-    /**
-     * Construct a new part of pair token
-     * @param type
-     * @param start
-     * @param length
-     * @param pairValue
-     */
-    public Token(TokenType type, int start, int length, byte pairValue) {
-        this.type = type;
+    
+    public AsmToken(int kind, int start, int length) {
+        this.token = new Token();
+        this.token.kind = kind;
         this.start = start;
         this.length = length;
-        this.pairValue = pairValue;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Object) {
-            Token token = (Token) obj;
-            return ((this.start == token.start) &&
-                    (this.length == token.length) &&
-                    (this.type.equals(token.type)));
+            AsmToken t = (AsmToken) obj;
+            return ((this.start == t.start) &&
+                    (this.length == t.length) &&
+                    (this.token.kind == t.token.kind));
         } else {
             return false;
         }
@@ -81,18 +63,19 @@ public class Token implements Serializable, Comparable {
 
     @Override
     public String toString() {
-        return String.format("%s (%d, %d) (%d)", type, start, length, pairValue);
+        return String.format("%s (%d, %d)", this.token.kind, start, length);
     }
 
     @Override
     public int compareTo(Object o) {
-        Token t = (Token) o;
+        AsmToken t = (AsmToken) o;
         if (this.start !=  t.start) {
             return (this.start - t.start);
         } else if(this.length != t.length) {
             return (this.length - t.length);
         } else {
-            return this.type.compareTo(t.type);
+            Integer i = this.token.kind;
+            return i.compareTo(t.token.kind);
         }
     }
 
@@ -114,7 +97,7 @@ public class Token implements Serializable, Comparable {
         try {
             text = doc.getText(start, length);
         } catch (BadLocationException ex) {
-            Logger.getLogger(Token.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AsmToken.class.getName()).log(Level.SEVERE, null, ex);
         }
         return text;
     }
