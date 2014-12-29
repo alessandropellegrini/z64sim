@@ -16,190 +16,120 @@ public class Assembler implements AssemblerConstants {
 /****************
  * PARSER RULES *
  ****************/
-  static final public 
+  final public 
 
 void Program() throws ParseException {
-    trace_call("Program");
-    try {
-      jj_consume_token(PROGRAM_BEGIN);
-      label_1:
-      while (true) {
-        Instruction();
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case INSN_0:
-        case INSN_0_WQ:
-        case INSN_0_NOSUFF:
-        case INSN_1_S:
-        case INSN_1_E:
-        case INSN_SHIFT:
-        case INSN_1_M:
-        case INSN_JC:
-        case INSN_B_E:
-        case INSN_EXT:
-        case INSN_IN:
-        case INSN_OUT:
-        case INSN_IO_S:{
-          ;
-          break;
-          }
-        default:
-          break label_1;
-        }
-      }
-      jj_consume_token(PROGRAM_END);
-      jj_consume_token(0);
-    } finally {
-      trace_return("Program");
-    }
-  }
-
-  static final public void Instruction() throws ParseException {
-    trace_call("Instruction");
-    try {
+    jj_consume_token(PROGRAM_BEGIN);
+    label_1:
+    while (true) {
+      Instruction();
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case INSN_0:{
-        jj_consume_token(INSN_0);
-        break;
-        }
-      case INSN_0_WQ:{
-        jj_consume_token(INSN_0_WQ);
-        break;
-        }
-      case INSN_0_NOSUFF:{
-        jj_consume_token(INSN_0_NOSUFF);
-        break;
-        }
-      case INSN_1_S:{
-        jj_consume_token(INSN_1_S);
-        jj_consume_token(NUMBER);
-        break;
-        }
-      case INSN_1_E:{
-        jj_consume_token(INSN_1_E);
-        FormatE();
-        break;
-        }
-      case INSN_SHIFT:{
-        jj_consume_token(INSN_SHIFT);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case 38:{
-          FormatK();
-          jj_consume_token(34);
-          break;
-          }
-        default:
-          ;
-        }
-        FormatG();
-        break;
-        }
-      case INSN_1_M:{
-        jj_consume_token(INSN_1_M);
-        FormatM();
-        break;
-        }
-      case INSN_JC:{
-        jj_consume_token(INSN_JC);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case 38:{
-          FormatM();
-          break;
-          }
-        case 35:{
-          jj_consume_token(35);
-          FormatG();
-          break;
-          }
-        default:
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-        break;
-        }
-      case INSN_B_E:{
-        jj_consume_token(INSN_B_E);
-        FormatB();
-        jj_consume_token(34);
-        FormatE();
-        break;
-        }
-      case INSN_EXT:{
-        jj_consume_token(INSN_EXT);
-        FormatE();
-        jj_consume_token(34);
-        FormatG();
-        break;
-        }
-      case INSN_IN:{
-        jj_consume_token(INSN_IN);
-        jj_consume_token(REG_16);
-        jj_consume_token(34);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case REG_8:{
-          jj_consume_token(REG_8);
-          break;
-          }
-        case REG_16:{
-          jj_consume_token(REG_16);
-          break;
-          }
-        case REG_32:{
-          jj_consume_token(REG_32);
-          break;
-          }
-        case REG_64:{
-          jj_consume_token(REG_64);
-          break;
-          }
-        default:
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-        break;
-        }
-      case INSN_OUT:{
-        jj_consume_token(INSN_OUT);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case REG_8:{
-          jj_consume_token(REG_8);
-          break;
-          }
-        case REG_16:{
-          jj_consume_token(REG_16);
-          break;
-          }
-        case REG_32:{
-          jj_consume_token(REG_32);
-          break;
-          }
-        case REG_64:{
-          jj_consume_token(REG_64);
-          break;
-          }
-        default:
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-        jj_consume_token(34);
-        jj_consume_token(REG_16);
-        break;
-        }
+      case INSN_0:
+      case INSN_0_WQ:
+      case INSN_0_NOSUFF:
+      case INSN_1_S:
+      case INSN_1_E:
+      case INSN_SHIFT:
+      case INSN_1_M:
+      case INSN_JC:
+      case INSN_B_E:
+      case INSN_EXT:
+      case INSN_IN:
+      case INSN_OUT:
       case INSN_IO_S:{
-        jj_consume_token(INSN_IO_S);
+        ;
         break;
         }
       default:
+        jj_la1[0] = jj_gen;
+        break label_1;
+      }
+    }
+    jj_consume_token(PROGRAM_END);
+    jj_consume_token(0);
+  }
+
+  final public void Instruction() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case INSN_0:{
+      jj_consume_token(INSN_0);
+      break;
+      }
+    case INSN_0_WQ:{
+      jj_consume_token(INSN_0_WQ);
+      break;
+      }
+    case INSN_0_NOSUFF:{
+      jj_consume_token(INSN_0_NOSUFF);
+      break;
+      }
+    case INSN_1_S:{
+      jj_consume_token(INSN_1_S);
+      jj_consume_token(NUMBER);
+      break;
+      }
+    case INSN_1_E:{
+      jj_consume_token(INSN_1_E);
+      FormatE();
+      break;
+      }
+    case INSN_SHIFT:{
+      jj_consume_token(INSN_SHIFT);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case 38:{
+        FormatK();
+        jj_consume_token(34);
+        break;
+        }
+      default:
+        jj_la1[1] = jj_gen;
+        ;
+      }
+      FormatG();
+      break;
+      }
+    case INSN_1_M:{
+      jj_consume_token(INSN_1_M);
+      FormatM();
+      break;
+      }
+    case INSN_JC:{
+      jj_consume_token(INSN_JC);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case 38:{
+        FormatM();
+        break;
+        }
+      case 35:{
+        jj_consume_token(35);
+        FormatG();
+        break;
+        }
+      default:
+        jj_la1[2] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
-    } finally {
-      trace_return("Instruction");
-    }
-  }
-
-  static final public void Register() throws ParseException {
-    trace_call("Register");
-    try {
+      break;
+      }
+    case INSN_B_E:{
+      jj_consume_token(INSN_B_E);
+      FormatB();
+      jj_consume_token(34);
+      FormatE();
+      break;
+      }
+    case INSN_EXT:{
+      jj_consume_token(INSN_EXT);
+      FormatE();
+      jj_consume_token(34);
+      FormatG();
+      break;
+      }
+    case INSN_IN:{
+      jj_consume_token(INSN_IN);
+      jj_consume_token(REG_16);
+      jj_consume_token(34);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case REG_8:{
         jj_consume_token(REG_8);
@@ -218,153 +148,203 @@ void Program() throws ParseException {
         break;
         }
       default:
+        jj_la1[3] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
-    } finally {
-      trace_return("Register");
-    }
-  }
-
-  static final public void Addressing() throws ParseException {
-    trace_call("Addressing");
-    try {
+      break;
+      }
+    case INSN_OUT:{
+      jj_consume_token(INSN_OUT);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case CONSTANT:{
-        jj_consume_token(CONSTANT);
+      case REG_8:{
+        jj_consume_token(REG_8);
         break;
         }
-      default:
-        ;
-      }
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 36:{
-        jj_consume_token(36);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case REG_8:{
-          jj_consume_token(REG_8);
-          break;
-          }
-        case REG_16:{
-          jj_consume_token(REG_16);
-          break;
-          }
-        case REG_32:{
-          jj_consume_token(REG_32);
-          break;
-          }
-        case REG_64:{
-          jj_consume_token(REG_64);
-          break;
-          }
-        default:
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-        jj_consume_token(34);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case REG_8:{
-          jj_consume_token(REG_8);
-          break;
-          }
-        case REG_16:{
-          jj_consume_token(REG_16);
-          break;
-          }
-        case REG_32:{
-          jj_consume_token(REG_32);
-          break;
-          }
-        case REG_64:{
-          jj_consume_token(REG_64);
-          break;
-          }
-        default:
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-        jj_consume_token(34);
-        jj_consume_token(SCALE);
-        jj_consume_token(37);
+      case REG_16:{
+        jj_consume_token(REG_16);
         break;
         }
-      default:
-        ;
-      }
-    } finally {
-      trace_return("Addressing");
-    }
-  }
-
-  static final public void FormatE() throws ParseException {
-    trace_call("FormatE");
-    try {
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case REG_8:
-      case REG_16:
-      case REG_32:
+      case REG_32:{
+        jj_consume_token(REG_32);
+        break;
+        }
       case REG_64:{
-        Register();
-        break;
-        }
-      case CONSTANT:{
-        jj_consume_token(CONSTANT);
+        jj_consume_token(REG_64);
         break;
         }
       default:
-        Addressing();
+        jj_la1[4] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
       }
-    } finally {
-      trace_return("FormatE");
+      jj_consume_token(34);
+      jj_consume_token(REG_16);
+      break;
+      }
+    case INSN_IO_S:{
+      jj_consume_token(INSN_IO_S);
+      break;
+      }
+    default:
+      jj_la1[5] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
     }
   }
 
-  static final public void FormatK() throws ParseException {
-    trace_call("FormatK");
-    try {
-      jj_consume_token(38);
-    } finally {
-      trace_return("FormatK");
+  final public void Register() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case REG_8:{
+      jj_consume_token(REG_8);
+      break;
+      }
+    case REG_16:{
+      jj_consume_token(REG_16);
+      break;
+      }
+    case REG_32:{
+      jj_consume_token(REG_32);
+      break;
+      }
+    case REG_64:{
+      jj_consume_token(REG_64);
+      break;
+      }
+    default:
+      jj_la1[6] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
     }
   }
 
-  static final public void FormatG() throws ParseException {
-    trace_call("FormatG");
-    try {
-      jj_consume_token(38);
-    } finally {
-      trace_return("FormatG");
+  final public void Addressing() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case CONSTANT:{
+      jj_consume_token(CONSTANT);
+      break;
+      }
+    default:
+      jj_la1[7] = jj_gen;
+      ;
     }
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case 36:{
+      jj_consume_token(36);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case REG_8:{
+        jj_consume_token(REG_8);
+        break;
+        }
+      case REG_16:{
+        jj_consume_token(REG_16);
+        break;
+        }
+      case REG_32:{
+        jj_consume_token(REG_32);
+        break;
+        }
+      case REG_64:{
+        jj_consume_token(REG_64);
+        break;
+        }
+      default:
+        jj_la1[8] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      jj_consume_token(34);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case REG_8:{
+        jj_consume_token(REG_8);
+        break;
+        }
+      case REG_16:{
+        jj_consume_token(REG_16);
+        break;
+        }
+      case REG_32:{
+        jj_consume_token(REG_32);
+        break;
+        }
+      case REG_64:{
+        jj_consume_token(REG_64);
+        break;
+        }
+      default:
+        jj_la1[9] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      jj_consume_token(34);
+      jj_consume_token(SCALE);
+      jj_consume_token(37);
+      break;
+      }
+    default:
+      jj_la1[10] = jj_gen;
+      ;
+    }
+  }
+
+  final public void FormatE() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case REG_8:
+    case REG_16:
+    case REG_32:
+    case REG_64:{
+      Register();
+      break;
+      }
+    case CONSTANT:{
+      jj_consume_token(CONSTANT);
+      break;
+      }
+    default:
+      jj_la1[11] = jj_gen;
+      Addressing();
+    }
+  }
+
+  final public void FormatK() throws ParseException {
+    jj_consume_token(38);
+  }
+
+  final public void FormatG() throws ParseException {
+    jj_consume_token(38);
   }
 
 /* Both label and direct address */
-  static final public void FormatM() throws ParseException {
-    trace_call("FormatM");
-    try {
-      jj_consume_token(38);
-    } finally {
-      trace_return("FormatM");
-    }
+  final public void FormatM() throws ParseException {
+    jj_consume_token(38);
   }
 
-  static final public void FormatB() throws ParseException {
-    trace_call("FormatB");
-    try {
-      jj_consume_token(38);
-    } finally {
-      trace_return("FormatB");
-    }
+  final public void FormatB() throws ParseException {
+    jj_consume_token(38);
   }
 
-  static private boolean jj_initialized_once = false;
   /** Generated Token Manager. */
-  static public AssemblerTokenManager token_source;
-  static JavaCharStream jj_input_stream;
+  public AssemblerTokenManager token_source;
+  JavaCharStream jj_input_stream;
   /** Current token. */
-  static public Token token;
+  public Token token;
   /** Next token. */
-  static public Token jj_nt;
-  static private int jj_ntk;
+  public Token jj_nt;
+  private int jj_ntk;
+  private int jj_gen;
+  final private int[] jj_la1 = new int[12];
+  static private int[] jj_la1_0;
+  static private int[] jj_la1_1;
+  static {
+      jj_la1_init_0();
+      jj_la1_init_1();
+   }
+   private static void jj_la1_init_0() {
+      jj_la1_0 = new int[] {0x3ffe0000,0x0,0x0,0x1e000,0x1e000,0x3ffe0000,0x1e000,0x200,0x1e000,0x1e000,0x0,0x1e200,};
+   }
+   private static void jj_la1_init_1() {
+      jj_la1_1 = new int[] {0x0,0x40,0x48,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10,0x0,};
+   }
 
   /** Constructor with InputStream. */
   public Assembler(java.io.InputStream stream) {
@@ -372,66 +352,55 @@ void Program() throws ParseException {
   }
   /** Constructor with InputStream and supplied encoding */
   public Assembler(java.io.InputStream stream, String encoding) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser.  ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     try { jj_input_stream = new JavaCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source = new AssemblerTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
+    jj_gen = 0;
+    for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
-  static public void ReInit(java.io.InputStream stream) {
+  public void ReInit(java.io.InputStream stream) {
      ReInit(stream, null);
   }
   /** Reinitialise. */
-  static public void ReInit(java.io.InputStream stream, String encoding) {
+  public void ReInit(java.io.InputStream stream, String encoding) {
     try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
+    jj_gen = 0;
+    for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
   public Assembler(java.io.Reader stream) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser. ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     jj_input_stream = new JavaCharStream(stream, 1, 1);
     token_source = new AssemblerTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
+    jj_gen = 0;
+    for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
-  static public void ReInit(java.io.Reader stream) {
+  public void ReInit(java.io.Reader stream) {
     jj_input_stream.ReInit(stream, 1, 1);
     token_source.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
+    jj_gen = 0;
+    for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
   public Assembler(AssemblerTokenManager tm) {
-    if (jj_initialized_once) {
-      System.out.println("ERROR: Second call to constructor of static parser. ");
-      System.out.println("       You must either use ReInit() or set the JavaCC option STATIC to false");
-      System.out.println("       during parser generation.");
-      throw new Error();
-    }
-    jj_initialized_once = true;
     token_source = tm;
     token = new Token();
     jj_ntk = -1;
+    jj_gen = 0;
+    for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -439,33 +408,36 @@ void Program() throws ParseException {
     token_source = tm;
     token = new Token();
     jj_ntk = -1;
+    jj_gen = 0;
+    for (int i = 0; i < 12; i++) jj_la1[i] = -1;
   }
 
-  static private Token jj_consume_token(int kind) throws ParseException {
+  private Token jj_consume_token(int kind) throws ParseException {
     Token oldToken;
     if ((oldToken = token).next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
     jj_ntk = -1;
     if (token.kind == kind) {
-      trace_token(token, "");
+      jj_gen++;
       return token;
     }
     token = oldToken;
+    jj_kind = kind;
     throw generateParseException();
   }
 
 
 /** Get the next Token. */
-  static final public Token getNextToken() {
+  final public Token getNextToken() {
     if (token.next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
     jj_ntk = -1;
-      trace_token(token, " (in getNextToken)");
+    jj_gen++;
     return token;
   }
 
 /** Get the specific Token. */
-  static final public Token getToken(int index) {
+  final public Token getToken(int index) {
     Token t = token;
     for (int i = 0; i < index; i++) {
       if (t.next != null) t = t.next;
@@ -474,70 +446,57 @@ void Program() throws ParseException {
     return t;
   }
 
-  static private int jj_ntk_f() {
+  private int jj_ntk_f() {
     if ((jj_nt=token.next) == null)
       return (jj_ntk = (token.next=token_source.getNextToken()).kind);
     else
       return (jj_ntk = jj_nt.kind);
   }
 
+  private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
+  private int[] jj_expentry;
+  private int jj_kind = -1;
+
   /** Generate ParseException. */
-  static public ParseException generateParseException() {
-    Token errortok = token.next;
-    int line = errortok.beginLine, column = errortok.beginColumn;
-    String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
-    return new ParseException("Parse error at line " + line + ", column " + column + ".  Encountered: " + mess);
-  }
-
-  static private int trace_indent = 0;
-  static private boolean trace_enabled = true;
-
-/** Enable tracing. */
-  static final public void enable_tracing() {
-    trace_enabled = true;
-  }
-
-/** Disable tracing. */
-  static final public void disable_tracing() {
-    trace_enabled = false;
-  }
-
-  static private void trace_call(String s) {
-    if (trace_enabled) {
-      for (int i = 0; i < trace_indent; i++) { System.out.print(" "); }
-      System.out.println("Call:   " + s);
+  public ParseException generateParseException() {
+    jj_expentries.clear();
+    boolean[] la1tokens = new boolean[39];
+    if (jj_kind >= 0) {
+      la1tokens[jj_kind] = true;
+      jj_kind = -1;
     }
-    trace_indent = trace_indent + 2;
-  }
-
-  static private void trace_return(String s) {
-    trace_indent = trace_indent - 2;
-    if (trace_enabled) {
-      for (int i = 0; i < trace_indent; i++) { System.out.print(" "); }
-      System.out.println("Return: " + s);
-    }
-  }
-
-  static private void trace_token(Token t, String where) {
-    if (trace_enabled) {
-      for (int i = 0; i < trace_indent; i++) { System.out.print(" "); }
-      System.out.print("Consumed token: <" + tokenImage[t.kind]);
-      if (t.kind != 0 && !tokenImage[t.kind].equals("\"" + t.image + "\"")) {
-        System.out.print(": \"" + t.image + "\"");
+    for (int i = 0; i < 12; i++) {
+      if (jj_la1[i] == jj_gen) {
+        for (int j = 0; j < 32; j++) {
+          if ((jj_la1_0[i] & (1<<j)) != 0) {
+            la1tokens[j] = true;
+          }
+          if ((jj_la1_1[i] & (1<<j)) != 0) {
+            la1tokens[32+j] = true;
+          }
+        }
       }
-      System.out.println(" at line " + t.beginLine + " column " + t.beginColumn + ">" + where);
     }
+    for (int i = 0; i < 39; i++) {
+      if (la1tokens[i]) {
+        jj_expentry = new int[1];
+        jj_expentry[0] = i;
+        jj_expentries.add(jj_expentry);
+      }
+    }
+    int[][] exptokseq = new int[jj_expentries.size()][];
+    for (int i = 0; i < jj_expentries.size(); i++) {
+      exptokseq[i] = jj_expentries.get(i);
+    }
+    return new ParseException(token, exptokseq, tokenImage);
   }
 
-  static private void trace_scan(Token t1, int t2) {
-    if (trace_enabled) {
-      for (int i = 0; i < trace_indent; i++) { System.out.print(" "); }
-      System.out.print("Visited token: <" + tokenImage[t1.kind]);
-      if (t1.kind != 0 && !tokenImage[t1.kind].equals("\"" + t1.image + "\"")) {
-        System.out.print(": \"" + t1.image + "\"");
-      }
-      System.out.println(" at line " + t1.beginLine + " column " + t1.beginColumn + ">; Expected token: <" + tokenImage[t2] + ">");
-    }
+  /** Enable tracing. */
+  final public void enable_tracing() {
+  }
+
+  /** Disable tracing. */
+  final public void disable_tracing() {
   }
 
 }
