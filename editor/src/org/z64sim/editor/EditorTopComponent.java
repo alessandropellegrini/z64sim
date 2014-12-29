@@ -5,6 +5,8 @@
  */
 package org.z64sim.editor;
 
+import java.awt.Dimension;
+import javax.swing.JEditorPane;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -15,38 +17,48 @@ import org.openide.util.NbBundle.Messages;
  * Top component which displays something.
  */
 @ConvertAsProperties(
-        dtd = "-//org.z64sim.editor//Editor//EN",
+        dtd = "-//org.z86sim.editor//editor//EN",
         autostore = false
 )
 @TopComponent.Description(
-        preferredID = "EditorTopComponent",
-        iconBase = "org/z64sim/editor/accessories_text_editor.png",
+        preferredID = "editorTopComponent",
+        iconBase = "org/z64sim/editor/editor.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "output", openAtStartup = true)
-@ActionID(category = "Window", id = "org.z64sim.editor.EditorTopComponent")
+@TopComponent.Registration(mode = "editor", openAtStartup = true)
+@ActionID(category = "Window", id = "org.z86sim.editor.editorTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
-        displayName = "#CTL_EditorAction",
-        preferredID = "EditorTopComponent"
+        displayName = "#CTL_editorAction",
+        preferredID = "editorTopComponent"
 )
 @Messages({
-    "CTL_EditorAction=Editor",
-    "CTL_EditorTopComponent=Editor Window",
-    "HINT_EditorTopComponent=This is a Editor window"
+    "CTL_editorAction=Code Editor",
+    "CTL_editorTopComponent=Code Editor",
+    "HINT_editorTopComponent=Code Editor for z64 Assembly"
 })
-public final class EditorTopComponent extends TopComponent {
-
-    public EditorTopComponent() {
+public final class editorTopComponent extends TopComponent {
+    
+    public editorTopComponent() {
+        
         initComponents();
-        setName(Bundle.CTL_EditorTopComponent());
-        setToolTipText(Bundle.HINT_EditorTopComponent());
-        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
+        
+        TextLineNumber tln = new TextLineNumber(codeEditor);
+        scrollPane.setRowHeaderView(tln);
 
+        // Connect the codeEditor with the syntax highlighter component
+        JEditorPane.registerEditorKitForContentType("text/z64asm", "org.z64sim.editor.highlighter.z64SyntaxHighlighter");
+        codeEditor.setContentType("text/z64asm");
+        codeEditor.setText(".org\n\n.end");
+        
+        setName(Bundle.CTL_editorTopComponent());
+        setToolTipText(Bundle.HINT_editorTopComponent());
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
+        
+        // Enable printing the source code
+        codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
+        codeEditor.putClientProperty("print.name", "new File"); // NOI18N
+        codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
     }
 
     /**
@@ -57,28 +69,27 @@ public final class EditorTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        scrollPane = new javax.swing.JScrollPane();
+        codeEditor = new javax.swing.JEditorPane();
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        codeEditor.setFont(new java.awt.Font("Courier New", 0, 14)); // NOI18N
+        scrollPane.setViewportView(codeEditor);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(scrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+            .addComponent(scrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JEditorPane codeEditor;
+    private javax.swing.JScrollPane scrollPane;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
