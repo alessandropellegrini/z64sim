@@ -37,9 +37,9 @@ import org.openide.util.NbBundle.Messages;
     "CTL_editorTopComponent=Code Editor",
     "HINT_editorTopComponent=Code Editor for z64 Assembly"
 })
-public final class editorTopComponent extends TopComponent {
+public final class EditorTopComponent extends TopComponent {
     
-    public editorTopComponent() {
+    public EditorTopComponent() {
         
         initComponents();
         
