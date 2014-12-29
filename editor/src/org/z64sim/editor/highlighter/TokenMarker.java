@@ -14,14 +14,12 @@
 package org.z64sim.editor.highlighter;
 
 import java.awt.Color;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.JEditorPane;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import org.z64sim.editor.highlighter.SyntaxDocument;
+import javax.swing.text.DefaultHighlighter;
 import org.z64sim.assembler.AsmToken;
 
 /**
@@ -33,8 +31,9 @@ import org.z64sim.assembler.AsmToken;
 public class TokenMarker implements CaretListener {
 
     private JEditorPane pane;
-    private Set<Integer> tokenTypes = new HashSet<Integer>();
-    private Markers.SimpleMarker marker;
+    private final DefaultHighlighter.DefaultHighlightPainter marker = 
+                    new DefaultHighlighter.DefaultHighlightPainter(Color.WHITE);
+    private final TokenMap tMap = new TokenMap();
 
     /**
      * Constructs a new AsmToken highlighter
@@ -48,7 +47,8 @@ public class TokenMarker implements CaretListener {
         SyntaxDocument doc = ActionUtils.getSyntaxDocument(pane);
         AsmToken token = doc.getTokenAt(pos);
         removeMarkers();
-        if (token != null) {
+               
+        if (token != null && tMap.containsKey(token.token.kind)) {
             addMarkers(token);
         }
     }
@@ -87,5 +87,5 @@ public class TokenMarker implements CaretListener {
         removeMarkers();
         pane.removeCaretListener(this);
     }
-    private static final Logger LOG = Logger.getLogger(TokenMarker.class.getName());
+
 }

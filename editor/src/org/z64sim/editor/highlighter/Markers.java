@@ -14,13 +14,12 @@
 package org.z64sim.editor.highlighter;
 
 import org.z64sim.assembler.AsmToken;
-import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 
@@ -32,31 +31,23 @@ import javax.swing.text.JTextComponent;
  */
 public class Markers {
 
-    // This subclass is used in our highlighting code
-    public static class SimpleMarker extends DefaultHighlighter.DefaultHighlightPainter {
-
-        public SimpleMarker(Color color) {
-            super(color);
-        }
-    }
-
     /**
      * Removes only our private highlights
      * This is public so that we can remove the highlights when the editorKit
-     * is unregistered.  SimpleMarker can be null, in which case all instances of
+     * is unregistered.  DefaultHighlightPainter can be null, in which case all instances of
      * our Markers are removed.
      * @param component the text component whose markers are to be removed
-     * @param marker the SimpleMarker to remove
+     * @param marker the DefaultHighlightPainter to remove
      */
-    public static void removeMarkers(JTextComponent component, SimpleMarker marker) {
+    public static void removeMarkers(JTextComponent component, DefaultHighlightPainter marker) {
         Highlighter hilite = component.getHighlighter();
         Highlighter.Highlight[] hilites = hilite.getHighlights();
 
-        for (int i = 0; i < hilites.length; i++) {
-            if (hilites[i].getPainter() instanceof SimpleMarker) {
-                SimpleMarker hMarker = (SimpleMarker) hilites[i].getPainter();
+        for (Highlighter.Highlight hilite1 : hilites) {
+            if (hilite1.getPainter() instanceof DefaultHighlightPainter) {
+                DefaultHighlightPainter hMarker = (DefaultHighlightPainter) hilite1.getPainter();
                 if (marker == null || hMarker.equals(marker)) {
-                    hilite.removeHighlight(hilites[i]);
+                    hilite.removeHighlight(hilite1);
                 }
             }
         }
@@ -76,7 +67,7 @@ public class Markers {
      * @param token
      * @param marker
      */
-    public static void markToken(JTextComponent pane, AsmToken token, SimpleMarker marker) {
+    public static void markToken(JTextComponent pane, AsmToken token, DefaultHighlightPainter marker) {
         markText(pane, token.start, token.end(), marker);
     }
 
@@ -87,7 +78,7 @@ public class Markers {
      * @param end
      * @param marker
      */
-    public static void markText(JTextComponent pane, int start, int end, SimpleMarker marker) {
+    public static void markText(JTextComponent pane, int start, int end, DefaultHighlightPainter marker) {
         try {
             Highlighter hiliter = pane.getHighlighter();
             int selStart = pane.getSelectionStart();
@@ -118,7 +109,7 @@ public class Markers {
      * @param pattern pattern to match
      * @param marker marker to use for highlighting
      */
-    public static void markAll(JTextComponent pane, Pattern pattern, SimpleMarker marker) {
+    public static void markAll(JTextComponent pane, Pattern pattern, DefaultHighlightPainter marker) {
         SyntaxDocument sDoc = ActionUtils.getSyntaxDocument(pane);
         if(sDoc  == null || pattern == null) {
             return;

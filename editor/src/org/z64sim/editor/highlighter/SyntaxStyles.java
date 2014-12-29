@@ -17,13 +17,8 @@ import org.z64sim.assembler.AsmToken;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Logger;
 import javax.swing.text.Segment;
 import javax.swing.text.TabExpander;
-import org.z64sim.assembler.AssemblerTokenManager;
 //import org.z64sim.editor.jsyntaxpane.util.JarServiceProvider;
 
 /**
@@ -36,37 +31,12 @@ import org.z64sim.assembler.AssemblerTokenManager;
  */
 public class SyntaxStyles {
 
-    Map<Integer, SyntaxStyle> styles;
-    private static SyntaxStyles instance = createInstance();
-    private static final Logger LOG = Logger.getLogger(SyntaxStyles.class.getName());
+    TokenMap styles = new TokenMap();
+    private static final SyntaxStyles instance = createInstance();
 
-    private static SyntaxStyle DEFAULT_STYLE = new SyntaxStyle(Color.BLACK, Font.PLAIN);
+    private static final SyntaxStyle DEFAULT_STYLE = new SyntaxStyle(Color.BLACK, Font.PLAIN);
 
     private SyntaxStyles() {
-        styles = new HashMap<Integer, SyntaxStyle>();
-        styles.put(AssemblerTokenManager.COMMENT, new SyntaxStyle(Color.GRAY, false, false));
-        styles.put(AssemblerTokenManager.PROGRAM_BEGIN, new SyntaxStyle(Color.BLUE, false, false));
-        styles.put(AssemblerTokenManager.PROGRAM_END, new SyntaxStyle(Color.BLUE, false, false));
-        styles.put(AssemblerTokenManager.SCALE, new SyntaxStyle(Color.ORANGE, false, false));
-        styles.put(AssemblerTokenManager.CONSTANT, new SyntaxStyle(Color.ORANGE, false, false));
-        styles.put(AssemblerTokenManager.NUMBER, new SyntaxStyle(Color.ORANGE, false, false));
-        styles.put(AssemblerTokenManager.REG_8, new SyntaxStyle(Color.RED, false, false));
-        styles.put(AssemblerTokenManager.REG_16, new SyntaxStyle(Color.RED, false, false));
-        styles.put(AssemblerTokenManager.REG_32, new SyntaxStyle(Color.RED, false, false));
-        styles.put(AssemblerTokenManager.REG_64, new SyntaxStyle(Color.RED, false, false));
-        styles.put(AssemblerTokenManager.INSN_0, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_0_WQ, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_0_NOSUFF, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_1_S, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_1_E, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_SHIFT, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_1_M, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_JC, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_B_E, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_EXT, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_IN, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_OUT, new SyntaxStyle(Color.GREEN, false, false));
-        styles.put(AssemblerTokenManager.INSN_IO_S, new SyntaxStyle(Color.GREEN, false, false));
     }
 
     /**
@@ -76,8 +46,6 @@ public class SyntaxStyles {
      */
     private static SyntaxStyles createInstance() {
         SyntaxStyles syntaxstyles = new SyntaxStyles();
-//        Properties styles = JarServiceProvider.readProperties(SyntaxStyles.class);
-//        syntaxstyles.mergeStyles(styles);
         return syntaxstyles;
     }
 

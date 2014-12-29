@@ -18,7 +18,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
-import org.z64sim.editor.highlighter.SyntaxDocument;
+
 
 /**
  * This class can be used to display the caret location in friendly manner for
@@ -30,8 +30,8 @@ import org.z64sim.editor.highlighter.SyntaxDocument;
  */
 public class CaretMonitor implements CaretListener {
 
-    private JLabel label;
-    private JTextComponent text;
+    private final JLabel label;
+    private final JTextComponent text;
 
     public CaretMonitor(JTextComponent text, JLabel label) {
         this.label = label;
@@ -39,6 +39,7 @@ public class CaretMonitor implements CaretListener {
         text.addCaretListener(this);
     }
 
+    @Override
     public void caretUpdate(CaretEvent evt) {
         if (text.getDocument() instanceof SyntaxDocument) {
             try {

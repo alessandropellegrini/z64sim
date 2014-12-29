@@ -35,11 +35,7 @@ import org.z64sim.assembler.AssemblerTokenManager;
 
 public class SyntaxView extends PlainView {
    
-    private static final Logger log = Logger.getLogger(SyntaxView.class.getName());
     private final SyntaxStyle DEFAULT_STYLE = SyntaxStyles.getInstance().getStyle(AssemblerTokenManager.DEFAULT);
-    private final boolean singleColorSelect;
-    private final int rightMarginColumn;
-    private final Color rightMarginColor;
 
     /**
      * Construct a new view using the given configuration and prefix given
@@ -50,9 +46,6 @@ public class SyntaxView extends PlainView {
      */
     public SyntaxView(Element element) {
         super(element);
-        singleColorSelect = true;
-        rightMarginColor = Color.GREEN;
-        rightMarginColumn = 10;
     }
 
     @Override
@@ -64,14 +57,6 @@ public class SyntaxView extends PlainView {
         Color saveColor = graphics.getColor();
         SyntaxDocument doc = (SyntaxDocument) getDocument();
         Segment segment = getLineBuffer();
-        // Draw the right margin first, if needed.  This way the text overalys
-        // the margin
-        if (rightMarginColumn > 0) {
-            int m_x = rightMarginColumn * graphics.getFontMetrics().charWidth('m');
-            int h = graphics.getFontMetrics().getHeight();
-            graphics.setColor(rightMarginColor);
-            graphics.drawLine(m_x, y, m_x, y - h);
-        }
         try {
             // Colour the parts
             Iterator<AsmToken> i = doc.getTokens(p0, p1);
@@ -111,7 +96,6 @@ public class SyntaxView extends PlainView {
             }
         } catch (BadLocationException ex) {
             System.err.println("Requested: " + ex.offsetRequested());
-            log.log(Level.SEVERE, null, ex);
         } finally {
             graphics.setFont(saveFont);
             graphics.setColor(saveColor);
@@ -120,9 +104,8 @@ public class SyntaxView extends PlainView {
     }
 
     @Override
-    protected int drawSelectedText(Graphics graphics, int x, int y, int p0, int p1)
-            throws BadLocationException {
-        if (singleColorSelect) {
+    protected int drawSelectedText(Graphics graphics, int x, int y, int p0, int p1) throws BadLocationException {
+/*        if (singleColorSelect) {
             if (rightMarginColumn > 0) {
                 int m_x = rightMarginColumn * graphics.getFontMetrics().charWidth('m');
                 int h = graphics.getFontMetrics().getHeight();
@@ -131,8 +114,8 @@ public class SyntaxView extends PlainView {
             }
             return super.drawUnselectedText(graphics, x, y, p0, p1);
         } else {
-            return drawUnselectedText(graphics, x, y, p0, p1);
-        }
+*/            return drawUnselectedText(graphics, x, y, p0, p1);
+//        }
     }
 
     @Override
@@ -142,22 +125,5 @@ public class SyntaxView extends PlainView {
         super.updateDamage(changes, a, f);
         java.awt.Component host = getContainer();
         host.repaint();
-    }
-
-    /**
-     * The values for the string key for Text Anti-Aliasing
-     */
-    private static Map<String, Object> TEXT_AA_HINT_NAMES =
-            new HashMap<String, Object>();
-
-    static {
-        TEXT_AA_HINT_NAMES.put("DEFAULT", RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
-        TEXT_AA_HINT_NAMES.put("GASP", RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
-        TEXT_AA_HINT_NAMES.put("HBGR", RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HBGR);
-        TEXT_AA_HINT_NAMES.put("HRGB", RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        TEXT_AA_HINT_NAMES.put("VBGR", RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VBGR);
-        TEXT_AA_HINT_NAMES.put("VRGB", RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VBGR);
-        TEXT_AA_HINT_NAMES.put("OFF", RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-        TEXT_AA_HINT_NAMES.put("ON", RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     }
 }

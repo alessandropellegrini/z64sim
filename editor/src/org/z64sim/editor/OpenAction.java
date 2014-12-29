@@ -27,6 +27,7 @@ import org.openide.util.NbBundle.Messages;
 /**
  *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
+ * @date December 28, 2014
  */
 public final class OpenAction implements ActionListener {
 

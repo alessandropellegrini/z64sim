@@ -36,6 +36,7 @@ import javax.swing.undo.UndoManager;
 import org.openide.util.Exceptions;
 import org.z64sim.assembler.AssemblerTokenManager;
 import org.z64sim.assembler.JavaCharStream;
+import org.z64sim.assembler.TokenMgrError;
 
 /**
  * A document that supports being highlighted. The document maintains an
@@ -48,16 +49,16 @@ public class SyntaxDocument extends PlainDocument {
 
     AssemblerTokenManager lexer;
     JavaCharStream stream;
-    
+
     List<AsmToken> tokens;
     UndoManager undo = new UndoManager();
 
     public SyntaxDocument() {
         super();
         putProperty(PlainDocument.tabSizeAttribute, 4);
-        
+
         // Lexer is static, so we simply initialize to a dummy null state
-        this.stream = new JavaCharStream((Reader)null);
+        this.stream = new JavaCharStream((Reader) null);
         this.lexer = new AssemblerTokenManager(null);
 
         // Listen for undo and redo events
@@ -89,20 +90,23 @@ public class SyntaxDocument extends PlainDocument {
         List<AsmToken> toks = new ArrayList<AsmToken>(getLength() / 10);
 
         Segment seg = new Segment();
-        
+
         try {
             getText(0, getLength(), seg);
+            CharArrayReader reader = new CharArrayReader(seg.array, seg.offset, seg.count);
+            stream.ReInit(reader);
+            lexer.ReInit(stream);
+
+            AsmToken token;
+
+            while ((token = lexer.getNextToken()).token.kind != AssemblerTokenManager.EOF) {
+                toks.add(token);
+            }
+            
         } catch (BadLocationException ex) {
             Exceptions.printStackTrace(ex);
-        }
-        
-        CharArrayReader reader = new CharArrayReader(seg.array, seg.offset, seg.count);
-        stream.ReInit(reader);
-        lexer.ReInit(stream);
-
-        AsmToken token;
-        while ((token = lexer.getNextToken()).token.kind != AssemblerTokenManager.EOF) {
-            toks.add(token);
+        } catch (TokenMgrError e) {
+            System.out.println(e.getMessage());
         }
 
         tokens = toks;
@@ -188,10 +192,8 @@ public class SyntaxDocument extends PlainDocument {
                 return false;
             }
             AsmToken t = tokens.get(ndx);
-            if (t.start >= end) {
-                return false;
-            }
-            return true;
+            
+            return t.start < end;
         }
 
         @Override
@@ -204,6 +206,7 @@ public class SyntaxDocument extends PlainDocument {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean hasPrevious() {
             if (tokens == null) {
                 return false;
@@ -212,10 +215,8 @@ public class SyntaxDocument extends PlainDocument {
                 return false;
             }
             AsmToken t = tokens.get(ndx);
-            if (t.end() <= start) {
-                return false;
-            }
-            return true;
+            
+            return t.end() > start;
         }
 
         @Override
@@ -268,6 +269,7 @@ public class SyntaxDocument extends PlainDocument {
         }
         AsmToken tok = null;
         AsmToken tKey = new AsmToken(AssemblerTokenManager.DEFAULT, pos, 1);
+
         @SuppressWarnings("unchecked")
         int ndx = Collections.binarySearch((List) tokens, tKey);
         if (ndx < 0) {
@@ -294,36 +296,36 @@ public class SyntaxDocument extends PlainDocument {
      * @param t
      * @return the other pair's token, or null if nothing is found.
      */
-/*    public AsmToken getPairFor(AsmToken t) {
-        if (t == null || t.pairValue == 0) {
-            return null;
-        }
-        AsmToken p = null;
-        int ndx = tokens.indexOf(t);
-        // w will be similar to a stack. The openners weght is added to it
-        // and the closers are subtracted from it (closers are already negative)
-        int w = t.pairValue;
-        int direction = (t.pairValue > 0) ? 1 : -1;
-        boolean done = false;
-        int v = Math.abs(t.pairValue);
-        while (!done) {
-            ndx += direction;
-            if (ndx < 0 || ndx >= tokens.size()) {
-                break;
-            }
-            AsmToken current = tokens.get(ndx);
-            if (Math.abs(current.pairValue) == v) {
-                w += current.pairValue;
-                if (w == 0) {
-                    p = current;
-                    done = true;
-                }
-            }
-        }
+    /*    public AsmToken getPairFor(AsmToken t) {
+     if (t == null || t.pairValue == 0) {
+     return null;
+     }
+     AsmToken p = null;
+     int ndx = tokens.indexOf(t);
+     // w will be similar to a stack. The openners weght is added to it
+     // and the closers are subtracted from it (closers are already negative)
+     int w = t.pairValue;
+     int direction = (t.pairValue > 0) ? 1 : -1;
+     boolean done = false;
+     int v = Math.abs(t.pairValue);
+     while (!done) {
+     ndx += direction;
+     if (ndx < 0 || ndx >= tokens.size()) {
+     break;
+     }
+     AsmToken current = tokens.get(ndx);
+     if (Math.abs(current.pairValue) == v) {
+     w += current.pairValue;
+     if (w == 0) {
+     p = current;
+     done = true;
+     }
+     }
+     }
 
-        return p;
-    }
-*/
+     return p;
+     }
+     */
     /**
      * Perform an undo action, if possible
      */
@@ -547,8 +549,7 @@ public class SyntaxDocument extends PlainDocument {
      * @return
      */
     public int getLineEndOffset(int pos) {
-        int end = 0;
-        end = getParagraphElement(pos).getEndOffset();
+        int end = getParagraphElement(pos).getEndOffset();
         if (end >= getLength()) {
             end = getLength();
         }
