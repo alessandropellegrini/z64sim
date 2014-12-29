@@ -30,10 +30,10 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JTextPane" name="codeEditor">
+        <Component class="javax.swing.JEditorPane" name="codeEditor">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Courier New" size="11" style="0"/>
+              <Font name="Courier New" size="14" style="0"/>
             </Property>
           </Properties>
         </Component>

@@ -6,7 +6,7 @@
 package org.z64sim.editor;
 
 import java.awt.Dimension;
-import org.z64sim.editor.jsyntaxpane.DefaultSyntaxKit;
+import javax.swing.JEditorPane;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -47,9 +47,9 @@ public final class editorTopComponent extends TopComponent {
         scrollPane.setRowHeaderView(tln);
 
         // Connect the codeEditor with the syntax highlighter component
-        DefaultSyntaxKit.initKit();
+        JEditorPane.registerEditorKitForContentType("text/z64asm", "org.z64sim.editor.highlighter.z64SyntaxHighlighter");
         codeEditor.setContentType("text/z64asm");
-        codeEditor.setText(".org\n\n.data\n\n.end");
+        codeEditor.setText(".org\n\n.end");
         
         setName(Bundle.CTL_editorTopComponent());
         setToolTipText(Bundle.HINT_editorTopComponent());
@@ -70,9 +70,9 @@ public final class editorTopComponent extends TopComponent {
     private void initComponents() {
 
         scrollPane = new javax.swing.JScrollPane();
-        codeEditor = new javax.swing.JTextPane();
+        codeEditor = new javax.swing.JEditorPane();
 
-        codeEditor.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
+        codeEditor.setFont(new java.awt.Font("Courier New", 0, 14)); // NOI18N
         scrollPane.setViewportView(codeEditor);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -88,7 +88,7 @@ public final class editorTopComponent extends TopComponent {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextPane codeEditor;
+    private javax.swing.JEditorPane codeEditor;
     private javax.swing.JScrollPane scrollPane;
     // End of variables declaration//GEN-END:variables
     @Override
