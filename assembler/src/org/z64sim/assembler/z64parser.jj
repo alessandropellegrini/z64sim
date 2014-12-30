@@ -40,15 +40,11 @@ SKIP :
 | "\r"
 | "\n"
 }
-
-SPECIAL_TOKEN :
-{
-  <COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
-}
  
 TOKEN:
 { <PROGRAM_BEGIN: ".org">
 | <PROGRAM_END: ".end">
+| <COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 | <SCALE: "1" | "2" | "4" | "8">
 | <CONSTANT: "$"<NUMBER>>
 | <NUMBER: <DEC> | <HEX>>
@@ -123,6 +119,10 @@ TOKEN:
 | <INSN_OUT: "out"<SUFFIX>>
 | <INSN_IO_S: ("ins"
            | "outs")<SUFFIX_BWL>>
+| <LABEL: <STRING>":">
+| <STRING: ([".","_","-"]|["a"-"z"]|["0"-"9"])+ >
+| <LBRACE: "(">
+| <RBRACE: ")">
 | <#SUFFIX: "b" | "w" | "l" | "q">
 | <#SUFFIX_BWL: "b" | "w" | "l" | "q">
 | <#SUFFIX_WQ: "w" | "q">
@@ -138,7 +138,7 @@ TOKEN:
 void Program() :
 {}
 {<PROGRAM_BEGIN>
- (Instruction())+
+ ( Label() | Instruction() )+
  <PROGRAM_END>
  <EOF>
 }
@@ -162,6 +162,10 @@ void Instruction() :
  | <INSN_IO_S>
 }
 
+void Label() :
+{}
+{ <LABEL> }
+
 
 void Register() :
 {}
@@ -172,11 +176,11 @@ void Addressing() :
 {}
 { 
   ( <CONSTANT> /* | <LABEL> */ )?
-  ( "("
+  ( <LBRACE>
    (<REG_8> | <REG_16> | <REG_32> | <REG_64>)
    "," 
    (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <SCALE>
-  ")" )?
+  <RBRACE> )?
 }
 
 
@@ -186,29 +190,31 @@ void FormatE() :
 
 void FormatK() :
 {}
-{ "." }
+{ "/" }
 
 void FormatG() :
 {}
-{ "." }
+{ "/" }
 
 
 /* Both label and direct address */
 void FormatM() : 
 {}
-{ "." }
+{ "/" }
 
 void FormatB() :
 {}
-{ "." }
+{ "/" }
 
 
 TOKEN_MGR_DECLS:
 {
     void CommonTokenAction(Token t) {
         AsmToken tok = (AsmToken)t;
-        tok.start = input_stream.nextCharInd - t.image.length() + 1;
+        tok.start = input_stream.nextCharInd - t.image.length();
         tok.length = t.image.length();
         tok.token = t;
+
+        System.out.println("Token " + tok.token.image + " (" + tok.token.kind + ") from " + tok.start + " len " + tok.length);
     }
 }

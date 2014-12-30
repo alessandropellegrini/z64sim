@@ -11,11 +11,11 @@ public interface AssemblerConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int COMMENT = 5;
+  int PROGRAM_BEGIN = 5;
   /** RegularExpression Id. */
-  int PROGRAM_BEGIN = 6;
+  int PROGRAM_END = 6;
   /** RegularExpression Id. */
-  int PROGRAM_END = 7;
+  int COMMENT = 7;
   /** RegularExpression Id. */
   int SCALE = 8;
   /** RegularExpression Id. */
@@ -61,13 +61,21 @@ public interface AssemblerConstants {
   /** RegularExpression Id. */
   int INSN_IO_S = 29;
   /** RegularExpression Id. */
-  int SUFFIX = 30;
+  int LABEL = 30;
   /** RegularExpression Id. */
-  int SUFFIX_BWL = 31;
+  int STRING = 31;
   /** RegularExpression Id. */
-  int SUFFIX_WQ = 32;
+  int LBRACE = 32;
   /** RegularExpression Id. */
-  int EXT_SUFFIX = 33;
+  int RBRACE = 33;
+  /** RegularExpression Id. */
+  int SUFFIX = 34;
+  /** RegularExpression Id. */
+  int SUFFIX_BWL = 35;
+  /** RegularExpression Id. */
+  int SUFFIX_WQ = 36;
+  /** RegularExpression Id. */
+  int EXT_SUFFIX = 37;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -79,9 +87,9 @@ public interface AssemblerConstants {
     "\"\\t\"",
     "\"\\r\"",
     "\"\\n\"",
-    "<COMMENT>",
     "\".org\"",
     "\".end\"",
+    "<COMMENT>",
     "<SCALE>",
     "<CONSTANT>",
     "<NUMBER>",
@@ -104,15 +112,17 @@ public interface AssemblerConstants {
     "<INSN_IN>",
     "<INSN_OUT>",
     "<INSN_IO_S>",
+    "<LABEL>",
+    "<STRING>",
+    "\"(\"",
+    "\")\"",
     "<SUFFIX>",
     "<SUFFIX_BWL>",
     "<SUFFIX_WQ>",
     "<EXT_SUFFIX>",
     "\",\"",
     "\"*\"",
-    "\"(\"",
-    "\")\"",
-    "\".\"",
+    "\"/\"",
   };
 
 }
