@@ -19,7 +19,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import javax.swing.text.Segment;
 import javax.swing.text.TabExpander;
-//import org.z64sim.editor.jsyntaxpane.util.JarServiceProvider;
 
 /**
  * The STyles to use for each TokenType. The defaults are created here, and then

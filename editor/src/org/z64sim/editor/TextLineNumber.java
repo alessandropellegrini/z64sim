@@ -6,7 +6,6 @@
 package org.z64sim.editor;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.beans.*;
 import java.util.HashMap;
 import javax.swing.*;
@@ -23,7 +22,7 @@ import javax.swing.text.*;
  * This class was designed to be used as a component added to the row header of
  * a JScrollPane.
  */
-public class TextLineNumber extends JPanel implements CaretListener, DocumentListener, PropertyChangeListener {
+public final class TextLineNumber extends JPanel implements CaretListener, DocumentListener, PropertyChangeListener {
 
     public final static float LEFT = 0.0f;
     public final static float CENTER = 0.5f;
@@ -31,9 +30,9 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
 
     private final static Border OUTER = new MatteBorder(0, 0, 0, 2, Color.GRAY);
 
-    private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
+    private final static int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
 
-	//  Text component this TextTextLineNumber component is in sync with
+    //  Text component this TextTextLineNumber component is in sync with
     private JTextComponent component;
 
     //  Properties that can be changed
@@ -43,7 +42,7 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
     private float digitAlignment;
     private int minimumDisplayDigits;
 
-	//  Keep history information to reduce the number of times the component
+    //  Keep history information to reduce the number of times the component
     //  needs to be repainted
     private int lastDigits;
     private int lastHeight;
@@ -205,7 +204,7 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
             int preferredWidth = insets.left + insets.right + width;
 
             Dimension d = getPreferredSize();
-            d.setSize(preferredWidth, HEIGHT);
+            d.setSize(preferredWidth, NUM_HEIGHT);
             setPreferredSize(d);
             setSize(d);
         }
@@ -260,11 +259,7 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
         int caretPosition = component.getCaretPosition();
         Element root = component.getDocument().getDefaultRootElement();
 
-        if (root.getElementIndex(rowStartOffset) == root.getElementIndex(caretPosition)) {
-            return true;
-        } else {
-            return false;
-        }
+        return root.getElementIndex(rowStartOffset) == root.getElementIndex(caretPosition);
     }
 
     /**

@@ -15,7 +15,6 @@ package org.z64sim.editor.highlighter;
 
 import java.awt.Color;
 import java.util.Iterator;
-import java.util.logging.Logger;
 import javax.swing.JEditorPane;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;

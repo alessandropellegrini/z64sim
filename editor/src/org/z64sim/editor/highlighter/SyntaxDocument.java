@@ -57,7 +57,9 @@ public class SyntaxDocument extends PlainDocument {
         super();
         putProperty(PlainDocument.tabSizeAttribute, 4);
 
-        // Lexer is static, so we simply initialize to a dummy null state
+        // We will use one single instance of the same Lexer to parse all 
+        // changes to the document. During initialization, we simply set
+        // the text to be parsed to null.
         this.stream = new JavaCharStream((Reader) null);
         this.lexer = new AssemblerTokenManager(null);
 

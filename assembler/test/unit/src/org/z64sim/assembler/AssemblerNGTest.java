@@ -40,13 +40,16 @@ public class AssemblerNGTest {
 
     @Test
     public void testLexer() throws FileNotFoundException {
+        
+        System.out.println("Lexer test on a sample listing:");
+        
         InputStream is = getClass().getResourceAsStream("test.asm");
         JavaCharStream stream = new JavaCharStream(is);
         AssemblerTokenManager manager = new AssemblerTokenManager(stream);
         Token token = manager.getNextToken();
 
         while (token != null && token.kind != AssemblerConstants.EOF) {
-            System.out.println(token.toString() + "[" + token.kind + "]");
+            System.out.println("Next token: " + token.toString() + "[" + token.kind + "]");
             token = manager.getNextToken();
         }
     }
@@ -55,6 +58,11 @@ public class AssemblerNGTest {
     public void testParser() throws FileNotFoundException, ParseException {
         InputStream is = getClass().getResourceAsStream("test.asm");
         Assembler a = new Assembler(is);
-        a.Program();
+        
+        try {
+            a.Program();
+        } catch(ParseException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

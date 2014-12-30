@@ -67,7 +67,8 @@ public class ActionUtils {
      * @return String[] of lines spanning selection / or Dot
      */
     public static String[] getSelectedLines(JTextComponent target) {
-        String[] lines = null;
+        String[] lines;
+
         try {
             PlainDocument pDoc = (PlainDocument) target.getDocument();
             int start = pDoc.getParagraphElement(target.getSelectionStart()).getStartOffset();
@@ -288,7 +289,7 @@ public class ActionUtils {
         if (repeat == 0 || source == null || source.length() == 0) {
             return "";
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         for (int i = 0; i < repeat; i++) {
             buffer.append(source);
         }
@@ -321,8 +322,8 @@ public class ActionUtils {
      * @return
      */
     public static int getTabSize(JTextComponent text) {
-        Integer tabs = (Integer) text.getDocument().getProperty(PlainDocument.tabSizeAttribute);
-        return (null == tabs) ? 0 : tabs.intValue();
+        Integer tabs = (Integer)text.getDocument().getProperty(PlainDocument.tabSizeAttribute);
+        return (null == tabs) ? 0 : tabs;
     }
 
     /**
