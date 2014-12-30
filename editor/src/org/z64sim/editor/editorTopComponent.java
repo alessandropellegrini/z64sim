@@ -6,6 +6,9 @@
 package org.z64sim.editor;
 
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
+import java.util.Arrays;
 import javax.swing.JEditorPane;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -17,48 +20,41 @@ import org.openide.util.NbBundle.Messages;
  * Top component which displays something.
  */
 @ConvertAsProperties(
-        dtd = "-//org.z86sim.editor//editor//EN",
+        dtd = "-//org.z64sim.editor//Editor//EN",
         autostore = false
 )
 @TopComponent.Description(
-        preferredID = "editorTopComponent",
+        preferredID = "EditorTopComponent",
         iconBase = "org/z64sim/editor/editor.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = true)
-@ActionID(category = "Window", id = "org.z86sim.editor.editorTopComponent")
+@ActionID(category = "Window", id = "org.z64sim.editor.EditorTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
-        displayName = "#CTL_editorAction",
-        preferredID = "editorTopComponent"
+        displayName = "#CTL_EditorAction",
+        preferredID = "EditorTopComponent"
 )
 @Messages({
-    "CTL_editorAction=Code Editor",
-    "CTL_editorTopComponent=Code Editor",
-    "HINT_editorTopComponent=Code Editor for z64 Assembly"
+    "CTL_EditorAction=Editor",
+    "CTL_EditorTopComponent=Editor Window",
+    "HINT_EditorTopComponent=This is a Editor window"
 })
-public final class editorTopComponent extends TopComponent {
-    
-    public editorTopComponent() {
-        
-        initComponents();
-        
-        TextLineNumber tln = new TextLineNumber(codeEditor);
-        scrollPane.setRowHeaderView(tln);
+public final class EditorTopComponent extends TopComponent {
 
-        // Connect the codeEditor with the syntax highlighter component
-        JEditorPane.registerEditorKitForContentType("text/z64asm", "org.z64sim.editor.highlighter.z64SyntaxHighlighter");
-        codeEditor.setContentType("text/z64asm");
-        codeEditor.setText(".org\n\n.end");
-        
-        setName(Bundle.CTL_editorTopComponent());
-        setToolTipText(Bundle.HINT_editorTopComponent());
-        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
-        
+    public EditorTopComponent() {
+        initComponents();
+        setUpFont();
+
         // Enable printing the source code
         codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
         codeEditor.putClientProperty("print.name", "new File"); // NOI18N
         codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
+
+        setName(Bundle.CTL_EditorTopComponent());
+        setToolTipText(Bundle.HINT_EditorTopComponent());
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
+
     }
 
     /**
@@ -74,6 +70,19 @@ public final class editorTopComponent extends TopComponent {
 
         codeEditor.setFont(new java.awt.Font("Courier New", 0, 14)); // NOI18N
         scrollPane.setViewportView(codeEditor);
+        // Insert line numbers
+        TextLineNumber tln = new TextLineNumber(codeEditor);
+        scrollPane.setRowHeaderView(tln);
+
+        // Connect the codeEditor with the syntax highlighter component
+        JEditorPane.registerEditorKitForContentType("text/z64asm", "org.z64sim.editor.highlighter.z64SyntaxHighlighter");
+        codeEditor.setContentType("text/z64asm");
+        codeEditor.setText(".org\n\n.end");
+
+        // Enable printing the source code
+        codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
+        codeEditor.putClientProperty("print.name", "new File"); // NOI18N
+        codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -112,4 +121,27 @@ public final class editorTopComponent extends TopComponent {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
+
+    private void setUpFont() {
+
+        Font f = null;
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        String[] fonts = ge.getAvailableFontFamilyNames();
+        Arrays.sort(fonts);
+        if (Arrays.binarySearch(fonts, "Courier New") >= 0) {
+            System.out.println("Courier New");
+            f = new Font("Courier New", Font.PLAIN, 14);
+        } else if (Arrays.binarySearch(fonts, "Courier") >= 0) {
+            System.out.println("Courier");
+            f = new Font("Courier", 0, 14);
+        } else if (Arrays.binarySearch(fonts, "Monospaced") >= 0) {
+            System.out.println("Monospaced");
+            f = new Font("Monospaced", 0, 14);
+        }
+
+        if(null != f) {
+            codeEditor.setFont(f);
+        }
+    }
+
 }

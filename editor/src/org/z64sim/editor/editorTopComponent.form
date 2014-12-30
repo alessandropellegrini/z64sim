@@ -36,6 +36,9 @@
               <Font name="Courier New" size="14" style="0"/>
             </Property>
           </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_allCodePost" type="java.lang.String" value="// Insert line numbers&#xa;TextLineNumber tln = new TextLineNumber(codeEditor);&#xa;scrollPane.setRowHeaderView(tln);&#xa;&#xa;// Connect the codeEditor with the syntax highlighter component&#xa;JEditorPane.registerEditorKitForContentType(&quot;text/z64asm&quot;, &quot;org.z64sim.editor.highlighter.z64SyntaxHighlighter&quot;);&#xa;codeEditor.setContentType(&quot;text/z64asm&quot;);&#xa;codeEditor.setText(&quot;.org\n\n.end&quot;);&#xa;&#xa;// Enable printing the source code&#xa;        codeEditor.putClientProperty(&quot;print.printable&quot;, Boolean.TRUE); // NOI18N&#xa;        codeEditor.putClientProperty(&quot;print.name&quot;, &quot;new File&quot;); // NOI18N&#xa;        codeEditor.putClientProperty(&quot;print.size&quot;, new Dimension(10, 10)); // NOI18N"/>
+          </AuxValues>
         </Component>
       </SubComponents>
     </Container>
