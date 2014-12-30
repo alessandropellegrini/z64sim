@@ -129,14 +129,11 @@ public final class EditorTopComponent extends TopComponent {
         String[] fonts = ge.getAvailableFontFamilyNames();
         Arrays.sort(fonts);
         if (Arrays.binarySearch(fonts, "Courier New") >= 0) {
-            System.out.println("Courier New");
             f = new Font("Courier New", Font.PLAIN, 14);
         } else if (Arrays.binarySearch(fonts, "Courier") >= 0) {
-            System.out.println("Courier");
-            f = new Font("Courier", 0, 14);
+            f = new Font("Courier", Font.PLAIN, 14);
         } else if (Arrays.binarySearch(fonts, "Monospaced") >= 0) {
-            System.out.println("Monospaced");
-            f = new Font("Monospaced", 0, 14);
+            f = new Font("Monospaced", Font.PLAIN, 14);
         }
 
         if(null != f) {
