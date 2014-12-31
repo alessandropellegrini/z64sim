@@ -8,53 +8,68 @@ package org.z64sim.editor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Set;
 import javax.swing.JEditorPane;
-import org.netbeans.api.settings.ConvertAsProperties;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.windows.TopComponent;
+import javax.swing.text.StyledDocument;
+import org.openide.cookies.EditorCookie;
+import org.openide.text.Line;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.Task;
+import org.openide.windows.TopComponent;
 
 /**
  * Top component which displays something.
  */
-@ConvertAsProperties(
-        dtd = "-//org.z64sim.editor//Editor//EN",
-        autostore = false
-)
 @TopComponent.Description(
         preferredID = "EditorTopComponent",
         iconBase = "org/z64sim/editor/editor.png",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
+        persistenceType = TopComponent.PERSISTENCE_ONLY_OPENED
 )
-@TopComponent.Registration(mode = "editor", openAtStartup = true)
-@ActionID(category = "Window", id = "org.z64sim.editor.EditorTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_EditorAction",
         preferredID = "EditorTopComponent"
 )
 @Messages({
     "CTL_EditorAction=Editor",
-    "CTL_EditorTopComponent=Editor Window",
-    "HINT_EditorTopComponent=This is a Editor window"
+    "CTL_EditorTopComponent=Editor - ",
+    "HINT_EditorTopComponent=Code Editor Window"
 })
 public final class EditorTopComponent extends TopComponent {
 
+    Set<z64docDataObject> uniqueAsmFiles = EditorUtilities.uniqueAsmFiles;
+    private final z64docDataObject f;
+    
     public EditorTopComponent() {
-        initComponents();
+        this.f = null;
+        
+        initComponents();        
         setUpFont();
 
         // Enable printing the source code
         codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
         codeEditor.putClientProperty("print.name", "new File"); // NOI18N
         codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
-
+        
         setName(Bundle.CTL_EditorTopComponent());
         setToolTipText(Bundle.HINT_EditorTopComponent());
-        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
+    }
+    
+    public EditorTopComponent(z64docDataObject f) {
+        this.f = f;
+        
+        initComponents();        
+        setUpFont();
+        loadFile();
 
+        // Enable printing the source code
+        codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
+        codeEditor.putClientProperty("print.name", "new File"); // NOI18N
+        codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
+        
+        setToolTipText(Bundle.HINT_EditorTopComponent());
     }
 
     /**
@@ -68,21 +83,13 @@ public final class EditorTopComponent extends TopComponent {
         scrollPane = new javax.swing.JScrollPane();
         codeEditor = new javax.swing.JEditorPane();
 
-        codeEditor.setFont(new java.awt.Font("Courier New", 0, 14)); // NOI18N
         scrollPane.setViewportView(codeEditor);
         // Insert line numbers
         TextLineNumber tln = new TextLineNumber(codeEditor);
         scrollPane.setRowHeaderView(tln);
 
         // Connect the codeEditor with the syntax highlighter component
-        JEditorPane.registerEditorKitForContentType("text/z64asm", "org.z64sim.editor.highlighter.z64SyntaxHighlighter");
         codeEditor.setContentType("text/z64asm");
-        codeEditor.setText(".org\n\n.end");
-
-        // Enable printing the source code
-        codeEditor.putClientProperty("print.printable", Boolean.TRUE); // NOI18N
-        codeEditor.putClientProperty("print.name", "new File"); // NOI18N
-        codeEditor.putClientProperty("print.size", new Dimension(10, 10)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -107,7 +114,7 @@ public final class EditorTopComponent extends TopComponent {
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
+        uniqueAsmFiles.remove(f);
     }
 
     void writeProperties(java.util.Properties p) {
@@ -123,7 +130,6 @@ public final class EditorTopComponent extends TopComponent {
     }
 
     private void setUpFont() {
-
         Font f = null;
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         String[] fonts = ge.getAvailableFontFamilyNames();
@@ -136,8 +142,17 @@ public final class EditorTopComponent extends TopComponent {
             f = new Font("Monospaced", Font.PLAIN, 14);
         }
 
-        if(null != f) {
+        if (null != f) {
             codeEditor.setFont(f);
+        }
+    }
+
+    private void loadFile() {
+        try {
+            this.codeEditor.setText(this.f.files().iterator().next().asText());
+            setName(Bundle.CTL_EditorTopComponent() + this.f.files().iterator().next().getNameExt());
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
         }
     }
 
