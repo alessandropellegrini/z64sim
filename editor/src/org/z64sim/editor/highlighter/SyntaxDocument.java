@@ -83,17 +83,13 @@ public class SyntaxDocument extends PlainDocument {
      * @return list of tokens that do not exist in the tokens field
      */
     private void parse() {
-        // if we have no lexer, then we must have no tokens...
-        if (lexer == null) {
-            tokens = null;
-            return;
-        }
-
         List<AsmToken> toks = new ArrayList<AsmToken>(getLength() / 10);
-
         Segment seg = new Segment();
 
         try {
+            
+            System.out.println("--------------");
+            
             getText(0, getLength(), seg);
             CharArrayReader reader = new CharArrayReader(seg.array, seg.offset, seg.count);
             stream.ReInit(reader);
@@ -138,20 +134,6 @@ public class SyntaxDocument extends PlainDocument {
         super.fireUndoableEditUpdate(e);
     }
 
-    /**
-     * Replace the token with the replacement string
-     *
-     * @param token
-     * @param replacement
-     */
-    public void replaceToken(AsmToken token, String replacement) {
-        try {
-            replace(token.start, token.length, replacement, null);
-        } catch (BadLocationException ex) {
-            log.log(Level.WARNING, "unable to replace token: " + token, ex);
-
-        }
-    }
 
     /**
      * This class is used to iterate over tokens between two positions

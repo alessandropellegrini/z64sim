@@ -57,6 +57,9 @@ public class TokenMap {
         map.put(AssemblerTokenManager.INSN_IN, new SyntaxStyle(Color.BLUE, true, false));
         map.put(AssemblerTokenManager.INSN_OUT, new SyntaxStyle(Color.BLUE, true, false));
         map.put(AssemblerTokenManager.INSN_IO_S, new SyntaxStyle(Color.BLUE, true, false));
+        map.put(AssemblerTokenManager.LBRACE, new SyntaxStyle(Color.BLACK, true, false));
+        map.put(AssemblerTokenManager.RBRACE, new SyntaxStyle(Color.BLACK, true, false));
+        map.put(AssemblerTokenManager.LABEL, new SyntaxStyle(Color.DARK_GRAY, true, false));
     }
     
     public SyntaxStyle get(Integer i) {
