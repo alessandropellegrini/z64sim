@@ -1,4 +1,4 @@
-z86sim
+z64sim
 ======
 
-z86 Simulator
+z64 Simulator
