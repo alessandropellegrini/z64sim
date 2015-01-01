@@ -5,28 +5,21 @@
  */
 package org.z64sim.editor;
 
-import java.util.Set;
 import javax.swing.JEditorPane;
 import org.openide.modules.ModuleInstall;
-import org.openide.util.Lookup.Result;
-import org.openide.util.LookupEvent;
-import org.openide.util.LookupListener;
-import org.openide.util.Utilities;
-import org.openide.windows.TopComponent;
-import org.openide.windows.WindowManager;
 
-public class Installer extends ModuleInstall implements LookupListener {
+public class Installer extends ModuleInstall /* implements LookupListener */ {
 
-    Result<z64docDataObject> asmFileResults;
-    Set<z64docDataObject> uniqueAsmFiles = EditorUtilities.uniqueAsmFiles;
+//    Result<z64docDataObject> asmFileResults;
+//    Set<z64docDataObject> uniqueAsmFiles = EditorUtilities.uniqueAsmFiles;
 
     @Override
     public void restored() {
-        asmFileResults = Utilities.actionsGlobalContext().lookupResult(z64docDataObject.class);
-        asmFileResults.addLookupListener(this);
+//        asmFileResults = Utilities.actionsGlobalContext().lookupResult(z64docDataObject.class);
+//        asmFileResults.addLookupListener(this);
         JEditorPane.registerEditorKitForContentType("text/z64asm", "org.z64sim.editor.highlighter.z64SyntaxHighlighter");
     }
-
+/*
     @Override
     public void resultChanged(LookupEvent le) {
         if (asmFileResults.allInstances().iterator().hasNext()) {
@@ -44,6 +37,6 @@ public class Installer extends ModuleInstall implements LookupListener {
             }
         }
     }
-
+*/
 
 }
