@@ -1,0 +1,68 @@
+.org
+
+hlt
+nop
+pushfw
+pushfq
+popfw
+popfq
+movsb
+movsw
+movsl
+movsq
+stosb
+stosw
+stosl
+stosq
+clc
+clp
+clz
+cls
+cli
+cld
+clo
+stc
+stp
+stz
+sts
+sti
+std
+ret
+iret
+inb %dx, %al
+inw %dx, %ax
+inl %dx, %eax
+outb %al, %dx
+outw %ax, %dx
+outl %eax, %dx
+insb
+insw
+insl
+outsb
+outsw
+outsl
+start
+clear
+wait
+movsbw %al, %ax
+movsbw %cl, %ax
+movsbw %dl, %ax
+movsbw %bl, %ax
+movsbw (%rax), %ax
+movsbw (%rbx), %ax
+movsbw (%rcx), %ax
+movsbw (%rdx), %ax
+movsbw (%rsp), %ax
+movsbw (%rbp), %ax
+movsbw (%rsi), %ax
+movsbw (%rdi), %ax
+movsbw (%r8), %ax
+movsbw (%r9), %ax
+movsbw (%r10), %ax
+movsbw (%r11), %ax
+movsbw (%r12), %ax
+movsbw (%r13), %ax
+movsbw (%r14), %ax
+movsbw (%r15), %ax
+
+.end

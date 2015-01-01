@@ -21,40 +21,41 @@ public class z64LanguageHierarchy extends LanguageHierarchy<z64TokenId> {
 
     private static void init() {
         tokens = Arrays.<z64TokenId>asList(new z64TokenId[]{
-            new z64TokenId("EOF", "", 0),
-            new z64TokenId("PROGRAM_BEGIN", "", 0),
-            new z64TokenId("PROGRAM_END", "", 0),
-            new z64TokenId("COMMENT", "", 0),
-            new z64TokenId("SCALE", "", 0),
-            new z64TokenId("CONSTANT", "", 0),
-            new z64TokenId("NUMBER", "", 0),
-            new z64TokenId("DEC", "", 0),
-            new z64TokenId("HEX", "", 0),
-            new z64TokenId("REG_8", "", 0),
-            new z64TokenId("REG_16", "", 0),
-            new z64TokenId("REG_32", "", 0),
-            new z64TokenId("REG_64", "", 0),
-            new z64TokenId("INSN_0", "", 0),
-            new z64TokenId("INSN_0_WQ", "", 0),
-            new z64TokenId("INSN_0_NOSUFF", "", 0),
-            new z64TokenId("INSN_1_S", "", 0),
-            new z64TokenId("INSN_1_E", "", 0),
-            new z64TokenId("INSN_SHIFT", "", 0),
-            new z64TokenId("INSN_1_M", "", 0),
-            new z64TokenId("INSN_JC", "", 0),
-            new z64TokenId("INSN_B_E", "", 0),
-            new z64TokenId("INSN_EXT", "", 0),
-            new z64TokenId("INSN_IN", "", 0),
-            new z64TokenId("INSN_OUT", "", 0),
-            new z64TokenId("INSN_IO_S", "", 0),
-            new z64TokenId("LABEL", "", 0),
-            new z64TokenId("STRING", "", 0),
-            new z64TokenId("LBRACE", "", 0),
-            new z64TokenId("RBRACE", "", 0),
-            new z64TokenId("SUFFIX", "", 0),
-            new z64TokenId("SUFFIX_BWL", "", 0),
-            new z64TokenId("SUFFIX_WQ", "", 0),
-            new z64TokenId("EXT_SUFFIX", "", 0),});
+            new z64TokenId("EOF", "whitespace", 0),
+            new z64TokenId("PROGRAM_BEGIN", "keyword", 5),
+            new z64TokenId("PROGRAM_END", "keyword", 6),
+            new z64TokenId("COMMENT", "comment", 7),
+            new z64TokenId("SCALE", "literal", 8),
+            new z64TokenId("CONSTANT", "literal", 9),
+            new z64TokenId("NUMBER", "literal", 10),
+            new z64TokenId("DEC", "literal", 11),
+            new z64TokenId("HEX", "literal", 12),
+            new z64TokenId("REG_8", "register", 13),
+            new z64TokenId("REG_16", "register", 14),
+            new z64TokenId("REG_32", "register", 15),
+            new z64TokenId("REG_64", "register", 16),
+            new z64TokenId("INSN_0", "instruction", 17),
+            new z64TokenId("INSN_0_WQ", "instruction", 18),
+            new z64TokenId("INSN_0_NOSUFF", "instruction", 19),
+            new z64TokenId("INSN_1_S", "instruction", 20),
+            new z64TokenId("INSN_1_E", "instruction", 21),
+            new z64TokenId("INSN_SHIFT", "instruction", 22),
+            new z64TokenId("INSN_1_M", "instruction", 23),
+            new z64TokenId("INSN_JC", "instruction", 24),
+            new z64TokenId("INSN_B_E", "instruction", 25),
+            new z64TokenId("INSN_EXT", "instruction", 26),
+            new z64TokenId("INSN_IN", "instruction", 27),
+            new z64TokenId("INSN_OUT", "instruction", 28),
+            new z64TokenId("INSN_IO_S", "instruction", 29),
+            new z64TokenId("LABEL", "string", 30),
+            new z64TokenId("STRING", "string", 31),
+            new z64TokenId("LBRACE", "operator", 32),
+            new z64TokenId("RBRACE", "operator", 33),
+            new z64TokenId("SUFFIX", "instruction", 34),
+            new z64TokenId("SUFFIX_BWL", "instruction", 35),
+            new z64TokenId("SUFFIX_WQ", "instruction", 36),
+            new z64TokenId("EXT_SUFFIX", "instruction", 37)
+        });
         idToToken = new HashMap<Integer, z64TokenId>();
         for (z64TokenId token : tokens) {
             idToToken.put(token.ordinal(), token);
@@ -83,7 +84,7 @@ public class z64LanguageHierarchy extends LanguageHierarchy<z64TokenId> {
 
     @Override
     protected String mimeType() {
-        return "text/x-sj";
+        return "text/z64asm";
     }
 
 }

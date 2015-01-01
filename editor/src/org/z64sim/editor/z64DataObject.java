@@ -18,29 +18,29 @@ import org.openide.loaders.MultiFileLoader;
 import org.openide.util.NbBundle.Messages;
 
 @Messages({
-    "LBL_z64doc_LOADER=z64 Assembly File"
+    "LBL_z64_LOADER=Files of z64"
 })
 @MIMEResolver.ExtensionRegistration(
-        displayName = "#LBL_z64doc_LOADER",
+        displayName = "#LBL_z64_LOADER",
         mimeType = "text/z64asm",
-        extension = {"z64", "Z64", "asm"}
+        extension = {"z64", "Z64"}
 )
 @DataObject.Registration(
         mimeType = "text/z64asm",
         iconBase = "org/z64sim/editor/z64doc.png",
-        displayName = "#LBL_z64doc_LOADER",
+        displayName = "#LBL_z64_LOADER",
         position = 300
 )
 @ActionReferences({
     @ActionReference(
             path = "Loaders/text/z64asm/Actions",
-            id = @ActionID(category = "System", id = "org.z64sim.editor.OpenAsmFileAction"),
+            id = @ActionID(category = "System", id = "org.openide.actions.OpenAction"),
             position = 100,
             separatorAfter = 200
     ),
     @ActionReference(
             path = "Loaders/text/z64asm/Actions",
-            id = @ActionID(category = "Edit", id = "org.z64sim.editor.OpenAsmFileAction"),
+            id = @ActionID(category = "Edit", id = "org.openide.actions.CutAction"),
             position = 300
     ),
     @ActionReference(
@@ -83,15 +83,9 @@ import org.openide.util.NbBundle.Messages;
             position = 1400
     )
 })
+public class z64DataObject extends MultiDataObject {
 
-/**
- *
- * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
- * @date December 29, 2014
- */
-public class z64docDataObject extends MultiDataObject {
-
-    public z64docDataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException {
+    public z64DataObject(FileObject pf, MultiFileLoader loader) throws DataObjectExistsException, IOException {
         super(pf, loader);
         registerEditor("text/z64asm", false);
     }
