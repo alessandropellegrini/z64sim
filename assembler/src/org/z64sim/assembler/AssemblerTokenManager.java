@@ -6,14 +6,6 @@ import java.io.Reader;
 
 /** Token Manager. */
 @SuppressWarnings("unused")public class AssemblerTokenManager implements AssemblerConstants {
-    void CommonTokenAction(Token t) {
-        AsmToken tok = (AsmToken)t;
-        tok.start = input_stream.nextCharInd - t.image.length();
-        tok.length = t.image.length();
-        tok.token = t;
-
-        System.out.println("Token " + tok.token.image + " (" + tok.token.kind + ") from " + tok.start + " len " + tok.length);
-    }
 
   /** Debug output. */
   public  java.io.PrintStream debugStream = System.out;
@@ -1444,7 +1436,6 @@ public Token getNextToken()
       jjmatchedKind = 0;
       jjmatchedPos = -1;
       matchedToken = jjFillToken();
-      CommonTokenAction(matchedToken);
       return matchedToken;
    }
 
@@ -1463,7 +1454,6 @@ public Token getNextToken()
       if ((jjtoToken[jjmatchedKind >> 6] & (1L << (jjmatchedKind & 077))) != 0L)
       {
          matchedToken = jjFillToken();
-         CommonTokenAction(matchedToken);
          return matchedToken;
       }
       else

@@ -4,8 +4,6 @@ options {
     JAVA_UNICODE_ESCAPE = true;
     ERROR_REPORTING = true;
     STATIC = false;
-    TOKEN_EXTENDS = "AsmToken";
-    COMMON_TOKEN_ACTION = true;
     JDK_VERSION = "1.7";
     BUILD_PARSER = true;
     IGNORE_CASE = true;
@@ -205,16 +203,3 @@ void FormatM() :
 void FormatB() :
 {}
 { "/" }
-
-
-TOKEN_MGR_DECLS:
-{
-    void CommonTokenAction(Token t) {
-        AsmToken tok = (AsmToken)t;
-        tok.start = input_stream.nextCharInd - t.image.length();
-        tok.length = t.image.length();
-        tok.token = t;
-
-        System.out.println("Token " + tok.token.image + " (" + tok.token.kind + ") from " + tok.start + " len " + tok.length);
-    }
-}

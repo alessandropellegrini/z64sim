@@ -5,7 +5,17 @@
         <data xmlns="http://www.netbeans.org/ns/nb-module-project/3">
             <code-name-base>org.z64sim.assembler</code-name-base>
             <suite-component/>
-            <module-dependencies/>
+            <module-dependencies>
+                <dependency>
+                    <code-name-base>org.netbeans.modules.lexer</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>2</release-version>
+                        <specification-version>1.59.1.1</specification-version>
+                    </run-dependency>
+                </dependency>
+            </module-dependencies>
             <test-dependencies>
                 <test-type>
                     <name>unit</name>
