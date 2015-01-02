@@ -13,103 +13,105 @@ public interface AssemblerConstants {
   /** RegularExpression Id. */
   int WHITESPACE = 1;
   /** RegularExpression Id. */
-  int COMMENT = 2;
+  int NEWLINE = 2;
   /** RegularExpression Id. */
-  int LOCATION_COUNTER = 3;
+  int COMMENT = 3;
   /** RegularExpression Id. */
-  int DATA_SECTION = 4;
+  int LOCATION_COUNTER = 4;
   /** RegularExpression Id. */
-  int CODE_SECTION = 5;
+  int DATA_SECTION = 5;
   /** RegularExpression Id. */
-  int BSS_SECTION = 6;
+  int CODE_SECTION = 6;
   /** RegularExpression Id. */
-  int PROGRAM_END = 7;
+  int BSS_SECTION = 7;
   /** RegularExpression Id. */
-  int EQU_ASSIGN = 8;
+  int PROGRAM_END = 8;
   /** RegularExpression Id. */
-  int BYTE_ASSIGN = 9;
+  int EQU_ASSIGN = 9;
   /** RegularExpression Id. */
-  int WORD_ASSIGN = 10;
+  int BYTE_ASSIGN = 10;
   /** RegularExpression Id. */
-  int LONG_ASSIGN = 11;
+  int WORD_ASSIGN = 11;
   /** RegularExpression Id. */
-  int QUAD_ASSIGN = 12;
+  int LONG_ASSIGN = 12;
   /** RegularExpression Id. */
-  int ASCII_ASSIGN = 13;
+  int QUAD_ASSIGN = 13;
   /** RegularExpression Id. */
-  int FILL_ASSIGN = 14;
+  int ASCII_ASSIGN = 14;
   /** RegularExpression Id. */
-  int COMM_ASSIGN = 15;
+  int FILL_ASSIGN = 15;
   /** RegularExpression Id. */
-  int DRIVER = 16;
+  int COMM_ASSIGN = 16;
   /** RegularExpression Id. */
-  int SCALE = 17;
+  int DRIVER = 17;
   /** RegularExpression Id. */
-  int CONSTANT = 18;
+  int SCALE = 18;
   /** RegularExpression Id. */
-  int NUMBER = 19;
+  int CONSTANT = 19;
   /** RegularExpression Id. */
-  int DEC = 20;
+  int NUMBER = 20;
   /** RegularExpression Id. */
-  int HEX = 21;
+  int DEC = 21;
   /** RegularExpression Id. */
-  int ASSIGN = 22;
+  int HEX = 22;
   /** RegularExpression Id. */
-  int PLUS = 23;
+  int ASSIGN = 23;
   /** RegularExpression Id. */
-  int MINUS = 24;
+  int PLUS = 24;
   /** RegularExpression Id. */
-  int TIMES = 25;
+  int MINUS = 25;
   /** RegularExpression Id. */
-  int DIVIDE = 26;
+  int TIMES = 26;
   /** RegularExpression Id. */
-  int LBRACE = 27;
+  int DIVIDE = 27;
   /** RegularExpression Id. */
-  int RBRACE = 28;
+  int LBRACE = 28;
   /** RegularExpression Id. */
-  int COMMA = 29;
+  int RBRACE = 29;
   /** RegularExpression Id. */
-  int REG_8 = 30;
+  int COMMA = 30;
   /** RegularExpression Id. */
-  int REG_16 = 31;
+  int REG_8 = 31;
   /** RegularExpression Id. */
-  int REG_32 = 32;
+  int REG_16 = 32;
   /** RegularExpression Id. */
-  int REG_64 = 33;
+  int REG_32 = 33;
   /** RegularExpression Id. */
-  int INSN_0 = 34;
+  int REG_64 = 34;
   /** RegularExpression Id. */
-  int INSN_0_WQ = 35;
+  int INSN_0 = 35;
   /** RegularExpression Id. */
-  int INSN_0_NOSUFF = 36;
+  int INSN_0_WQ = 36;
   /** RegularExpression Id. */
-  int INSN_1_S = 37;
+  int INSN_0_NOSUFF = 37;
   /** RegularExpression Id. */
-  int INSN_LEA = 38;
+  int INSN_1_S = 38;
   /** RegularExpression Id. */
-  int INSN_1_E = 39;
+  int INSN_LEA = 39;
   /** RegularExpression Id. */
-  int INSN_SHIFT = 40;
+  int INSN_1_E = 40;
   /** RegularExpression Id. */
-  int INSN_1_M = 41;
+  int INSN_SHIFT = 41;
   /** RegularExpression Id. */
-  int INSN_JC = 42;
+  int INSN_1_M = 42;
   /** RegularExpression Id. */
-  int INSN_B_E = 43;
+  int INSN_JC = 43;
   /** RegularExpression Id. */
-  int INSN_EXT = 44;
+  int INSN_B_E = 44;
   /** RegularExpression Id. */
-  int INSN_IN = 45;
+  int INSN_EXT = 45;
   /** RegularExpression Id. */
-  int INSN_OUT = 46;
+  int INSN_IN = 46;
   /** RegularExpression Id. */
-  int INSN_IO_S = 47;
+  int INSN_OUT = 47;
   /** RegularExpression Id. */
-  int LABEL = 48;
+  int INSN_IO_S = 48;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 49;
+  int LABEL = 49;
   /** RegularExpression Id. */
-  int ERROR = 50;
+  int STRING_LITERAL = 50;
+  /** RegularExpression Id. */
+  int ERROR = 51;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -118,6 +120,7 @@ public interface AssemblerConstants {
   String[] tokenImage = {
     "<EOF>",
     "<WHITESPACE>",
+    "<NEWLINE>",
     "<COMMENT>",
     "<LOCATION_COUNTER>",
     "\".data\"",

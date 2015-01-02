@@ -1,6 +1,4 @@
 options {
-    DEBUG_TOKEN_MANAGER = false;
-    DEBUG_PARSER = false;
     JAVA_UNICODE_ESCAPE = true;
     ERROR_REPORTING = true;
     STATIC = false;
@@ -15,15 +13,37 @@ PARSER_BEGIN(Assembler)
 package org.z64sim.assembler;
 import java.io.StringReader;
 import java.io.Reader;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Assembler {
 
+    /** To support error recovery */
+    public List<ParseException> syntaxErrors = new ArrayList<ParseException>();
+
     /**
      * A String-based constructor for ease of use
+     *
+     * @param s The program to be assembled
      */
     public Assembler(String s) {
         this((Reader)(new StringReader(s)));
     }
+
+    /**
+     * Error recovery function
+     *
+     * @param ex The exception keeping the parse error
+     * @param kind The token to be reached so as to continue parsing
+     */
+    void error_recover(ParseException ex, int kind) {
+        syntaxErrors.add(ex);
+        Token t;
+        do {
+            t = getNextToken();
+        } while (t.kind != kind);
+    }
+
 }
 PARSER_END(Assembler)
 
@@ -41,9 +61,10 @@ TOKEN :
 { <WHITESPACE:
   " "
 | "\t"
-| "\n"
-| "\r"
 | "\f">
+| <NEWLINE:
+  "\n"
+| "\r">
 }
 
 TOKEN :
@@ -179,15 +200,20 @@ TOKEN:
 
 TOKEN:
 {
-    /* All other things are considered to be error character.
+    /* Anything else is considered to be and error character.
      * Only one character must be matched because the (~[])+
      * would be the longest match so it would be always
      * preferred. The ERROR clause must be the last
      * in the grammar specification so that other one-char
      * clauses are matched preferably.
+     * This is REQUIRED for correct online syntax highlighting,
+     * but makes actual parsing a bit more difficult.
      */
     <ERROR: ~[] >
 }
+
+
+
 
 
 
@@ -207,66 +233,163 @@ void Program() :
 
 void LocationCounter() :
 {}
-{ <LOCATION_COUNTER> <NUMBER> }
+{ 
+    try {
+
+        /* ACTUAL RULE */
+        <LOCATION_COUNTER> <NUMBER>
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
 
 
 void Instruction() :
 {}
-{  <INSN_0>
- | <INSN_0_WQ>
- | <INSN_0_NOSUFF>
- | <INSN_1_S> <NUMBER>
- | <INSN_1_E> FormatE()
- | <INSN_SHIFT> ( FormatK() "," )? FormatG()
- | <INSN_1_M> FormatM()
- | <INSN_JC> ( FormatM() | "*" FormatG() )
- | <INSN_B_E> FormatB() "," FormatE()
- | <INSN_EXT> FormatE() "," FormatG()
- | <INSN_IN> <REG_16> "," (<REG_8> | <REG_16> | <REG_32> | <REG_64>) /* programmatically check for registers */
- | <INSN_OUT> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <REG_16> /* programmatically check for registers */
- | <INSN_IO_S>
+{
+    try {
+
+        /* ACTUAL RULE */
+        <INSN_0>
+      | <INSN_0_WQ>
+      | <INSN_0_NOSUFF>
+      | <INSN_1_S> <NUMBER>
+      | <INSN_1_E> FormatE()
+      | <INSN_SHIFT> ( FormatK() "," )? FormatG()
+      | <INSN_1_M> FormatM()
+      | <INSN_JC> ( FormatM() | "*" FormatG() )
+      | <INSN_B_E> FormatB() "," FormatE()
+      | <INSN_EXT> FormatE() "," FormatG()
+      | <INSN_IN> <REG_16> "," (<REG_8> | <REG_16> | <REG_32> | <REG_64>) /* programmatically check for registers */
+      | <INSN_OUT> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <REG_16> /* programmatically check for registers */
+      | <INSN_IO_S>
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
+
+
+
 
 void Label() :
 {}
-{ <LABEL> }
+{ 
+    try {
+
+        /* ACTUAL RULE */
+        <LABEL> 
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
 
 
 void Register() :
 {}
-{ <REG_8> | <REG_16> | <REG_32> | <REG_64> }
+{
+    try {
+
+        /* ACTUAL RULE */
+        <REG_8> | <REG_16> | <REG_32> | <REG_64>
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
 
 
 void Addressing() :
 {}
 { 
-  ( <CONSTANT> /* | <LABEL> */ )?
-  ( <LBRACE>
-   (<REG_8> | <REG_16> | <REG_32> | <REG_64>)
-   "," 
-   (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <SCALE>
-  <RBRACE> )?
+    try {
+
+        /* ACTUAL RULE */
+        ( <CONSTANT> /* | <LABEL> */ )?
+        ( <LBRACE>
+         (<REG_8> | <REG_16> | <REG_32> | <REG_64>)
+         "," 
+         (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <SCALE>
+        <RBRACE> )?
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
 
 
 void FormatE() :
 {}
-{ (Register() | <CONSTANT> | Addressing())}
+{ 
+    try {
+
+        /* ACTUAL RULE */
+        Register() | <CONSTANT> | Addressing()
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+
 
 void FormatK() :
 {}
-{ "@" }
+{ 
+    try {
+
+        /* ACTUAL RULE */
+        "@"
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+
 
 void FormatG() :
 {}
-{ "@" }
+{
+    try {
+
+        /* ACTUAL RULE */
+        "@"
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
 
 
 /* Both label and direct address */
 void FormatM() : 
 {}
-{ "@" }
+{
+    try {
+
+        /* ACTUAL RULE */
+        "@"
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+
 
 void FormatB() :
 {}
-{ "@" }
+{
+    try {
+
+        /* ACTUAL RULE */
+        "@"
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
