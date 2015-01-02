@@ -5,11 +5,14 @@
  */
 package org.z64sim.editor.highlighter;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerRestartInfo;
 import org.z64sim.assembler.JavaCharStream;
 import org.z64sim.assembler.AssemblerTokenManager;
 import org.z64sim.assembler.Token;
+import org.z64sim.assembler.TokenMgrError;
 
 /**
  *
@@ -19,6 +22,7 @@ class z64Lexer implements Lexer<z64TokenId> {
 
     private final LexerRestartInfo<z64TokenId> info;
     private final AssemblerTokenManager assemblerTokenManager;
+    private static final Logger logger = Logger.getLogger(Lexer.class.getName());
 
     z64Lexer(LexerRestartInfo<z64TokenId> info) {
         this.info = info;
@@ -28,11 +32,20 @@ class z64Lexer implements Lexer<z64TokenId> {
 
     @Override
     public org.netbeans.api.lexer.Token<z64TokenId> nextToken() {
-        Token token = assemblerTokenManager.getNextToken();
-        if (info.input().readLength() < 1) {
+        Token token;
+
+        try {
+            token = assemblerTokenManager.getNextToken();
+        } catch (TokenMgrError e) {
+            logger.log(Level.INFO, e.getMessage());
             return null;
         }
-        return info.tokenFactory().createToken(z64LanguageHierarchy.getToken(token.kind));
+
+        if (null == token || token.kind == AssemblerTokenManager.EOF) {
+            return null;
+        }
+        
+        return info.tokenFactory().createToken(z64LanguageHierarchy.getToken(token.kind), token.image.length());
     }
 
     @Override

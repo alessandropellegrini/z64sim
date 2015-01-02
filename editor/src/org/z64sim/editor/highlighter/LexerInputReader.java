@@ -37,7 +37,7 @@ public class LexerInputReader extends Reader {
 
     public LexerInputReader(LexerInput lexerInput) {
         if (lexerInput == null) {
-            throw new IllegalArgumentException("lexer input cannot be null");
+            throw new IllegalArgumentException("Lexer input cannot be null");
         }
 
         this.lexerInput = lexerInput;
@@ -157,7 +157,7 @@ public class LexerInputReader extends Reader {
      */
     @Override
     public void mark(int readAheadLimit) throws IOException {
-        throw new IOException("mark not supported");
+        throw new IOException("mark() not supported");
     }
 
     /**
@@ -166,7 +166,7 @@ public class LexerInputReader extends Reader {
      */
     @Override
     public void reset() throws IOException {
-        throw new IOException("reset not supported");
+        throw new IOException("reset() not supported");
     }
 
 }

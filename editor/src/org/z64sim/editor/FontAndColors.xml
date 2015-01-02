@@ -4,16 +4,20 @@
 <fontscolors>
     <fontcolor name="character" default="char"/>
     <fontcolor name="errors" default="error"/>
-    <fontcolor name="identifier" default="identifier"/>
-    <fontcolor name="keyword" default="keyword" foreColor="red"/>
-    <fontcolor name="literal" default="keyword" />
+    <fontcolor name="identifier" default="identifier" foreColor="magenta">
+        <font style="bold" />
+    </fontcolor>
+    <fontcolor name="keyword" default="keyword" foreColor="gray">
+        <font style="bold" />
+    </fontcolor>
+    <fontcolor name="literal" default="literal" />
     <fontcolor name="comment" default="comment"/>
-    <fontcolor name="number" default="number"/>
+    <fontcolor name="number" default="number" foreColor="orange"/>
     <fontcolor name="operator" default="operator"/>
     <fontcolor name="string" default="string"/>
     <fontcolor name="separator" default="separator"/>
     <fontcolor name="whitespace" default="whitespace"/>
-    <fontcolor name="method-declaration" default="method">
+    <fontcolor name="instruction" default="method" foreColor="blue">
         <font style="bold" />
     </fontcolor>
 </fontscolors>
