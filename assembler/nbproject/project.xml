@@ -27,6 +27,7 @@
             </test-dependencies>
             <public-packages>
                 <package>org.z64sim.assembler</package>
+                <package>org.z64sim.program</package>
             </public-packages>
         </data>
     </configuration>

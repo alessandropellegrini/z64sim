@@ -9,6 +9,6 @@ package org.z64sim.program;
  *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
-public abstract class Instruction extends MemoryElement {
+public abstract class MemoryElement {
     
 }
