@@ -32,34 +32,84 @@ PARSER_END(Assembler)
  * LEXER *
  *********/
 
-SKIP :
-{ " "
+
+/* No SKIP and no SPECIAL TOKENS: they are hidden to the Lexer interface, and
+ * are rather needed for syntax highlighting. Might have an effect on performance
+ * nevertheless...
+ */
+TOKEN :
+{ <WHITESPACE:
+  " "
 | "\t"
-| "\r"
 | "\n"
+| "\r"
+| "\f">
 }
- 
+
+TOKEN :
+{ <COMMENT: ";" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+
+
+/** 
+ * Regular tokens start here 
+ */
+
+
+
+/** Keywords */
 TOKEN:
-{ <PROGRAM_BEGIN: ".org">
+{ <LOCATION_COUNTER: ("." | ".org")>
+| <DATA_SECTION: ".data">
+| <CODE_SECTION: ".text">
+| <BSS_SECTION: ".bss">
 | <PROGRAM_END: ".end">
-| <COMMENT: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
-| <SCALE: "1" | "2" | "4" | "8">
+| <EQU_ASSIGN: ".equ">
+| <BYTE_ASSIGN: ".byte">
+| <WORD_ASSIGN: ".word">
+| <LONG_ASSIGN: ".long">
+| <QUAD_ASSIGN: ".quad">
+| <ASCII_ASSIGN: ".ascii"> 
+| <FILL_ASSIGN: ".fill">
+| <COMM_ASSIGN: ".comm">
+| <DRIVER: (".driver" | ".handler")>
+}
+
+/** Numeric/Arithmetic/Separator stuff */
+TOKEN:
+{ <SCALE: "1" | "2" | "4" | "8">
 | <CONSTANT: "$"<NUMBER>>
 | <NUMBER: <DEC> | <HEX>>
 |   <#DEC: (["0"-"9"])+>
 |   <#HEX: "0x"(["0"-"9","a"-"f"])+>
-| <REG_8: "%al" | "%cl" | "%dl" | "%bl">
+| <ASSIGN: "=">
+| <PLUS: "+">
+| <MINUS: "-">
+| <TIMES: "*">
+| <DIVIDE: "/">
+| <LBRACE: "(">
+| <RBRACE: ")">
+| <COMMA: ",">
+}
+
+/** Registers */
+TOKEN:
+{ <REG_8: "%al" | "%cl" | "%dl" | "%bl">
 | <REG_16: "%ax" | "%bx" | "%cx" | "%dx" | "%sp" | "%bp" | "%si" | "%di">
 | <REG_32: "%eax" | "%ebx" | "%ecx" | "%edx" | "%esp" | "%ebp" | "%esi" | "%edi">
 | <REG_64: "%rax" | "%rbx" | "%rcx" | "%rdx" | "%rsp" | "%rbp" | "%rsi" | "%rdi" | "%r8" | "%r9" | "%r10" | "%r11" | "%r12" | "%r13" | "%r14" | "%r15">
-| <INSN_0: ( "movs" 
+}
+
+/** Instructions */
+TOKEN:
+{ <INSN_0: ( "movs" 
            | "stos" 
            | "in" 
            | "out" 
            | "ins" 
-           | "outs")<SUFFIX>>
+           | "outs")("b"|"w"|"l"|"q")?>
 | <INSN_0_WQ: ("pushf" 
-             | "popf" )<SUFFIX_WQ>>
+             | "popf" )("w"|"l"|"q")?>
 | <INSN_0_NOSUFF:  "ret" 
                  | "iret"
                  | "clc" 
@@ -79,17 +129,18 @@ TOKEN:
                  | "hlt" 
                  | "nop">
 | <INSN_1_S: "int">
+| <INSN_LEA: "lea"("b"|"w"|"l"|"q")?>   
 | <INSN_1_E: ("push"
            | "pop"
            | "neg"
-           | "not")<SUFFIX>>
+           | "not")("b"|"w"|"l"|"q")?>
 | <INSN_SHIFT: ("sal"
             | "shl"
             | "sar"
             | "shr"
             | "rcl"
             | "rol"
-            | "ror")<SUFFIX>>
+            | "ror")("b"|"w"|"l"|"q")?>
 | <INSN_1_M: ("jc"
             | "jp"
             | "jz"
@@ -101,7 +152,7 @@ TOKEN:
             | "jns"
             | "jno")>
 | <INSN_JC: ("jmp"
-           | "call")<SUFFIX>>
+           | "call")("b"|"w"|"l"|"q")?>
 | <INSN_B_E: ("mov"
             | "add"
             | "sub"
@@ -111,21 +162,33 @@ TOKEN:
             | "test"
             | "and"
             | "or"
-            | "xor")<SUFFIX>>
-| <INSN_EXT: ("movs" | "movz")<EXT_SUFFIX>>
-| <INSN_IN: "in"<SUFFIX>>
-| <INSN_OUT: "out"<SUFFIX>>
+            | "xor")("b"|"w"|"l"|"q")?>
+| <INSN_EXT: ("movs" | "movz")("bw"|"bl"|"bq"|"wl"|"wq"|"lq")>
+| <INSN_IN: "in"("b"|"w"|"l"|"q")?>
+| <INSN_OUT: "out"("b"|"w"|"l"|"q")?>
 | <INSN_IO_S: ("ins"
-           | "outs")<SUFFIX_BWL>>
-| <LABEL: <STRING>":">
-| <STRING: ([".","_","-"]|["a"-"z"]|["0"-"9"])+ >
-| <LBRACE: "(">
-| <RBRACE: ")">
-| <#SUFFIX: "b" | "w" | "l" | "q">
-| <#SUFFIX_BWL: "b" | "w" | "l" | "q">
-| <#SUFFIX_WQ: "w" | "q">
-| <#EXT_SUFFIX: "bw" | "bl" | "bq" | "wl" | "wq" | "lq">
+           | "outs")("b"|"w"|"l")>
 }
+
+/** Text/Ascii stuff */
+TOKEN:
+{ <LABEL: ([".","_","-","a"-"z","0"-"9"])+ ":">
+| <STRING_LITERAL: "\"" ( ~["\"","\\","\n","\r"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] | ( ["\n","\r"] | "\r\n")))* "\"">
+}
+
+
+TOKEN:
+{
+    /* All other things are considered to be error character.
+     * Only one character must be matched because the (~[])+
+     * would be the longest match so it would be always
+     * preferred. The ERROR clause must be the last
+     * in the grammar specification so that other one-char
+     * clauses are matched preferably.
+     */
+    <ERROR: ~[] >
+}
+
 
 
 /****************
@@ -135,17 +198,21 @@ TOKEN:
 
 void Program() :
 {}
-{<PROGRAM_BEGIN>
- ( Label() | Instruction() )+
- <PROGRAM_END>
- <EOF>
+{ LocationCounter()
+  ( Label() | Instruction() )+
+  <PROGRAM_END>
+  <EOF>
 }
+
+
+void LocationCounter() :
+{}
+{ <LOCATION_COUNTER> <NUMBER> }
 
 
 void Instruction() :
 {}
-{
-   <INSN_0>
+{  <INSN_0>
  | <INSN_0_WQ>
  | <INSN_0_NOSUFF>
  | <INSN_1_S> <NUMBER>
@@ -188,18 +255,18 @@ void FormatE() :
 
 void FormatK() :
 {}
-{ "/" }
+{ "@" }
 
 void FormatG() :
 {}
-{ "/" }
+{ "@" }
 
 
 /* Both label and direct address */
 void FormatM() : 
 {}
-{ "/" }
+{ "@" }
 
 void FormatB() :
 {}
-{ "/" }
+{ "@" }
