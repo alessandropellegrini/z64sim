@@ -10,5 +10,22 @@ package org.z64sim.program;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public abstract class MemoryElement {
-    
+
+    private final int address;
+    private final int size;
+
+    public MemoryElement(int address, int size) {
+        this.address = address;
+        this.size = size;
+    }
+
+    public int getAddress() {
+        return address;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public abstract void update();
 }
