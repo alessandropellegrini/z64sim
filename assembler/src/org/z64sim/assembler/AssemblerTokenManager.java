@@ -2018,13 +2018,13 @@ public static final String[] lexStateNames = {
    "DEFAULT",
 };
 static final long[] jjtoToken = {
-   0x1fffffff9ffff9L, 
+   0x1fffffff9ffffdL, 
 };
 static final long[] jjtoSkip = {
-   0x6L, 
+   0x2L, 
 };
 static final long[] jjtoSpecial = {
-   0x6L, 
+   0x2L, 
 };
     protected JavaCharStream  input_stream;
 

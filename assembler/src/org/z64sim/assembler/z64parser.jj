@@ -62,7 +62,11 @@ SPECIAL_TOKEN :
   " "
 | "\t"
 | "\f">
-| <NEWLINE:
+}
+
+TOKEN :
+{
+<NEWLINE:
   "\n"
 | "\r">
 }
@@ -226,12 +230,20 @@ TOKEN:
 
 void Program() :
 {}
-{ LocationCounter()
-  ( Label() | Instruction() )+
+{ LocationCounter() <NEWLINE>
+  ( Statement() )+
   <PROGRAM_END>
+  (<NEWLINE>)* /* This is to consume newlines at the end of file */
   <EOF>
 }
 
+void Statement() :
+{}
+{
+  Label() <NEWLINE> 
+| Instruction() <NEWLINE> 
+| <NEWLINE>
+}
 
 void LocationCounter() :
 {}
