@@ -11,7 +11,7 @@ package org.z64sim.program;
  */
 public abstract class MemoryElement {
 
-    private final int address;
+    private final long address;
     private final int size;
 
     public MemoryElement(int address, int size) {
@@ -19,7 +19,7 @@ public abstract class MemoryElement {
         this.size = size;
     }
 
-    public int getAddress() {
+    public long getAddress() {
         return address;
     }
 

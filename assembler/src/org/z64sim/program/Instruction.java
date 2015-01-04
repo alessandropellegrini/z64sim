@@ -18,11 +18,13 @@ public abstract class Instruction extends MemoryElement {
     private static final Logger logger = Logger.getLogger(Instruction.class.getName());
     private final ArrayList<MicroOperation> microOps;
     private final String mnemonic;
+    private final byte type;
     
-    public Instruction(int address, int size, String mnemonic, ArrayList<MicroOperation> ops) {
+    public Instruction(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops) {
         super(address, size);
-        this.microOps = ops;
+        this.type = type;
         this.mnemonic = mnemonic;
+        this.microOps = ops;
     }
 
     @Override
@@ -31,4 +33,6 @@ public abstract class Instruction extends MemoryElement {
     }
     
     public abstract void run();
+    
+    public abstract byte[] getRepresentation();
 }

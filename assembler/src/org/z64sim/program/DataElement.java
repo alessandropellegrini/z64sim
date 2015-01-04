@@ -10,9 +10,12 @@ package org.z64sim.program;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class DataElement extends MemoryElement {
+    
+    private byte[] value;
 
-    public DataElement(int address, int size) {
+    public DataElement(int address, int size, byte[] value) {
         super(address, size);
+        this.value = value;
     }
 
     @Override

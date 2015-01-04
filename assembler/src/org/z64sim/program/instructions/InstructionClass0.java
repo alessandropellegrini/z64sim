@@ -15,12 +15,17 @@ import org.z64sim.program.subtasks.MicroOperation;
  */
 public class InstructionClass0 extends Instruction {
 
-    public InstructionClass0(int address, int size, String mnemonic, ArrayList<MicroOperation> ops) {
-        super(address, size, mnemonic, ops);
+    public InstructionClass0(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops) {
+        super(address, size, mnemonic, type, ops);
     }
 
     @Override
     public void run() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public byte[] getRepresentation() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

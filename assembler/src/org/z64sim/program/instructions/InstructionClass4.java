@@ -18,14 +18,19 @@ public class InstructionClass4 extends Instruction {
     private final byte bit;
     private final byte val;
 
-    public InstructionClass4(int address, int size, String mnemonic, ArrayList<MicroOperation> ops, byte bit, byte val) {
-        super(address, size, mnemonic, ops);
+    public InstructionClass4(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops, byte bit, byte val) {
+        super(address, size, mnemonic, type, ops);
         this.bit = bit;
         this.val = val;
     }
 
     @Override
     public void run() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public byte[] getRepresentation() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
