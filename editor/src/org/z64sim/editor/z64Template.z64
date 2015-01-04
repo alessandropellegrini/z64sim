@@ -4,6 +4,6 @@
 size .equ 10
 
 .text
-; Comment
+# This is a comment
 movl %eax, %ebx
 .end

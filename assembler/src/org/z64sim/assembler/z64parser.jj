@@ -53,11 +53,11 @@ PARSER_END(Assembler)
  *********/
 
 
-/* No SKIP and no SPECIAL TOKENS: they are hidden to the Lexer interface, and
+/* No SKIP charachters: they are hidden to the Lexer interface, and
  * are rather needed for syntax highlighting. Might have an effect on performance
  * nevertheless...
  */
-TOKEN :
+SPECIAL_TOKEN :
 { <WHITESPACE:
   " "
 | "\t"
@@ -68,7 +68,9 @@ TOKEN :
 }
 
 TOKEN :
-{ <COMMENT: ";" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+{ 
+  <COMMENT: ( "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n") ) |
+            ( "/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/") >
 }
 
 
@@ -256,13 +258,13 @@ void Instruction() :
       | <INSN_0_NOSUFF>
       | <INSN_1_S> <NUMBER>
       | <INSN_1_E> FormatE()
-      | <INSN_SHIFT> ( FormatK() "," )? FormatG()
+      | <INSN_SHIFT> ( FormatK() <COMMA> )? FormatG()
       | <INSN_1_M> FormatM()
-      | <INSN_JC> ( FormatM() | "*" FormatG() )
-      | <INSN_B_E> FormatB() "," FormatE()
-      | <INSN_EXT> FormatE() "," FormatG()
-      | <INSN_IN> <REG_16> "," (<REG_8> | <REG_16> | <REG_32> | <REG_64>) /* programmatically check for registers */
-      | <INSN_OUT> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <REG_16> /* programmatically check for registers */
+      | <INSN_JC> ( FormatM() | <TIMES> FormatG() )
+      | <INSN_B_E> FormatB() <COMMA> FormatE()
+      | <INSN_EXT> FormatE() <COMMA> FormatG()
+      | <INSN_IN> <REG_16> <COMMA> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) /* programmatically check for registers */
+      | <INSN_OUT> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) <COMMA> <REG_16> /* programmatically check for registers */
       | <INSN_IO_S>
 
     } catch (ParseException ex) {

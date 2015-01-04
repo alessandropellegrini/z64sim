@@ -33,6 +33,8 @@ class z64Lexer implements Lexer<z64TokenId> {
     @Override
     public org.netbeans.api.lexer.Token<z64TokenId> nextToken() {
         Token token;
+        Token glue;
+        int extraChars = 0;
 
         try {
             token = assemblerTokenManager.getNextToken();
@@ -41,11 +43,29 @@ class z64Lexer implements Lexer<z64TokenId> {
             return null;
         }
 
-        if (null == token || token.kind == AssemblerTokenManager.EOF) {
+        if (null == token) {
             return null;
         }
         
-        return info.tokenFactory().createToken(z64LanguageHierarchy.getToken(token.kind), token.image.length());
+        // When parsing, we must skip some characters. On the other hand, here
+        // we must consider all characters as proper tokens. We use special
+        // tokens here, in a hackish way to glue skip characters to proper tokens.
+        // This is only for highlighting, and does not affect the actual parsing.
+        glue = token.specialToken;
+        while(glue != null) {
+            extraChars += glue.image.length();
+            glue = glue.specialToken;
+        }
+        
+        // EOF must be handled in a special way, because at the end of the document
+        // we can have any number of skip characters from the grammar
+        if(token.kind == AssemblerTokenManager.EOF && extraChars > 0) {
+            return info.tokenFactory().createToken(z64LanguageHierarchy.getToken(token.kind), extraChars);
+        } else if(token.kind == AssemblerTokenManager.EOF) {
+            return null;
+        }
+        
+        return info.tokenFactory().createToken(z64LanguageHierarchy.getToken(token.kind), token.image.length() + extraChars);
     }
 
     @Override
