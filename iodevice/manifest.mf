@@ -2,5 +2,6 @@ Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
 OpenIDE-Module: org.z64sim.iodevice
 OpenIDE-Module-Localizing-Bundle: org/z64sim/iodevice/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
 OpenIDE-Module-Specification-Version: 1.0
 
