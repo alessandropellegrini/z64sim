@@ -18,7 +18,7 @@ import org.openide.loaders.MultiFileLoader;
 import org.openide.util.NbBundle.Messages;
 
 @Messages({
-    "LBL_z64_LOADER=Files of z64"
+    "LBL_z64_LOADER=z64 Assembly Files"
 })
 @MIMEResolver.ExtensionRegistration(
         displayName = "#LBL_z64_LOADER",
