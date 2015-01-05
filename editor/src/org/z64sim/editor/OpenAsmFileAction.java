@@ -31,8 +31,8 @@ import org.openide.util.NbBundle.Messages;
         displayName = "#CTL_OpenAsmFileActionListener"
 )
 @ActionReferences({
-    @ActionReference(path = "Menu/File", position = -90),
-    @ActionReference(path = "Toolbars/File", position = 300),
+    @ActionReference(path = "Menu/File", position = 1),
+    @ActionReference(path = "Toolbars/File", position = 1),
     @ActionReference(path = "Shortcuts", name = "D-O")
 })
 @Messages("CTL_OpenAsmFileActionListener=Open Asm File")
@@ -51,11 +51,13 @@ public final class OpenAsmFileAction implements ActionListener {
                 File file = jfc.getSelectedFile();
                 FileObject foSelectedFile = FileUtil.toFileObject(file);
 
-                DataObject obj = DataObject.find(foSelectedFile);
-                EditorCookie ec = obj.getLookup().lookup(EditorCookie.class);
+                if (foSelectedFile != null) {
+                    DataObject obj = DataObject.find(foSelectedFile);
+                    EditorCookie ec = obj.getLookup().lookup(EditorCookie.class);
 
-                if (ec != null) {
-                    ec.open();
+                    if (ec != null) {
+                        ec.open();
+                    }
                 }
             } catch (DataObjectNotFoundException donfe) {
             }
@@ -81,5 +83,5 @@ public final class OpenAsmFileAction implements ActionListener {
         }
 
     }
-    
+
 }
