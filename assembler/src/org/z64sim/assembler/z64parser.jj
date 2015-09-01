@@ -34,6 +34,7 @@ public class Assembler {
      * Error recovery function
      *
      * @param ex The exception keeping the parse error
+     * @param kind The token to be reached so as to continue parsing
      */
     void error_recover(ParseException ex, int kind) {
         syntaxErrors.add(ex);
@@ -126,19 +127,6 @@ TOKEN:
 | <REG_64: "%rax" | "%rbx" | "%rcx" | "%rdx" | "%rsp" | "%rbp" | "%rsi" | "%rdi" | "%r8" | "%r9" | "%r10" | "%r11" | "%r12" | "%r13" | "%r14" | "%r15">
 }
 
-/** PortaI/O */
-TOKEN:
-{ < NumPortaIO : "%dx" >
-}
-
-/** Accumulatori */
-TOKEN:
-{ <Accumulatore_1 : "%al">
-| <Accumulatore_2 : "%ax">
-| <Accumulatore_3 : "%eax">
-| <Accumulatore_4 : "rax">
-}
-
 /** Instructions */
 TOKEN:
 { <INSN_0: ( "movs" 
@@ -205,12 +193,8 @@ TOKEN:
 | <INSN_EXT: ("movs" | "movz")("bw"|"bl"|"bq"|"wl"|"wq"|"lq")>
 | <INSN_IN: "in"("b"|"w"|"l"|"q")?>
 | <INSN_OUT: "out"("b"|"w"|"l"|"q")?>
-| <INSN_1_P:  ("start "
-			 | "clear ")>
-| <INSN_P_M:  ("jr "
-			 | "jnr")>
 | <INSN_IO_S: ("ins"
-             | "outs")("b"|"w"|"l")>
+           | "outs")("b"|"w"|"l")>
 }
 
 /** Text/Ascii stuff */
@@ -261,9 +245,6 @@ void Statement() :
 | <NEWLINE>
 }
 
-
-/* From here on, handle error recovery */
-
 void LocationCounter() :
 {}
 { 
@@ -291,10 +272,9 @@ void Instruction() :
       | <INSN_1_E> FormatE()
       | <INSN_SHIFT> ( FormatK() <COMMA> )? FormatG()
       | <INSN_1_M> FormatM()
-      | <INSN_JC>  FormatM() | <TIMES> FormatG() 
-      | <INSN_B_E>  FormatB() <COMMA> FormatE() 
-	  | <INSN_P_M>  FormatP() (<COMMA> FormatM())? 
-      | <INSN_EXT> (FormatE() <COMMA>)? FormatG () 
+      | <INSN_JC> ( FormatM() | <TIMES> FormatG() )
+      | <INSN_B_E> FormatB() <COMMA> FormatE()
+      | <INSN_EXT> FormatE() <COMMA> FormatG()
       | <INSN_IN> <REG_16> <COMMA> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) /* programmatically check for registers */
       | <INSN_OUT> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) <COMMA> <REG_16> /* programmatically check for registers */
       | <INSN_IO_S>
@@ -320,20 +300,6 @@ void Label() :
     }
 }
 
-void Operation() :
-{}
-{ 
-    try {
-
-        /* ACTUAL RULE */
-         <NUMBER> <PLUS>  <NUMBER> | <NUMBER>  <MINUS> <NUMBER> | <NUMBER>  <TIMES> <NUMBER> | <NUMBER> <DIVIDE> <NUMBER>| Register() <PLUS>  Register() |
-		 Register() <PLUS>  Register() | Register() <MINUS>  Register() | Register() <TIMES>  Register() | Register() <DIVIDE>  Register() 
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-    }
-}
-
 
 
 void Register() :
@@ -349,43 +315,18 @@ void Register() :
     }
 }
 
-void Num_Porta() :
-{}
-{
-    try {
 
-        /* ACTUAL RULE */
-        <NumPortaIO>
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-    }
-}
-
-void Accumulator() :
-{}
-{
-    try {
-
-        /* ACTUAL RULE */
-        <Accumulatore_1> | <Accumulatore_2> | <Accumulatore_3> | <Accumulatore_4> 
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-    }
-}
-
-void FormatM() :
+void Addressing() :
 {}
 { 
     try {
 
         /* ACTUAL RULE */
-        ( <CONSTANT> | Operation() )?
+        ( <CONSTANT> /* | <LABEL> */ )?
         ( <LBRACE>
-         (<REG_8> | <REG_16> | <REG_32> | <REG_64> | Label()  )
-         <COMMA>
-         (<REG_8> | <REG_16> | <REG_32> | <REG_64>) <COMMA> <SCALE>
+         (<REG_8> | <REG_16> | <REG_32> | <REG_64>)
+         "," 
+         (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <SCALE>
         <RBRACE> )?
 
     } catch (ParseException ex) {
@@ -394,28 +335,13 @@ void FormatM() :
 }
 
 
-void Num_PortaIO() :
-{}
-{ 
-    try {
-
-        /* ACTUAL RULE */
-        <NumPortaIO>
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-    }
-}
-
-
-
 void FormatE() :
 {}
 { 
     try {
 
         /* ACTUAL RULE */
-		(Operation())? <LBRACE> Register()  <RBRACE> | Register() | FormatM() | (<TIMES>)? Register() 
+        Register() | <CONSTANT> | Addressing()
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -430,9 +356,8 @@ void FormatK() :
     try {
 
         /* ACTUAL RULE */
-		
-        <CONSTANT> <COMMA> Register() | <CONSTANT> 
-		
+        "@"
+
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
@@ -446,15 +371,28 @@ void FormatG() :
     try {
 
         /* ACTUAL RULE */
-		
-         (<TIMES>)? Register() |  <CONSTANT> <COMMA> Register() | <CONSTANT> <COMMA> Operation() <LBRACE> Register() <RBRACE> 
-		 | FormatM()  | <TIMES> <DRIVER> |  <TIMES> <NUMBER> | (Operation())? <LBRACE> Register() <RBRACE> | (Operation())?  FormatM() 
-		 
-							
+        "@"
+
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
 }
+
+
+/* Both label and direct address */
+void FormatM() : 
+{}
+{
+    try {
+
+        /* ACTUAL RULE */
+        "@"
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
 
 
 void FormatB() :
@@ -463,29 +401,9 @@ void FormatB() :
     try {
 
         /* ACTUAL RULE */
-		
-        (Operation() )? Register()  | FormatM() | (Operation() )? <LBRACE> Register() <RBRACE> 
-		
+        "@"
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
 }
-
-
-void FormatP() :
-{}
-{
-    try {
-
-        /* ACTUAL RULE */
-		
-         Num_PortaIO() | Accumulator()  
-		 
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-    }
-}
-
-
