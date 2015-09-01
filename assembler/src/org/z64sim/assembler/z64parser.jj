@@ -67,8 +67,9 @@ SPECIAL_TOKEN :
 TOKEN :
 {
 <NEWLINE:
-  "\n"
-| "\r">
+("\n"
+| "\r"
+| ";")+ >
 }
 
 TOKEN :
@@ -86,7 +87,8 @@ TOKEN :
 
 /** Keywords */
 TOKEN:
-{ <LOCATION_COUNTER: ("." | ".org")>
+{ <LOCATION_COUNTER: ".">
+| <ORG: ".org">
 | <DATA_SECTION: ".data">
 | <CODE_SECTION: ".text">
 | <BSS_SECTION: ".bss">
@@ -104,11 +106,12 @@ TOKEN:
 
 /** Numeric/Arithmetic/Separator stuff */
 TOKEN:
-{ <SCALE: "1" | "2" | "4" | "8">
-| <CONSTANT: "$"<NUMBER>>
-| <NUMBER: <DEC> | <HEX>>
+{ <CONSTANT: "$">
+| <INTEGER: <DEC> | <HEX> | <BIN> | <FLONUM>>
 |   <#DEC: (["0"-"9"])+>
 |   <#HEX: "0x"(["0"-"9","a"-"f"])+>
+|   <#BIN: "0b"(["0","1"])+>
+| <FLONUM: "0e"("+"|"-")? (["0"-"9"])* ("." (["0"-"9"])+ )? ( "e" ("+"|"-")? (["0"-"9"])+ )? >
 | <ASSIGN: "=">
 | <PLUS: "+">
 | <MINUS: "-">
@@ -130,15 +133,10 @@ TOKEN:
 /** Instructions */
 TOKEN:
 { <INSN_0: ( "movs" 
-           | "stos" 
-           | "in" 
-           | "out" 
-           | "ins" 
-           | "outs")("b"|"w"|"l"|"q")?>
+           | "stos" )("b"|"w"|"l"|"q")?>
 | <INSN_0_WQ: ("pushf" 
              | "popf" )("w"|"l"|"q")?>
 | <INSN_0_NOSUFF:  "ret" 
-                 | "iret"
                  | "clc" 
                  | "clp" 
                  | "clz" 
@@ -195,11 +193,13 @@ TOKEN:
 | <INSN_OUT: "out"("b"|"w"|"l"|"q")?>
 | <INSN_IO_S: ("ins"
            | "outs")("b"|"w"|"l")>
+| <IRET: "iret">
 }
 
-/** Text/Ascii stuff */
+/** Label/Text/Ascii stuff */
 TOKEN:
-{ <LABEL: ([".","_","-","a"-"z","0"-"9"])+ ":">
+{ <LABEL: <LABEL_NAME> ":">
+| <LABEL_NAME: ([".","_","-","a"-"z","0"-"9"])+ >
 | <STRING_LITERAL: "\"" ( ~["\"","\\","\n","\r"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] | ( ["\n","\r"] | "\r\n")))* "\"">
 }
 
@@ -231,16 +231,59 @@ TOKEN:
 void Program() :
 {}
 { LocationCounter() <NEWLINE>
-  ( Statement() )+
+  Data()
+  Code()
+  Drivers()
   <PROGRAM_END>
   (<NEWLINE>)* /* This is to consume newlines at the end of file */
   <EOF>
 }
 
+
+void Data() :
+{}
+{
+    (   (<DATA_SECTION> | <BSS_SECTION>) <NEWLINE>
+        ((
+              LocationCounter()
+            | <EQU_ASSIGN> <LABEL_NAME> "," Expression()
+            | <LABEL_NAME> <ASSIGN> Expression()
+            | <LABEL>
+              (
+                   ( <BYTE_ASSIGN> | <WORD_ASSIGN> | <LONG_ASSIGN> | <QUAD_ASSIGN> ) Expression() ("," Expression())*
+                 | <ASCII_ASSIGN> <STRING_LITERAL>
+              )
+            | <FILL_ASSIGN> Expression() ( "," Expression() ( "," Expression() )? )?
+            | <COMM_ASSIGN> <LABEL_NAME> "," Expression()
+        ) <NEWLINE>)*
+    )+
+}
+
+void Code() :
+{}
+{ 
+    (
+        <DRIVER> <INTEGER> <NEWLINE>
+        ( Statement() )*
+    )+
+}
+
+void Drivers() :
+{}
+{ 
+    (
+        <CODE_SECTION> <NEWLINE>
+        ( Statement() )*
+        <IRET>
+    )+
+}
+
+
 void Statement() :
 {}
 {
   Label() <NEWLINE> 
+| LocationCounter() <NEWLINE>
 | Instruction() <NEWLINE> 
 | <NEWLINE>
 }
@@ -251,7 +294,10 @@ void LocationCounter() :
     try {
 
         /* ACTUAL RULE */
-        <LOCATION_COUNTER> <NUMBER>
+        (   <LOCATION_COUNTER> <ASSIGN>
+          | <ORG> ("," <INTEGER> )?
+        )
+        <INTEGER>
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -268,15 +314,16 @@ void Instruction() :
         <INSN_0>
       | <INSN_0_WQ>
       | <INSN_0_NOSUFF>
-      | <INSN_1_S> <NUMBER>
+      | <INSN_1_S> <INTEGER>
       | <INSN_1_E> FormatE()
       | <INSN_SHIFT> ( FormatK() <COMMA> )? FormatG()
       | <INSN_1_M> FormatM()
-      | <INSN_JC> ( FormatM() | <TIMES> FormatG() )
+      | <INSN_JC> ( ( <TIMES> FormatG() ) | FormatM() )
       | <INSN_B_E> FormatB() <COMMA> FormatE()
       | <INSN_EXT> FormatE() <COMMA> FormatG()
-      | <INSN_IN> <REG_16> <COMMA> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) /* programmatically check for registers */
-      | <INSN_OUT> (<REG_8> | <REG_16> | <REG_32> | <REG_64>) <COMMA> <REG_16> /* programmatically check for registers */
+      | <INSN_LEA> FormatE() <COMMA> FormatE()
+      | <INSN_IN> <REG_16> <COMMA> Register() /* programmatically check for registers */
+      | <INSN_OUT> Register() <COMMA> <REG_16> /* programmatically check for registers */
       | <INSN_IO_S>
 
     } catch (ParseException ex) {
@@ -322,11 +369,10 @@ void Addressing() :
     try {
 
         /* ACTUAL RULE */
-        ( <CONSTANT> /* | <LABEL> */ )?
+        ( LOOKAHEAD(2) Expression() )?
         ( <LBRACE>
          (<REG_8> | <REG_16> | <REG_32> | <REG_64>)
-         "," 
-         (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <SCALE>
+            ("," (<REG_8> | <REG_16> | <REG_32> | <REG_64>) "," <INTEGER>)?
         <RBRACE> )?
 
     } catch (ParseException ex) {
@@ -341,7 +387,7 @@ void FormatE() :
     try {
 
         /* ACTUAL RULE */
-        Register() | <CONSTANT> | Addressing()
+        Register() | Addressing()
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -356,7 +402,7 @@ void FormatK() :
     try {
 
         /* ACTUAL RULE */
-        "@"
+        <INTEGER>
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -371,7 +417,7 @@ void FormatG() :
     try {
 
         /* ACTUAL RULE */
-        "@"
+        Register()
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -386,7 +432,8 @@ void FormatM() :
     try {
 
         /* ACTUAL RULE */
-        "@"
+         Label()
+       | Addressing()
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -401,7 +448,70 @@ void FormatB() :
     try {
 
         /* ACTUAL RULE */
-        "@"
+          ConstantExpression()
+        | FormatG()
+        | FormatM()
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+
+/***************************************************/
+/* Rules to handle simple expressions in constants */
+/***************************************************/
+
+void ConstantExpression() :
+{}
+{
+    try {
+
+        /* ACTUAL RULE */
+        <CONSTANT>
+        Expression()
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    } 
+}
+
+
+void Expression() :
+{}
+{
+    try {
+
+        /* ACTUAL RULE */
+        Term() ( <PLUS> Term() | <MINUS> Term() )*
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    } 
+}
+
+void Term() :
+{}
+{
+    try {
+
+        Primary() ( <TIMES> Primary() | <DIVIDE> Primary() )*
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+void Primary() :
+{}
+{
+    try {
+
+        <INTEGER>
+      | <LOCATION_COUNTER>
+      | <LABEL_NAME>
+      | <LBRACE> Expression() <RBRACE>
+      | <MINUS> Primary()
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
