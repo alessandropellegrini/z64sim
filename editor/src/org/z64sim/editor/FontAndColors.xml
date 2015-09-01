@@ -13,7 +13,7 @@
     <fontcolor name="literal" default="literal" />
     <fontcolor name="comment" default="comment"/>
     <fontcolor name="number" default="number" foreColor="orange"/>
-    <fontcolor name="operator" default="operator"/>
+    <fontcolor name="operator" default="operator" foreColor="orange"/>
     <fontcolor name="string" default="string"/>
     <fontcolor name="separator" default="separator"/>
     <fontcolor name="whitespace" default="whitespace"/>

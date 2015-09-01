@@ -19,99 +19,107 @@ public interface AssemblerConstants {
   /** RegularExpression Id. */
   int LOCATION_COUNTER = 4;
   /** RegularExpression Id. */
-  int DATA_SECTION = 5;
+  int ORG = 5;
   /** RegularExpression Id. */
-  int CODE_SECTION = 6;
+  int DATA_SECTION = 6;
   /** RegularExpression Id. */
-  int BSS_SECTION = 7;
+  int CODE_SECTION = 7;
   /** RegularExpression Id. */
-  int PROGRAM_END = 8;
+  int BSS_SECTION = 8;
   /** RegularExpression Id. */
-  int EQU_ASSIGN = 9;
+  int PROGRAM_END = 9;
   /** RegularExpression Id. */
-  int BYTE_ASSIGN = 10;
+  int EQU_ASSIGN = 10;
   /** RegularExpression Id. */
-  int WORD_ASSIGN = 11;
+  int BYTE_ASSIGN = 11;
   /** RegularExpression Id. */
-  int LONG_ASSIGN = 12;
+  int WORD_ASSIGN = 12;
   /** RegularExpression Id. */
-  int QUAD_ASSIGN = 13;
+  int LONG_ASSIGN = 13;
   /** RegularExpression Id. */
-  int ASCII_ASSIGN = 14;
+  int QUAD_ASSIGN = 14;
   /** RegularExpression Id. */
-  int FILL_ASSIGN = 15;
+  int ASCII_ASSIGN = 15;
   /** RegularExpression Id. */
-  int COMM_ASSIGN = 16;
+  int FILL_ASSIGN = 16;
   /** RegularExpression Id. */
-  int DRIVER = 17;
+  int COMM_ASSIGN = 17;
   /** RegularExpression Id. */
-  int SCALE = 18;
+  int DRIVER = 18;
   /** RegularExpression Id. */
   int CONSTANT = 19;
   /** RegularExpression Id. */
-  int NUMBER = 20;
+  int INTEGER = 20;
   /** RegularExpression Id. */
   int DEC = 21;
   /** RegularExpression Id. */
   int HEX = 22;
   /** RegularExpression Id. */
-  int ASSIGN = 23;
+  int BIN = 23;
   /** RegularExpression Id. */
-  int PLUS = 24;
+  int FLONUM = 24;
   /** RegularExpression Id. */
-  int MINUS = 25;
+  int ASSIGN = 25;
   /** RegularExpression Id. */
-  int TIMES = 26;
+  int PLUS = 26;
   /** RegularExpression Id. */
-  int DIVIDE = 27;
+  int MINUS = 27;
   /** RegularExpression Id. */
-  int LBRACE = 28;
+  int TIMES = 28;
   /** RegularExpression Id. */
-  int RBRACE = 29;
+  int DIVIDE = 29;
   /** RegularExpression Id. */
-  int COMMA = 30;
+  int LBRACE = 30;
   /** RegularExpression Id. */
-  int REG_8 = 31;
+  int RBRACE = 31;
   /** RegularExpression Id. */
-  int REG_16 = 32;
+  int COMMA = 32;
   /** RegularExpression Id. */
-  int REG_32 = 33;
+  int REG_8 = 33;
   /** RegularExpression Id. */
-  int REG_64 = 34;
+  int REG_16 = 34;
   /** RegularExpression Id. */
-  int INSN_0 = 35;
+  int REG_32 = 35;
   /** RegularExpression Id. */
-  int INSN_0_WQ = 36;
+  int REG_64 = 36;
   /** RegularExpression Id. */
-  int INSN_0_NOSUFF = 37;
+  int INSN_0 = 37;
   /** RegularExpression Id. */
-  int INSN_1_S = 38;
+  int INSN_0_WQ = 38;
   /** RegularExpression Id. */
-  int INSN_LEA = 39;
+  int INSN_0_NOSUFF = 39;
   /** RegularExpression Id. */
-  int INSN_1_E = 40;
+  int INSN_1_S = 40;
   /** RegularExpression Id. */
-  int INSN_SHIFT = 41;
+  int INSN_LEA = 41;
   /** RegularExpression Id. */
-  int INSN_1_M = 42;
+  int INSN_1_E = 42;
   /** RegularExpression Id. */
-  int INSN_JC = 43;
+  int INSN_SHIFT = 43;
   /** RegularExpression Id. */
-  int INSN_B_E = 44;
+  int INSN_1_M = 44;
   /** RegularExpression Id. */
-  int INSN_EXT = 45;
+  int INSN_JC = 45;
   /** RegularExpression Id. */
-  int INSN_IN = 46;
+  int INSN_B_E = 46;
   /** RegularExpression Id. */
-  int INSN_OUT = 47;
+  int INSN_EXT = 47;
   /** RegularExpression Id. */
-  int INSN_IO_S = 48;
+  int INSN_IN = 48;
   /** RegularExpression Id. */
-  int LABEL = 49;
+  int INSN_OUT = 49;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 50;
+  int INSN_IO_S = 50;
   /** RegularExpression Id. */
-  int ERROR = 51;
+  int IRET = 51;
+  /** RegularExpression Id. */
+  int LABEL = 52;
+  /** RegularExpression Id. */
+  int LABEL_NAME = 53;
+  /** RegularExpression Id. */
+  int STRING_LITERAL = 54;
+  /** RegularExpression Id. */
+  int ERROR = 55;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -122,7 +130,8 @@ public interface AssemblerConstants {
     "<WHITESPACE>",
     "<NEWLINE>",
     "<COMMENT>",
-    "<LOCATION_COUNTER>",
+    "\".\"",
+    "\".org\"",
     "\".data\"",
     "\".text\"",
     "\".bss\"",
@@ -136,11 +145,12 @@ public interface AssemblerConstants {
     "\".fill\"",
     "\".comm\"",
     "<DRIVER>",
-    "<SCALE>",
-    "<CONSTANT>",
-    "<NUMBER>",
+    "\"$\"",
+    "<INTEGER>",
     "<DEC>",
     "<HEX>",
+    "<BIN>",
+    "<FLONUM>",
     "\"=\"",
     "\"+\"",
     "\"-\"",
@@ -167,10 +177,11 @@ public interface AssemblerConstants {
     "<INSN_IN>",
     "<INSN_OUT>",
     "<INSN_IO_S>",
+    "\"iret\"",
     "<LABEL>",
+    "<LABEL_NAME>",
     "<STRING_LITERAL>",
     "<ERROR>",
-    "\"@\"",
   };
 
 }
