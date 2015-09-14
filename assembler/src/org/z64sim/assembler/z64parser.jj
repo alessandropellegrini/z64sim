@@ -263,7 +263,7 @@ void Code() :
 {}
 { 
     (
-        <DRIVER> <INTEGER> <NEWLINE>
+        <CODE_SECTION> <NEWLINE>
         ( Statement() )*
     )+
 }
@@ -272,9 +272,9 @@ void Drivers() :
 {}
 { 
     (
-        <CODE_SECTION> <NEWLINE>
+        <DRIVER> (<INTEGER> | <LABEL_NAME>) <NEWLINE>
         ( Statement() )*
-        <IRET>
+        <IRET> <NEWLINE>
     )+
 }
 
@@ -402,7 +402,7 @@ void FormatK() :
     try {
 
         /* ACTUAL RULE */
-        <INTEGER>
+        ConstantExpression()
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
