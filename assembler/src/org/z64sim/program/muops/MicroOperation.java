@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 // TODO: this should be rather moved to the simulator package, when implemented
-package org.z64sim.program.subtasks;
+package org.z64sim.program.muops;
 
 /**
  *
