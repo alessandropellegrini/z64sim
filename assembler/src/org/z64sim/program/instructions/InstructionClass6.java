@@ -18,7 +18,7 @@ public class InstructionClass6 extends Instruction {
     private final byte bit;
     private final OperandMemory target;
 
-    public InstructionClass6(String mnemonic, byte b, OperandMemory t) {
+    public InstructionClass6(String mnemonic, OperandMemory t) {
         super(mnemonic);
         this.bit = 0; /* depends on the mnemonic */
         this.target = t;

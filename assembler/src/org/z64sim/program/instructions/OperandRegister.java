@@ -8,18 +8,13 @@ package org.z64sim.program.instructions;
 public class OperandRegister extends Operand {
     
     private final int register;
-    private final int size;
 
     public OperandRegister(int register, int size) {
+        super(size);
         this.register = register;
-        this.size = size;
     }
 
     public int getRegister() {
         return register;
-    }
-
-    public int getSize() {
-        return size;
     }
 }

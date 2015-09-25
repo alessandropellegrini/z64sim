@@ -18,7 +18,7 @@ public class InstructionClass2 extends Instruction {
     private final Operand source;
     private final Operand destination;
 
-    public InstructionClass2(int size, String mnemonic, byte type, ArrayList<MicroOperation> ops, Operand s, Operand d) {
+    public InstructionClass2(String mnemonic, Operand s, Operand d) {
         super(mnemonic);
         this.source = s;
         this.destination = d;

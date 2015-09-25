@@ -45,7 +45,7 @@ public class Program {
         this.locationCounter = locationCounter;
     }
     
-    public void addMemoryElement(MemoryElement m) throws ParseException {
+    public void addMemoryElement(MemoryElement m) throws ParseException, Exception {
         
         // We must preserve the IDT
         if(this.locationCounter < 0x800)
