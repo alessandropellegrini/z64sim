@@ -7,7 +7,7 @@ package org.z64sim.program;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
-import org.z64sim.program.subtasks.MicroOperation;
+import org.z64sim.program.muops.MicroOperation;
 
 /**
  *

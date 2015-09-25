@@ -7,7 +7,7 @@ package org.z64sim.program.instructions;
 
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.program.subtasks.MicroOperation;
+import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
