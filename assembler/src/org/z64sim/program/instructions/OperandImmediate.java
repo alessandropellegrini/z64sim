@@ -11,6 +11,7 @@ public class OperandImmediate extends Operand {
     private final long value;
 
     public OperandImmediate(long value) {
+        super(8); // An immediate is always 8 bytes long
         this.value = value;
     }
 

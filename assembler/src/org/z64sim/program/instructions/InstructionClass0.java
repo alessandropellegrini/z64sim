@@ -14,9 +14,12 @@ import org.z64sim.program.muops.MicroOperation;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class InstructionClass0 extends Instruction {
+    
+    int idn;
 
-    public InstructionClass0(String mnemonic) {
+    public InstructionClass0(String mnemonic, int idn) {
         super(mnemonic);
+        this.idn = idn;
     }
 
     @Override

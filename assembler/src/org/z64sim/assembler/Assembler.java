@@ -34,7 +34,7 @@ public class Assembler implements AssemblerConstants {
      * @param ex The exception keeping the parse error
      * @param kind The token to be reached so as to continue parsing
      */
-    void error_recover(ParseException ex, int kind) {
+    private void error_recover(ParseException ex, int kind) {
         syntaxErrors.add(ex);
         Token t;
         do {
@@ -42,7 +42,21 @@ public class Assembler implements AssemblerConstants {
         } while (t.kind != kind);
     }
 
-    int getSuffixSize(String mnemonic) {
+    private int getSourceSuffixSize(String mnemonic) throws ParseException {
+        String suffix = mnemonic.substring(mnemonic.length() - 2, mnemonic.length() - 1);
+
+        if(suffix.equals("b"))
+            return 1;
+        else if(suffix.equals("w"))
+            return 2;
+        else if(suffix.equals("l"))
+            return 4;
+        throw new ParseException("Zero/Sign extension with wrong source prefix type");
+    }
+
+    // TODO: some instructions would allow no suffix, but they end with a char which
+    // could be interpreted as a suffix by this function.
+    private int getSuffixSize(String mnemonic) {
         String suffix = mnemonic.substring(mnemonic.length() - 1);
 
         if(suffix.equals("b"))
@@ -51,7 +65,26 @@ public class Assembler implements AssemblerConstants {
             return 2;
         else if(suffix.equals("l"))
             return 4;
-        return 8;
+        else if(suffix.equals("q"))
+            return 8;
+        return -1; // No suffix given, depends on the operands
+    }
+
+    private String stripSuffix(String mnemonic) {
+        if(getSuffixSize(mnemonic) != -1)
+            return mnemonic.substring(0, mnemonic.length() - 1);
+        return mnemonic;
+    }
+
+    private long stringToLong(String s) throws ParseException {
+
+        if(s.substring(0,2).equals("0e"))
+            throw new ParseException("FLONUMS are still not supported"); // TODO
+
+        if(s.substring(0,2).equals("0b"))
+            return Long.parseLong(s.substring(2, s.length()), 2);
+
+        return Long.decode(s);
     }
 
 /****************
@@ -294,7 +327,8 @@ void Program() throws ParseException {
     }
   }
 
-  final public void Drivers() throws ParseException {
+  final public Instruction Drivers() throws ParseException {Token t;
+    Instruction insn;
     label_7:
     while (true) {
       jj_consume_token(DRIVER);
@@ -343,8 +377,9 @@ void Program() throws ParseException {
         }
         Statement();
       }
-      jj_consume_token(IRET);
+      t = jj_consume_token(IRET);
       jj_consume_token(NEWLINE);
+{if ("" != null) return new InstructionClass5(t.image, null);}
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case DRIVER:{
         ;
@@ -355,6 +390,7 @@ void Program() throws ParseException {
         break label_7;
       }
     }
+    throw new Error("Missing return statement in function");
   }
 
   final public void Statement() throws ParseException {
@@ -427,50 +463,79 @@ void Program() throws ParseException {
         throw new ParseException();
       }
       t = jj_consume_token(INTEGER);
-program.setLocationCounter( Long.parseLong( t.image ) );
+program.setLocationCounter( stringToLong( t.image ) );
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
     }
   }
 
-  final public Instruction Instruction() throws ParseException {Token t;
+  final public Instruction Instruction() throws ParseException {Token t, t2;
     int size;
+    int sizeExt;
+    String mnemonic;
+    Operand op1 = null,
+            op2 = null;
+    int i = -1;
+    Instruction insn = null;
     try {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case INSN_0:{
         t = jj_consume_token(INSN_0);
 size = getSuffixSize( t.image );
-            {if ("" != null) return new InstructionClass1(t.image.substring(0, t.image.length()-1),
-                                         null, null, size);}
+            insn = new InstructionClass1(stripSuffix(t.image), null, null, size);
         break;
         }
       case INSN_0_WQ:{
         t = jj_consume_token(INSN_0_WQ);
 size = getSuffixSize( t.image );
-            {if ("" != null) return new InstructionClass1(t.image.substring(0, t.image.length()-1),
-                                         null, null, size);}
+            insn = new InstructionClass1(stripSuffix(t.image), null, null, size);
         break;
         }
       case INSN_0_NOSUFF:{
         t = jj_consume_token(INSN_0_NOSUFF);
+// ret is class 5, with no actual operand
+            if(t.image.equals("ret"))
+                insn = new InstructionClass5(t.image, null);
 
+            // hlt, nop are class 0
+            else if(t.image.equals("hlt") || t.image.equals("nop"))
+                insn = new InstructionClass0(t.image, -1); // -1 is for the idn in a non-int instruction
+
+            // others are all class 4
+            else
+                insn = new InstructionClass4(t.image);
         break;
         }
       case INSN_1_S:{
-        jj_consume_token(INSN_1_S);
-        jj_consume_token(INTEGER);
+        t = jj_consume_token(INSN_1_S);
+        t2 = jj_consume_token(INTEGER);
+insn = new InstructionClass0(t.image, Integer.parseInt(t2.image));
         break;
         }
       case INSN_1_E:{
-        jj_consume_token(INSN_1_E);
-        FormatE();
+        t = jj_consume_token(INSN_1_E);
+size = getSuffixSize(t.image);
+        op1 = FormatE(size);
+mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size)
+                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+
+            // push and pop are class 1
+            if(mnemonic.equals("push") || mnemonic.equals("pop"))
+                insn = new InstructionClass1(mnemonic, op1, null, -1);
+
+            // neg and not are class 2
+            else
+                insn = new InstructionClass2(mnemonic, op1, null);
         break;
         }
       case INSN_SHIFT:{
-        jj_consume_token(INSN_SHIFT);
+        t = jj_consume_token(INSN_SHIFT);
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case CONSTANT:{
-          FormatK();
+          i = FormatK();
           jj_consume_token(COMMA);
           break;
           }
@@ -478,65 +543,131 @@ size = getSuffixSize( t.image );
           jj_la1[18] = jj_gen;
           ;
         }
-        FormatG();
+        op1 = FormatG();
+// Shift instructions belong all to class 3
+            insn = new InstructionClass3(stripSuffix(t.image), i, (OperandRegister)op1);
         break;
         }
       case INSN_1_M:{
-        jj_consume_token(INSN_1_M);
-        FormatM();
+        t = jj_consume_token(INSN_1_M);
+size = getSuffixSize( t.image );
+        op1 = FormatM(size);
+// They all belong to class 6
+            insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         break;
         }
       case INSN_JC:{
-        jj_consume_token(INSN_JC);
+        t = jj_consume_token(INSN_JC);
+size = getSuffixSize( t.image );
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case TIMES:{
           jj_consume_token(TIMES);
-          FormatG();
+          op1 = FormatG();
           break;
           }
         default:
           jj_la1[19] = jj_gen;
-          FormatM();
+          op1 = FormatM(size);
         }
+// Sanity check
+            if(op1.getSize() != size)
+                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+
+            // They all belong to class 5
+            insn = new InstructionClass5( stripSuffix(t.image), null);
         break;
         }
       case INSN_B_E:{
-        jj_consume_token(INSN_B_E);
-        FormatB();
+        t = jj_consume_token(INSN_B_E);
+size = getSuffixSize( t.image );
+        op1 = FormatB(size);
         jj_consume_token(COMMA);
-        FormatE();
+        op2 = FormatE(size);
+mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size || op2.getSize() != size)
+                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+
+            // mov is class 1
+            if(mnemonic.equals("mov"))
+                insn = new InstructionClass1(mnemonic, op1, op2, -1);
+            // others are all class 2
+            else
+                insn = new InstructionClass2(mnemonic, op1, op2);
         break;
         }
       case INSN_EXT:{
-        jj_consume_token(INSN_EXT);
-        FormatE();
+        t = jj_consume_token(INSN_EXT);
+size = getSourceSuffixSize( t.image );
+        op1 = FormatE(size);
         jj_consume_token(COMMA);
-        FormatG();
+        op2 = FormatG();
+sizeExt = getSuffixSize(t.image);
+            mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size || op2.getSize() != sizeExt)
+                {if (true) throw new ParseException("Operand size mismatch.");}
+
+            if(size >= sizeExt)
+                {if (true) throw new ParseException("Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);}
+
+            insn = new InstructionClass1(mnemonic, op1, op2, -1);
         break;
         }
       case INSN_LEA:{
-        jj_consume_token(INSN_LEA);
-        FormatE();
+        t = jj_consume_token(INSN_LEA);
+size = getSourceSuffixSize( t.image );
+        op1 = FormatE(size);
         jj_consume_token(COMMA);
-        FormatE();
+        op2 = FormatE(size);
+mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size || op2.getSize() != size)
+                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+
+            insn = new InstructionClass1(mnemonic, op1, op2, -1);
         break;
         }
       case INSN_IN:{
-        jj_consume_token(INSN_IN);
-        jj_consume_token(REG_16);
+        t = jj_consume_token(INSN_IN);
+        t2 = jj_consume_token(REG_16);
         jj_consume_token(COMMA);
-        Register();
+        op1 = Register();
+size = getSourceSuffixSize( t.image );
+            mnemonic = stripSuffix(stripSuffix(t.image)); // There are two siffices here, one for source, one for destination
+
+            if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
+                {if (true) throw new ParseException("Wrong operands for instruction " + t.image + ".");}
+
+            insn = new InstructionClass7(mnemonic, size);
         break;
         }
       case INSN_OUT:{
-        jj_consume_token(INSN_OUT);
-        Register();
+        t = jj_consume_token(INSN_OUT);
+        op1 = Register();
         jj_consume_token(COMMA);
-        jj_consume_token(REG_16);
+        t2 = jj_consume_token(REG_16);
+size = getSourceSuffixSize( t.image );
+            mnemonic = stripSuffix(t.image);
+
+            if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
+                {if (true) throw new ParseException("Wrong operands for instruction " + t.image + ".");}
+
+            insn = new InstructionClass7(mnemonic, size);
         break;
         }
       case INSN_IO_S:{
-        jj_consume_token(INSN_IO_S);
+        t = jj_consume_token(INSN_IO_S);
+size = getSourceSuffixSize( t.image );
+            mnemonic = stripSuffix(t.image);
+
+            if(size == -1 || size == 8)
+                {if (true) throw new ParseException("Wrong size suffix for instruction" + mnemonic);}
+
+            insn = new InstructionClass7(t.image, size);
         break;
         }
       default:
@@ -544,6 +675,7 @@ size = getSuffixSize( t.image );
         jj_consume_token(-1);
         throw new ParseException();
       }
+{if ("" != null) return insn;}
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
     }
@@ -595,7 +727,7 @@ error_recover(ex, NEWLINE);
     throw new Error("Missing return statement in function");
   }
 
-  final public OperandMemory Addressing() throws ParseException {OperandMemory mem;
+  final public OperandMemory Addressing(int size) throws ParseException {OperandMemory mem;
     int base = -1;
     int base_size = -1;
     int index = -1;
@@ -693,14 +825,14 @@ scale = Integer.parseInt( t.image );
         jj_la1[25] = jj_gen;
         ;
       }
-{if ("" != null) return new OperandMemory(base, base_size, index, index_size, scale, displacement);}
+{if ("" != null) return new OperandMemory(base, base_size, index, index_size, scale, displacement, size);}
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
     }
     throw new Error("Missing return statement in function");
   }
 
-  final public Operand FormatE() throws ParseException {OperandMemory mem = null;
+  final public Operand FormatE(int size) throws ParseException {OperandMemory mem = null;
     OperandRegister reg = null;
     try {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -708,27 +840,26 @@ error_recover(ex, NEWLINE);
       case REG_16:
       case REG_32:
       case REG_64:{
-        /* ACTUAL RULE */
-                reg = Register();
+        reg = Register();
         break;
         }
       default:
         jj_la1[26] = jj_gen;
-        mem = Addressing();
+        mem = Addressing(size);
+      }
 if(reg != null)
             {if ("" != null) return reg;}
         {if ("" != null) return mem;}
-      }
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
     }
     throw new Error("Missing return statement in function");
   }
 
-  final public OperandImmediate FormatK() throws ParseException {OperandImmediate imm;
+  final public int FormatK() throws ParseException {OperandImmediate imm;
     try {
       imm = ConstantExpression();
-{if ("" != null) return imm;}
+{if ("" != null) return (int)imm.getValue();}
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
     }
@@ -746,7 +877,7 @@ error_recover(ex, NEWLINE);
   }
 
 /* Both label and direct address */
-  final public OperandMemory FormatM() throws ParseException {String label;
+  final public OperandMemory FormatM(int size) throws ParseException {String label;
     OperandMemory memOp;
     MemoryElement memEl;
     try {
@@ -760,13 +891,13 @@ error_recover(ex, NEWLINE);
 
             // This is a memory operand with displacement only (pointing
             // to the label's address
-            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)memEl.getAddress());
+            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)memEl.getAddress(), size);
 
         break;
         }
       default:
         jj_la1[27] = jj_gen;
-        memOp = Addressing();
+        memOp = Addressing(size);
       }
 {if ("" != null) return memOp;}
     } catch (ParseException ex) {
@@ -775,7 +906,7 @@ error_recover(ex, NEWLINE);
     throw new Error("Missing return statement in function");
   }
 
-  final public Operand FormatB() throws ParseException {OperandImmediate imm;
+  final public Operand FormatB(int size) throws ParseException {OperandImmediate imm;
     OperandMemory mem;
     OperandRegister reg;
     Token t;
@@ -797,7 +928,7 @@ error_recover(ex, NEWLINE);
         }
       default:
         jj_la1[28] = jj_gen;
-        mem = FormatM();
+        mem = FormatM(size);
 {if ("" != null) return mem;}
       }
     } catch (ParseException ex) {
@@ -957,19 +1088,6 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_21()
- {
-    if (jj_scan_token(LBRACE)) return true;
-    if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_20()
- {
-    if (jj_scan_token(LABEL_NAME)) return true;
-    return false;
-  }
-
   private boolean jj_3R_19()
  {
     if (jj_scan_token(LOCATION_COUNTER)) return true;
@@ -993,6 +1111,12 @@ error_recover(ex, NEWLINE);
     return false;
   }
 
+  private boolean jj_3_1()
+ {
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
   private boolean jj_3R_11()
  {
     if (jj_3R_12()) return true;
@@ -1001,12 +1125,6 @@ error_recover(ex, NEWLINE);
       xsp = jj_scanpos;
       if (jj_3R_13()) { jj_scanpos = xsp; break; }
     }
-    return false;
-  }
-
-  private boolean jj_3_1()
- {
-    if (jj_3R_11()) return true;
     return false;
   }
 
@@ -1080,6 +1198,19 @@ error_recover(ex, NEWLINE);
     jj_scanpos = xsp;
     if (jj_3R_24()) return true;
     }
+    return false;
+  }
+
+  private boolean jj_3R_21()
+ {
+    if (jj_scan_token(LBRACE)) return true;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_20()
+ {
+    if (jj_scan_token(LABEL_NAME)) return true;
     return false;
   }
 

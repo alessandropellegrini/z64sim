@@ -11,4 +11,13 @@ package org.z64sim.program.instructions;
  */
 public abstract class Operand {
     
+    private final int size;
+
+    public Operand(int size) {
+        this.size = size;
+    }
+    
+    public int getSize() {
+        return this.size;
+    }
 }
