@@ -18,7 +18,9 @@ public class OperandMemory extends Operand {
     private int base_size = -1;
     private int index_size = -1;
 
-    public OperandMemory(int base, int base_size, int index, int index_size, int scale, int displacement) {
+    public OperandMemory(int base, int base_size, int index, int index_size, int scale, int displacement, int size) {
+        super(size);
+        
         this.base = base;
         this.base_size = base_size;
         this.index = index;

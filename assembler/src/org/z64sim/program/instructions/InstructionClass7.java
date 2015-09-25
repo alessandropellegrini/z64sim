@@ -15,8 +15,11 @@ import org.z64sim.program.muops.MicroOperation;
  */
 public class InstructionClass7 extends Instruction {
 
-    public InstructionClass7(String mnemonic) {
+    private final int size; // The size of a data transfer
+    
+    public InstructionClass7(String mnemonic, int size) {
         super(mnemonic);
+        this.size = size;
     }
 
     @Override

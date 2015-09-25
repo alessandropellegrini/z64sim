@@ -39,7 +39,7 @@ public class Register {
         };
     
     // The current value of a register
-    private Long value;
+    protected Long value;
    
     // Constructor of the register
     public Register() {
