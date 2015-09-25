@@ -20,7 +20,7 @@ public class InstructionClass6 extends Instruction {
 
     public InstructionClass6(String mnemonic, byte b, OperandMemory t) {
         super(mnemonic);
-        this.bit = b;
+        this.bit = 0; /* depends on the mnemonic */
         this.target = t;
     }
 
