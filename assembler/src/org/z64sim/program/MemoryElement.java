@@ -11,21 +11,33 @@ package org.z64sim.program;
  */
 public abstract class MemoryElement {
 
-    private final long address;
-    private final int size;
+    private long address = -1; // This must be set by the Program class when placing in memory view
+    private int size = -1; // This must be set by the constructors of the subclasses
 
-    public MemoryElement(int address, int size) {
-        this.address = address;
-        this.size = size;
+    public MemoryElement() {
     }
 
     public long getAddress() {
         return address;
     }
+    
+    public void setAddress(long address) throws Exception {
+        if(address != -1)
+               throw new Exception("Address has already been set");
+        
+        this.address = address;
+    }
 
     public int getSize() {
         return size;
     }
-
+    
+    public void setSize(int size) throws Exception {
+        if(size != -1)
+               throw new Exception("Size has already been set");
+        
+        this.size = size;
+    }
+    
     public abstract void update();
 }

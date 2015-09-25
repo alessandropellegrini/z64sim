@@ -16,19 +16,21 @@ import org.z64sim.program.subtasks.MicroOperation;
 public abstract class Instruction extends MemoryElement {
     
     private static final Logger logger = Logger.getLogger(Instruction.class.getName());
-    private final ArrayList<MicroOperation> microOps;
+    private ArrayList<MicroOperation> microOps;
     private final String mnemonic;
-    private final byte type;
+    private byte type;
     
-    public Instruction(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops) {
-        super(address, size);
-        this.type = type;
+    public Instruction(String mnemonic) {
         this.mnemonic = mnemonic;
-        this.microOps = ops;
     }
 
+    void addMicroOperation(MicroOperation muop) {
+        this.microOps.add(muop);
+    }
+    
     @Override
     public void update() {
+        // Allowing to change the content of instructions allows for a sort of mutagen code.
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

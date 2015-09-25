@@ -18,10 +18,10 @@ public class InstructionClass4 extends Instruction {
     private final byte bit;
     private final byte val;
 
-    public InstructionClass4(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops, byte bit, byte val) {
-        super(address, size, mnemonic, type, ops);
-        this.bit = bit;
-        this.val = val;
+    public InstructionClass4(String mnemonic, byte val) {
+        super(mnemonic);
+        this.bit = 0; /* depends on the mnemonic */
+        this.val = 0; /* depends on the mnemonic: 0 for clear, 1 for set */
     }
 
     @Override

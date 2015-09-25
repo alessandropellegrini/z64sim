@@ -15,8 +15,8 @@ import org.z64sim.program.subtasks.MicroOperation;
  */
 public class InstructionClass7 extends Instruction {
 
-    public InstructionClass7(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops) {
-        super(address, size, mnemonic, type, ops);
+    public InstructionClass7(String mnemonic) {
+        super(mnemonic);
     }
 
     @Override
