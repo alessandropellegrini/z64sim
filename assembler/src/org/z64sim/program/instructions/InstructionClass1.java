@@ -26,6 +26,8 @@ public class InstructionClass1 extends Instruction {
         this.source = s;
         this.destination = d;
         this.implicitSize = implicitSize;
+        
+        MicroOperation muop = new MicroOperation(mnemonic,s,d);
     }
     
     @Override

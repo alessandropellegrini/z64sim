@@ -17,6 +17,7 @@ public class InstructionClass0 extends Instruction {
 
     public InstructionClass0(String mnemonic) {
         super(mnemonic);
+        MicroOperation muop = new MicroOperation();
     }
 
     @Override
