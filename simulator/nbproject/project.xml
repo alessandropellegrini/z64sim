@@ -6,7 +6,9 @@
             <code-name-base>org.z64sim.simulator</code-name-base>
             <suite-component/>
             <module-dependencies/>
-            <public-packages/>
+            <public-packages>
+                <package>org.z64sim.simulator</package>
+            </public-packages>
         </data>
     </configuration>
 </project>
