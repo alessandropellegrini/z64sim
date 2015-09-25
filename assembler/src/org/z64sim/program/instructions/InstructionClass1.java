@@ -17,11 +17,15 @@ public class InstructionClass1 extends Instruction {
     
     private final Operand source;
     private final Operand destination;
+    private final int implicitSize; // For instructions such as pushf, popf,
+                                    // movs, stos, we store the size ('b', 'w',
+                                    // 'l', 'q') here because they have no operands
 
-    public InstructionClass1(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops, Operand s, Operand d) {
-        super(address, size, mnemonic, type, ops);
+    public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) {
+        super(mnemonic);
         this.source = s;
         this.destination = d;
+        this.implicitSize = implicitSize;
     }
     
     @Override

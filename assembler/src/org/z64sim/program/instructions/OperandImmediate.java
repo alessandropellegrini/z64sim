@@ -8,4 +8,13 @@ package org.z64sim.program.instructions;
 
 public class OperandImmediate extends Operand {
     
+    private final long value;
+
+    public OperandImmediate(long value) {
+        this.value = value;
+    }
+
+    public long getValue() {
+        return value;
+    }   
 }

@@ -17,8 +17,8 @@ public class InstructionClass5 extends Instruction {
     
     private final Operand target;
 
-    public InstructionClass5(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops, Operand t) {
-        super(address, size, mnemonic, type, ops);
+    public InstructionClass5(String mnemonic, Operand t) {
+        super(mnemonic);
         this.target = t;
     }
 

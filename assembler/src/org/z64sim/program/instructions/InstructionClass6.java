@@ -18,9 +18,8 @@ public class InstructionClass6 extends Instruction {
     private final byte bit;
     private final OperandMemory target;
 
-    public InstructionClass6(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops,
-            byte b, OperandMemory t) {
-        super(address, size, mnemonic, type, ops);
+    public InstructionClass6(String mnemonic, byte b, OperandMemory t) {
+        super(mnemonic);
         this.bit = b;
         this.target = t;
     }

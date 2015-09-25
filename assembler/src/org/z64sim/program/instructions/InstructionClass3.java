@@ -18,9 +18,8 @@ public class InstructionClass3 extends Instruction {
     private final int places;
     private final OperandRegister reg;
 
-    public InstructionClass3(int address, int size, String mnemonic, byte type, ArrayList<MicroOperation> ops,
-            int p, OperandRegister r) {
-        super(address, size, mnemonic, type, ops);
+    public InstructionClass3(String mnemonic, int p, OperandRegister r) {
+        super(mnemonic);
         this.places = p;
         this.reg = r;
     }
