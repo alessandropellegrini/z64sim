@@ -5,9 +5,8 @@
  */
 package org.z64sim.program.instructions;
 
-
 public class OperandImmediate extends Operand {
-    
+
     private final long value;
 
     public OperandImmediate(long value) {
@@ -17,5 +16,5 @@ public class OperandImmediate extends Operand {
 
     public long getValue() {
         return value;
-    }   
+    }
 }

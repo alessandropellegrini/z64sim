@@ -6,7 +6,7 @@
 package org.z64sim.program.instructions;
 
 public class OperandRegister extends Operand {
-    
+
     private final int register;
 
     public OperandRegister(int register, int size) {

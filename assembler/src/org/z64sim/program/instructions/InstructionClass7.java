@@ -5,9 +5,7 @@
  */
 package org.z64sim.program.instructions;
 
-import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -16,7 +14,7 @@ import org.z64sim.program.muops.MicroOperation;
 public class InstructionClass7 extends Instruction {
 
     private final int size; // The size of a data transfer
-    
+
     public InstructionClass7(String mnemonic, int size) {
         super(mnemonic);
         this.size = size;
@@ -31,5 +29,5 @@ public class InstructionClass7 extends Instruction {
     public byte[] getRepresentation() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
 }
