@@ -22,6 +22,279 @@ public class InstructionClass2 extends Instruction {
         super(mnemonic);
         this.source = s;
         this.destination = d;
+        
+        if(mnemonic.equals("add")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("sub")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("adc")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("sbb")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("cmp")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("test")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("neg")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("and")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("or")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("xor")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }if(d.getClass().isInstance(OperandMemory.class)){
+                if(d.getIndex() != -1){
+                    
+                }if(d.getBase() != -1){
+                    
+                }if(d.getDisplacement() != -1){
+                    
+                }if(s.getClass().equals(OperandImmediate.class)){
+                    
+                }if(s.getClass().equals(OperandRegister.class)){
+                    
+                }
+                
+            }
+        }else if(mnemonic.equals("not")){
+            if(s.getClass().isInstance(OperandMemory.class)){
+                if(source.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation();
+                    addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation();
+                    addMicroOperation(muop1);
+                }if(s.getBase() != -1){
+                    
+                }if(s.getDisplacement() != -1){
+                    
+                }
+                
+            }
+        }
     }
 
     @Override

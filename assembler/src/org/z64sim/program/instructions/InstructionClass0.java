@@ -20,6 +20,14 @@ public class InstructionClass0 extends Instruction {
     public InstructionClass0(String mnemonic, int idn) {
         super(mnemonic);
         this.idn = idn;
+        
+        if(mnemonic.equals("halt")){
+            MicroOperation muop = new MicroOperation("RIP","EMAR");
+            MicroOperation muop1 = new MicroOperation("(EMAR)","EMDR","RIP+8","RIP");
+            MicroOperation muop2 = new MicroOperation("EMDR","IR");
+        }else if(mnemonic.equals("nop")){
+            
+        }
     }
 
     @Override

@@ -9,13 +9,7 @@ package org.z64sim.program.instructions;
  *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
-public abstract class Operand{
-    public abstract int getIndex();
-    public abstract int getDisplacement();
-    public abstract int getScale();
-    public abstract int getBase();
-
-    
+public abstract class Operand{    
     private final int size;
 
     public Operand(int size) {
