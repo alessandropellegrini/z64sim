@@ -15,29 +15,44 @@ import java.util.ArrayList;
 public class MicroOperation {
     private final int source;
     private final int destination;
-    private final static int TEMP1;
-    private final static int TEMP2;
+    private final int acc1;
+    private final int acc2;
     
-    
-    public MicroOperation(String s, String d){
+    public MicroOperation(int s, int d){
         this.source = s;
         this.destination = d;
-        this.acc1 = "";
-        this.acc2 = "";
+        this.acc1 = -1;
+        this.acc2 = -1;
     }
     
-    public MicroOperation(String s, String d, String a1){
+    public MicroOperation(int s, int d, int a1){
         this.source = s;
         this.destination = d;
         this.acc1 = a1;
-        this.acc2 = "";
+        this.acc2 = -1;
     }
     
-    public MicroOperation(String s, String d, String a1, String a2){
+    public MicroOperation(int s, int d, int a1, int a2){
         this.source = s;
         this.destination = d;
         this.acc1 = a1;
         this.acc2 = a2;
+    }
+    
+    public int getSource(){
+        return source;
+    }
+    
+    public int getDestination(){
+        return destination;
+    }
+    
+    public int getAcc1(){
+        return acc1;
+    }
+    
+    public int getAcc2(){
+        return acc2;
     }
     
     

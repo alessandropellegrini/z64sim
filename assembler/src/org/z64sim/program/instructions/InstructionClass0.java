@@ -22,11 +22,13 @@ public class InstructionClass0 extends Instruction {
         this.idn = idn;
         
         if(mnemonic.equals("halt")){
-            MicroOperation muop = new MicroOperation("RIP","EMAR");
-            MicroOperation muop1 = new MicroOperation("(EMAR)","EMDR","RIP+8","RIP");
-            MicroOperation muop2 = new MicroOperation("EMDR","IR");
+            MicroOperation muop = new MicroOperation();
+            MicroOperation muop1 = new MicroOperation();
+            MicroOperation muop2 = new MicroOperation();
         }else if(mnemonic.equals("nop")){
-            
+            MicroOperation muop = new MicroOperation();
+            MicroOperation muop1 = new MicroOperation();
+            MicroOperation muop2 = new MicroOperation();
         }
     }
 

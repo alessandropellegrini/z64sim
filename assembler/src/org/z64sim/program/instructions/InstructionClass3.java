@@ -22,6 +22,8 @@ public class InstructionClass3 extends Instruction {
         super(mnemonic);
         this.places = p;
         this.reg = r;
+        
+        
     }
 
     @Override
