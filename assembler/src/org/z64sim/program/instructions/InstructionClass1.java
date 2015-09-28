@@ -27,25 +27,28 @@ public class InstructionClass1 extends Instruction {
         this.destination = d;
         this.implicitSize = implicitSize;
         
+        
         if(mnemonic.equals("mov")){
-            if(s.getClass().isInstance(OperandMemory.class)){
-                if(source.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation("I", "TEMP2");
-                    addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation("SHIFTER_OUT[SX, T]", "TEMP2","SR_UPDATE = 0");
+            if(s instanceof OperandMemory){
+                OperandMemory o = (OperandMemory)s;
+                if(o.getIndex() != -1){
+                    MicroOperation muop = new MicroOperation(1,6);   //1 sarebbe I ; 6 = TEMP2
+                    super.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(13,6,14 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
                     addMicroOperation(muop1);
-                }if(s.getBase() != -1){
+                }if(o.getBase() != -1){
                     
-                }if(s.getDisplacement() != -1){
+                }if(o.getDisplacement() != -1){
                     
                 }
                 
-            }if(d.getClass().isInstance(OperandMemory.class)){
-                if(d.getIndex() != -1){
+            }if(d instanceof OperandMemory){
+                OperandMemory o = (OperandMemory)d;
+                if(o.getIndex() != -1){
                     
-                }if(d.getBase() != -1){
+                }if(o.getBase() != -1){
                     
-                }if(d.getDisplacement() != -1){
+                }if(o.getDisplacement() != -1){
                     
                 }if(s.getClass().equals(OperandImmediate.class)){
                     
@@ -55,64 +58,67 @@ public class InstructionClass1 extends Instruction {
                 
             }
         }else if(mnemonic.equals("lea")){
-            if(s.getClass().isInstance(OperandMemory.class)){
-                if(source.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation();
+            if(s instanceof OperandMemory){
+                OperandMemory o = (OperandMemory)d;
+                if(o.getIndex() != -1){
+                    /*MicroOperation muop = new MicroOperation();
                     addMicroOperation(muop);
                     MicroOperation muop1 = new MicroOperation();
-                    addMicroOperation(muop1);
-                }if(s.getBase() != -1){
+                    addMicroOperation(muop1);*/
+                }if(o.getBase() != -1){
                     
-                }if(s.getDisplacement() != -1){
+                }if(o.getDisplacement() != -1){
                     
                 }
             }
         }else if(mnemonic.equals("push")){
-            if(s.getClass().isInstance(OperandMemory.class)){
-                if(source.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation();
-                    addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation();
-                    addMicroOperation(muop1);
-                }if(s.getBase() != -1){
+            if(s instanceof OperandMemory){
+                OperandMemory o = (OperandMemory)d;
+                if(o.getIndex() != -1){
+                    //MicroOperation muop = new MicroOperation();
+                    //addMicroOperation(muop);
+                    //MicroOperation muop1 = new MicroOperation();
+                    //addMicroOperation(muop1);
+                }if(o.getBase() != -1){
                     
-                }if(s.getDisplacement() != -1){
+                }if(o.getDisplacement() != -1){
                     
                 }
             }
         }else if(mnemonic.equals("pop")){
-            if(s.getClass().isInstance(OperandMemory.class)){
-                if(source.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation();
-                    addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation();
-                    addMicroOperation(muop1);
-                }if(s.getBase() != -1){
+            if(s instanceof OperandMemory){
+                OperandMemory o = (OperandMemory)d;
+                if(o.getIndex() != -1){
+                    //MicroOperation muop = new MicroOperation();
+                    //addMicroOperation(muop);
+                    //MicroOperation muop1 = new MicroOperation();
+                    //addMicroOperation(muop1);
+                }if(o.getBase() != -1){
                     
-                }if(s.getDisplacement() != -1){
+                }if(o.getDisplacement() != -1){
                     
                 }
             }
         }else if(mnemonic.equals("pushf")){
-            MicroOperation muop = new MicroOperation();
-            addMicroOperation(muop);
-            MicroOperation muop1 = new MicroOperation();
-            addMicroOperation(muop1);
+            //MicroOperation muop = new MicroOperation();
+            //addMicroOperation(muop);
+            //MicroOperation muop1 = new MicroOperation();
+            //addMicroOperation(muop1);
               
         }else if(mnemonic.equals("popf")){
-            MicroOperation muop = new MicroOperation();
+            /*MicroOperation muop = new MicroOperation();
             addMicroOperation(muop);
             MicroOperation muop1 = new MicroOperation();
-            addMicroOperation(muop1);
+            addMicroOperation(muop1);*/
         }else if(mnemonic.equals("movs")){
-            MicroOperation muop = new MicroOperation();
+            /*MicroOperation muop = new MicroOperation();
             addMicroOperation(muop);
             MicroOperation muop = new MicroOperation();
             addMicroOperation(muop);
             MicroOperation muop = new MicroOperation();
             addMicroOperation(muop);
             MicroOperation muop = new MicroOperation();
-            addMicroOperation(muop);
+            addMicroOperation(muop);*/
         }else if(mnemonic.equals("stos")){
             
         }

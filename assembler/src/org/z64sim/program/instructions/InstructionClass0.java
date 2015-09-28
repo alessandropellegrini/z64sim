@@ -21,7 +21,7 @@ public class InstructionClass0 extends Instruction {
         super(mnemonic);
         this.idn = idn;
         
-        if(mnemonic.equals("halt")){
+        /*if(mnemonic.equals("halt")){
             MicroOperation muop = new MicroOperation();
             MicroOperation muop1 = new MicroOperation();
             MicroOperation muop2 = new MicroOperation();
@@ -29,7 +29,7 @@ public class InstructionClass0 extends Instruction {
             MicroOperation muop = new MicroOperation();
             MicroOperation muop1 = new MicroOperation();
             MicroOperation muop2 = new MicroOperation();
-        }
+        }*/
     }
 
     @Override

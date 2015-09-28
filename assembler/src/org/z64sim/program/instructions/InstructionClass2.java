@@ -22,7 +22,7 @@ public class InstructionClass2 extends Instruction {
         super(mnemonic);
         this.source = s;
         this.destination = d;
-        
+        /*
         if(mnemonic.equals("add")){
             if(s.getClass().isInstance(OperandMemory.class)){
                 if(source.getIndex() != -1){
@@ -294,7 +294,7 @@ public class InstructionClass2 extends Instruction {
                 }
                 
             }
-        }
+        }*/
     }
 
     @Override

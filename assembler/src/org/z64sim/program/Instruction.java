@@ -24,7 +24,7 @@ public abstract class Instruction extends MemoryElement {
         this.mnemonic = mnemonic;
     }
 
-    void addMicroOperation(MicroOperation muop) {
+    public void addMicroOperation(MicroOperation muop) {
         this.microOps.add(muop);
     }
     
