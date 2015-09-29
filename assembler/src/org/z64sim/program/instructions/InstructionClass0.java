@@ -21,15 +21,21 @@ public class InstructionClass0 extends Instruction {
         super(mnemonic);
         this.idn = idn;
         
-        /*if(mnemonic.equals("halt")){
-            MicroOperation muop = new MicroOperation();
-            MicroOperation muop1 = new MicroOperation();
-            MicroOperation muop2 = new MicroOperation();
+        if(mnemonic.equals("halt")){
+            MicroOperation muop = new MicroOperation(15,7);
+            super.addMicroOperation(muop);
+            MicroOperation muop1 = new MicroOperation(8,10,17,15);
+            super.addMicroOperation(muop1);
+            MicroOperation muop2 = new MicroOperation(10,16);
+            super.addMicroOperation(muop2);
         }else if(mnemonic.equals("nop")){
-            MicroOperation muop = new MicroOperation();
-            MicroOperation muop1 = new MicroOperation();
-            MicroOperation muop2 = new MicroOperation();
-        }*/
+            MicroOperation muop = new MicroOperation(15,7);
+            super.addMicroOperation(muop);
+            MicroOperation muop1 = new MicroOperation(8,10,17,15);
+            super.addMicroOperation(muop1);
+            MicroOperation muop2 = new MicroOperation(10,16);
+            super.addMicroOperation(muop2);
+        }
     }
 
     @Override
