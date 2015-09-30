@@ -14,8 +14,8 @@ import org.z64sim.program.muops.MicroOperation;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class InstructionClass1 extends Instruction {
-    
-    private final byte opcode;
+    private final byte[] istruzione = new byte[8];
+    private final byte opcode = 0b01;
     private final byte mode;
     private final byte sib;
     private final byte rm;

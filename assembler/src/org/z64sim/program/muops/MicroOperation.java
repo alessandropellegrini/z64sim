@@ -49,12 +49,48 @@ public class MicroOperation {
     public static final int ALU_OUT_OR = 34;
     public static final int ALU_OUT_XOR = 35;
     public static final int ALU_OUT_NOT = 36;
-    
+    public static final int SHIFTER_OUT_SAL_K = 37;
+    public static final int SHIFTER_OUT_SAL_RCX = 38;
+    public static final int SHIFTER_OUT_SHL_K = 39;
+    public static final int SHIFTER_OUT_SHL_RCX = 40;
+    public static final int SHIFTER_OUT_SAR_K = 41;
+    public static final int SHIFTER_OUT_SAR_RCX = 42;
+    public static final int SHIFTER_OUT_SHR_K = 43;
+    public static final int SHIFTER_OUT_SHR_RCX = 44;
+    public static final int SHIFTER_OUT_RCL_K = 45;
+    public static final int SHIFTER_OUT_RCL_RCX = 46;
+    public static final int SHIFTER_OUT_RCR_K = 47;
+    public static final int SHIFTER_OUT_RCR_RCX = 48;
+    public static final int SHIFTER_OUT_ROL_K = 49;
+    public static final int SHIFTER_OUT_ROL_RCX = 50;
+    public static final int SHIFTER_OUT_ROR_K = 51;
+    public static final int SHIFTER_OUT_ROR_RCX = 52;
+    public static final int FLAGS_CF_S = 53;
+    public static final int FLAGS_CF_R = 54;
+    public static final int FLAGS_PF_S = 55;
+    public static final int FLAGS_PF_R = 56;
+    public static final int FLAGS_ZF_S = 57;
+    public static final int FLAGS_ZF_R = 58;
+    public static final int FLAGS_SF_S = 59;
+    public static final int FLAGS_SF_R = 60;
+    public static final int FLAGS_IF_S = 61;
+    public static final int FLAGS_IF_R = 62;
+    public static final int FLAGS_DF_S = 63;
+    public static final int FLAGS_DF_R = 64;
+    public static final int FLAGS_OF_S = 65;
+    public static final int FLAGS_OF_R = 66;
     
     private final int source;
     private final int destination;
     private final int acc1;
     private final int acc2;
+    
+    public MicroOperation(int s){
+        this.source=s;
+        this.destination = -1;
+        this.acc1 = -1;
+        this.acc2 = -1;
+    }
     
     public MicroOperation(int s, int d){
         this.source = s;
