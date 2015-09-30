@@ -79,6 +79,20 @@ public class MicroOperation {
     public static final int FLAGS_DF_R = 64;
     public static final int FLAGS_OF_S = 65;
     public static final int FLAGS_OF_R = 66;
+    public static final int R = 67;
+    public static final int ALU_OUT_SUB_8 = 68;
+    public static final int M = 69;
+    public static final int ALU_OUT_ADD_8 = 70;
+    public static final int if_FLAGS_CF_1 = 71;
+    public static final int if_FLAGS_PF_1 = 72;
+    public static final int if_FLAGS_ZF_1 = 73;
+    public static final int if_FLAGS_SF_1 = 74;
+    public static final int if_FLAGS_OF_1 = 75;
+    public static final int if_FLAGS_CF_0 = 76;
+    public static final int if_FLAGS_PF_0 = 77;
+    public static final int if_FLAGS_ZF_0 = 78;
+    public static final int if_FLAGS_SF_0 = 79;
+    public static final int if_FLAGS_OF_0 = 80;
     
     private final int source;
     private final int destination;
