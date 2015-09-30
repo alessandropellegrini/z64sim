@@ -15,6 +15,11 @@ import org.z64sim.program.muops.MicroOperation;
  */
 public class InstructionClass1 extends Instruction {
     
+    private final byte opcode;
+    private final byte mode;
+    private final byte sib;
+    private final byte rm;
+    private final byte Displacement;
     private final Operand source;
     private final Operand destination;
     private final int implicitSize; // For instructions such as pushf, popf,
@@ -243,7 +248,7 @@ public class InstructionClass1 extends Instruction {
 
     @Override
     public byte[] getRepresentation() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return [opcode,rm]; //To change body of generated methods, choose Tools | Templates.
     }
     
 }
