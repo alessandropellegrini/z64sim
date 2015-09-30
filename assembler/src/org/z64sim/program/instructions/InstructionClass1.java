@@ -32,201 +32,207 @@ public class InstructionClass1 extends Instruction {
             if(source instanceof OperandMemory){
                 OperandMemory o = (OperandMemory)s;
                 if(o.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation(1,6);   //1 sarebbe I ; 6 = TEMP2
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(13,6,14 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
+                    MicroOperation muop = new MicroOperation(MicroOperation.I,MicroOperation.TEMP2);   //1 sarebbe I ; 6 = TEMP2
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T,MicroOperation.TEMP2,MicroOperation.SR_UPDATE0 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
                     addMicroOperation(muop1);
                 }if(o.getBase() != -1){
-                    MicroOperation muop = new MicroOperation(2,5);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.B,MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }if(o.getDisplacement() != -1){
-                    MicroOperation muop = new MicroOperation(11,6);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD,MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }
-            MicroOperation muop = new MicroOperation(12,6);
-            super.addMicroOperation(muop);
-            MicroOperation muop1 = new MicroOperation(8,10);
-            super.addMicroOperation(muop1);
-            MicroOperation muop2 = new MicroOperation(10,20);
-            super.addMicroOperation(muop2);
+            MicroOperation muop = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_0,MicroOperation.EMAR);
+            this.addMicroOperation(muop);
+            MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR);
+            this.addMicroOperation(muop1);
+            MicroOperation muop2 = new MicroOperation(MicroOperation.EMDR,MicroOperation.D);
+            this.addMicroOperation(muop2);
             }if(destination instanceof OperandMemory){
                 OperandMemory o = (OperandMemory)d;
                 if(o.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation(1,6);   
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(13,6,14 );
+                    MicroOperation muop = new MicroOperation(MicroOperation.I,MicroOperation.TEMP2);   //1 sarebbe I ; 6 = TEMP2
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T,MicroOperation.TEMP2,MicroOperation.SR_UPDATE0 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
                     addMicroOperation(muop1);
                 }if(o.getBase() != -1){
-                    MicroOperation muop = new MicroOperation(2,5);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.B,MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }if(o.getDisplacement() != -1){
-                    MicroOperation muop = new MicroOperation(11,6);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD,MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }if(source instanceof OperandImmediate){
-                    MicroOperation muop = new MicroOperation(15,7);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(8,10,17,15);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.RIP,MicroOperation.EMAR);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.TEMP1,MicroOperation.RIP8,MicroOperation.RIP);
+                    this.addMicroOperation(muop1);
                 }if(source instanceof OperandRegister){
-                    MicroOperation muop = new MicroOperation(19,5);
-                    super.addMicroOperation(muop);
+                    MicroOperation muop = new MicroOperation(MicroOperation.S,MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
                 }
-                MicroOperation muop = new MicroOperation(12,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(5,8);
-                super.addMicroOperation(muop1);
+                MicroOperation muop = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_0,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.TEMP1,MicroOperation.EMARm);
+                this.addMicroOperation(muop1);
             }
         }else if(mnemonic.equals("lea")){
             if(source instanceof OperandMemory){
                 OperandMemory o = (OperandMemory)s;
                 if(o.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation(1,6);  
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(13,6,14 );
+                    MicroOperation muop = new MicroOperation(MicroOperation.I,MicroOperation.TEMP2);   //1 sarebbe I ; 6 = TEMP2
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T,MicroOperation.TEMP2,MicroOperation.SR_UPDATE0 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
                     addMicroOperation(muop1);
                 }if(o.getBase() != -1){
-                    MicroOperation muop = new MicroOperation(2,5);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.B,MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }if(o.getDisplacement() != -1){
-                    MicroOperation muop = new MicroOperation(11,6);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD,MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }
+                MicroOperation muop = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_0,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.EMDR,MicroOperation.D);
+                this.addMicroOperation(muop2);
             }            
         }else if(mnemonic.equals("push")){
-            MicroOperation muopa = new MicroOperation(21,5);  
-            super.addMicroOperation(muopa);
-            MicroOperation muopb = new MicroOperation(22,21);  
-            super.addMicroOperation(muopb);
+            MicroOperation muopa = new MicroOperation(MicroOperation.RSP,MicroOperation.TEMP1);  
+            this.addMicroOperation(muopa);
+            MicroOperation muopb = new MicroOperation(MicroOperation.ALU_OUT_SUB_X, MicroOperation.RSP);  
+            this.addMicroOperation(muopb);
             if(source instanceof OperandMemory){
                 OperandMemory o = (OperandMemory)s;
                 if(o.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation(1,6);  
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(13,6,14 );
+                    MicroOperation muop = new MicroOperation(MicroOperation.I,MicroOperation.TEMP2);   //1 sarebbe I ; 6 = TEMP2
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T,MicroOperation.TEMP2,MicroOperation.SR_UPDATE0 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
                     addMicroOperation(muop1);
                 }if(o.getBase() != -1){
-                    MicroOperation muop = new MicroOperation(2,5);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.B,MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }if(o.getDisplacement() != -1){
-                    MicroOperation muop = new MicroOperation(11,6);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD,MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }
-                MicroOperation muop = new MicroOperation(6,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(8,10);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(21,7);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(10,8);
-                super.addMicroOperation(muop3);
+                MicroOperation muop = new MicroOperation(MicroOperation.TEMP2,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.RSP,MicroOperation.EMAR);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.EMDR,MicroOperation.EMAR);
+                this.addMicroOperation(muop3);
             }else if(source instanceof OperandRegister){
-                MicroOperation muop = new MicroOperation(21,5);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(22,21);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(19,10);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(21,7);
-                super.addMicroOperation(muop3);
-                MicroOperation muop4 = new MicroOperation(10,8);
-                super.addMicroOperation(muop4);
+                MicroOperation muop = new MicroOperation(MicroOperation.RSP,MicroOperation.TEMP1);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_SUB_X,MicroOperation.RSP);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.S,MicroOperation.EMDR);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.RSP,MicroOperation.EMAR);
+                this.addMicroOperation(muop3);
+                MicroOperation muop4 = new MicroOperation(MicroOperation.EMDR,MicroOperation.EMARm);
+                this.addMicroOperation(muop4);
             }    
         }else if(mnemonic.equals("pop")){
             if(source instanceof OperandMemory){
-                MicroOperation muopa = new MicroOperation(21,7);
-                super.addMicroOperation(muopa);
-                MicroOperation muopb = new MicroOperation(8,10);
-                super.addMicroOperation(muopb);
+                MicroOperation muopa = new MicroOperation(MicroOperation.RSP,MicroOperation.EMAR);
+                this.addMicroOperation(muopa);
+                MicroOperation muopb = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR);
+                this.addMicroOperation(muopb);
                 OperandMemory o = (OperandMemory)s;
                 if(o.getIndex() != -1){
-                    MicroOperation muop = new MicroOperation(1,6);  
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(13,6,14 );
+                    MicroOperation muop = new MicroOperation(MicroOperation.I,MicroOperation.TEMP2);   //1 sarebbe I ; 6 = TEMP2
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T,MicroOperation.TEMP2,MicroOperation.SR_UPDATE0 ); //13 = SHIFTER_OUT[SX,T]; 14= SR_UPDATE=0
                     addMicroOperation(muop1);
                 }if(o.getBase() != -1){
-                    MicroOperation muop = new MicroOperation(2,5);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.B,MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }if(o.getDisplacement() != -1){
-                    MicroOperation muop = new MicroOperation(11,6);
-                    super.addMicroOperation(muop);
-                    MicroOperation muop1 = new MicroOperation(18,6);
-                    super.addMicroOperation(muop1);
+                    MicroOperation muop = new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1);
+                    this.addMicroOperation(muop);
+                    MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_ADD,MicroOperation.TEMP2);
+                    this.addMicroOperation(muop1);
                 }
-                MicroOperation muop = new MicroOperation(12,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(10,8);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(21,5);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(23,21);
-                super.addMicroOperation(muop3);
-            }else if(source instanceof OperandMemory){
-                MicroOperation muop = new MicroOperation(21,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(8,10);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(10,19);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(21,5);
-                super.addMicroOperation(muop3);
-                MicroOperation muop4 = new MicroOperation(23,21);
-                super.addMicroOperation(muop4);
+                MicroOperation muop = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_0,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.EMDR,MicroOperation.EMARm);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.RSP,MicroOperation.TEMP1);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.ALU_OUT_ADD_X,MicroOperation.RSP);
+                this.addMicroOperation(muop3);
+            }else if(source instanceof OperandRegister){
+                MicroOperation muop = new MicroOperation(MicroOperation.RSP,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.EMAR,MicroOperation.EMDR);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.EMDR,MicroOperation.S);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.RSP,MicroOperation.TEMP1);
+                this.addMicroOperation(muop3);
+                MicroOperation muop4 = new MicroOperation(MicroOperation.ALU_OUT_ADD_X, MicroOperation.RSP);
+                this.addMicroOperation(muop4);
             }
         }else if(mnemonic.equals("pushf")){
-                MicroOperation muop = new MicroOperation(21,5);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(22,21);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(24,10);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(21,7);
-                super.addMicroOperation(muop3);
-                MicroOperation muop4 = new MicroOperation(10,8);
-                super.addMicroOperation(muop4);
+                MicroOperation muop = new MicroOperation(MicroOperation.RSP,MicroOperation.TEMP1);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.ALU_OUT_SUB_X,MicroOperation.RSP);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.FLAGS,MicroOperation.EMAR);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.RSP,MicroOperation.EMAR);
+                this.addMicroOperation(muop3);
+                MicroOperation muop4 = new MicroOperation(MicroOperation.EMDR,MicroOperation.EMAR);
+                this.addMicroOperation(muop4);
               
         }else if(mnemonic.equals("popf")){
-                MicroOperation muop = new MicroOperation(21,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(8,10);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(10,24);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(21,7);
-                super.addMicroOperation(muop3);
-                MicroOperation muop4 = new MicroOperation(10,8);
-                super.addMicroOperation(muop4);
+                MicroOperation muop = new MicroOperation(MicroOperation.RSP,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.EMDR,MicroOperation.FLAGS);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.RSP,MicroOperation.TEMP1);
+                this.addMicroOperation(muop3);
+                MicroOperation muop4 = new MicroOperation(MicroOperation.ALU_OUT_ADD_X,MicroOperation.RSP);
+                this.addMicroOperation(muop4);
         }else if(mnemonic.equals("movs")){
-                MicroOperation muop = new MicroOperation(25,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(8,6);
-                super.addMicroOperation(muop1);
-                MicroOperation muop2 = new MicroOperation(26,7);
-                super.addMicroOperation(muop2);
-                MicroOperation muop3 = new MicroOperation(23,21);
-                super.addMicroOperation(muop3);
+                MicroOperation muop = new MicroOperation(MicroOperation.RSI,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.TEMP2);
+                this.addMicroOperation(muop1);
+                MicroOperation muop2 = new MicroOperation(MicroOperation.RDI,MicroOperation.EMAR);
+                this.addMicroOperation(muop2);
+                MicroOperation muop3 = new MicroOperation(MicroOperation.SHIFTER_OUT_SX_0,MicroOperation.EMARm);
+                this.addMicroOperation(muop3);
         }else if(mnemonic.equals("stos")){
-                MicroOperation muop = new MicroOperation(26,7);
-                super.addMicroOperation(muop);
-                MicroOperation muop1 = new MicroOperation(27,8);
-                super.addMicroOperation(muop1);
+                MicroOperation muop = new MicroOperation(MicroOperation.RDI,MicroOperation.EMAR);
+                this.addMicroOperation(muop);
+                MicroOperation muop1 = new MicroOperation(MicroOperation.RAX,MicroOperation.EMARm);
+                this.addMicroOperation(muop1);
         }
     }
     

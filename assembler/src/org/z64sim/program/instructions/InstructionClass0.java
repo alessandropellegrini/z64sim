@@ -22,18 +22,18 @@ public class InstructionClass0 extends Instruction {
         this.idn = idn;
         
         if(mnemonic.equals("halt")){
-            MicroOperation muop = new MicroOperation(15,7);
+            MicroOperation muop = new MicroOperation(MicroOperation.RIP,MicroOperation.EMAR);
             super.addMicroOperation(muop);
-            MicroOperation muop1 = new MicroOperation(8,10,17,15);
+            MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR,MicroOperation.RIP8,MicroOperation.RIP);
             super.addMicroOperation(muop1);
-            MicroOperation muop2 = new MicroOperation(10,16);
+            MicroOperation muop2 = new MicroOperation(MicroOperation.EMDR,MicroOperation.IR);
             super.addMicroOperation(muop2);
         }else if(mnemonic.equals("nop")){
-            MicroOperation muop = new MicroOperation(15,7);
+            MicroOperation muop = new MicroOperation(MicroOperation.RIP,MicroOperation.EMAR);
             super.addMicroOperation(muop);
-            MicroOperation muop1 = new MicroOperation(8,10,17,15);
+            MicroOperation muop1 = new MicroOperation(MicroOperation.EMARm,MicroOperation.EMDR,MicroOperation.RIP8,MicroOperation.RIP);
             super.addMicroOperation(muop1);
-            MicroOperation muop2 = new MicroOperation(10,16);
+            MicroOperation muop2 = new MicroOperation(MicroOperation.EMDR,MicroOperation.IR);
             super.addMicroOperation(muop2);
         }
     }
