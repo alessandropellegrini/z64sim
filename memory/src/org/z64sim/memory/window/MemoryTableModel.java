@@ -27,6 +27,9 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
 
     @Override
     public int getRowCount() {
+        if(memoryMap == null)
+            return 0;
+        
         return memoryMap.size();
     }
 

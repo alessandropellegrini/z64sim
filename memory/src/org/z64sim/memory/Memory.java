@@ -14,7 +14,7 @@ import org.z64sim.program.MemoryElement;
  */
 public class Memory {
     
-    public static ArrayList<MemoryElement> memoryMap = new ArrayList<MemoryElement>();
+    public static ArrayList<MemoryElement> memoryMap;
     
     
     public static synchronized void updateMemory() {
