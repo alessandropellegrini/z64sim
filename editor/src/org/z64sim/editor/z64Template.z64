@@ -1,7 +1,7 @@
 .org 0x800
 .data
 
-size .equ 10
+.equ size, 10
 
 .text
 # This is a comment

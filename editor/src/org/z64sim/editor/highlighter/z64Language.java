@@ -8,7 +8,6 @@ package org.z64sim.editor.highlighter;
 import org.netbeans.api.lexer.Language;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
-import org.netbeans.modules.parsing.spi.Parser;
 
 /**
  *
@@ -26,10 +25,4 @@ public class z64Language extends DefaultLanguageConfig {
     public String getDisplayName() {
         return "z64 Assembly";
     }
-    
-    @Override
-    public Parser getParser() {
-        return new z64Parser();
-    }
-
 }

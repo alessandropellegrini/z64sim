@@ -10,6 +10,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
@@ -44,11 +45,12 @@ public class z64Parser extends Parser {
         this.snapshot = snapshot;
         Reader reader = new StringReader(snapshot.getText().toString());
         assembler = new Assembler(reader);
-        try {
-            assembler.Program();
-        } catch (org.z64sim.assembler.ParseException ex) {
-            Logger.getLogger(z64Parser.class.getName()).log(Level.INFO, null, ex);
-        }
+        // This is moved to z64ParserHighlighter compile() method, as it runs in an external runnable
+        /*try {
+         assembler.Program();
+         } catch (org.z64sim.assembler.ParseException ex) {
+         Logger.getLogger(z64Parser.class.getName()).log(Level.INFO, null, ex);
+         }*/
     }
 
     @Override
@@ -71,8 +73,9 @@ public class z64Parser extends Parser {
     public static class z64ParserResult extends ParserResult {
 
         private final Assembler assembler;
-        private boolean valid = true;
+        private final AtomicBoolean valid = new AtomicBoolean(true);
         private final Snapshot snapshot;
+        private List<ErrorDescription> errors;
 
         z64ParserResult(Snapshot snapshot, Assembler assembler) {
             super(snapshot);
@@ -81,7 +84,7 @@ public class z64Parser extends Parser {
         }
 
         public Assembler getAssembler() throws org.netbeans.modules.parsing.spi.ParseException {
-            if (!valid) {
+            if (!valid.get()) {
                 throw new org.netbeans.modules.parsing.spi.ParseException();
             }
             return assembler;
@@ -89,7 +92,18 @@ public class z64Parser extends Parser {
 
         @Override
         protected void invalidate() {
-            valid = false;
+            valid.set(false);
+        }
+
+        public boolean getResult() throws org.netbeans.modules.parsing.spi.ParseException {
+            if (!valid.get()) {
+                throw new org.netbeans.modules.parsing.spi.ParseException();
+            }
+            return true;
+        }
+
+        public List<ErrorDescription> getErrors() {
+            return this.errors;
         }
 
         @Override
@@ -98,7 +112,7 @@ public class z64Parser extends Parser {
             try {
                 List<ParseException> syntaxErrors = this.assembler.syntaxErrors;
                 Document document = this.snapshot.getSource().getDocument(false);
-                List<ErrorDescription> errors = new ArrayList<ErrorDescription>();
+                this.errors = new ArrayList<ErrorDescription>();
                 for (ParseException syntaxError : syntaxErrors) {
                     Token token = syntaxError.currentToken;
                     int start = NbDocument.findLineOffset((StyledDocument) document, token.beginLine - 1) + token.beginColumn - 1;
@@ -110,34 +124,17 @@ public class z64Parser extends Parser {
                             document.createPosition(start),
                             document.createPosition(end)
                     );
-                    errors.add(errorDescription);
+                    this.errors.add(errorDescription);
                 }
-
-                HintsController.setErrors(document, "z64asm", errors);
             } catch (BadLocationException ex1) {
                 Exceptions.printStackTrace(ex1);
             }
 
             return Collections.EMPTY_LIST;
+        }
 
-            /*
-             ArrayList<z64ParseError> errors = new ArrayList<z64ParseError>();
-             Document document = this.snapshot.getSource().getDocument(false);
-
-             for (ParseException ex : this.assembler.syntaxErrors) {
-
-             Token token = ex.currentToken;
-             int start = NbDocument.findLineOffset((StyledDocument) document, token.beginLine - 1) + token.beginColumn;
-             int end = NbDocument.findLineOffset((StyledDocument) document, token.endLine - 1) + token.endColumn - 1;
-
-             z64ParseError err = new z64ParseError(ex.getMessage(),
-             this.snapshot.getSource().getFileObject(),
-             start, end);
-             errors.add(err);
-             }
-
-             return errors;
-             */
+        public Snapshot getSnapshot() {
+            return this.snapshot;
         }
 
     }
@@ -200,6 +197,7 @@ public class z64Parser extends Parser {
         public Object[] getParameters() {
             return null;
         }
+
     }
 
 }
