@@ -18,6 +18,7 @@ public class Program {
     
     private final ArrayList<MemoryElement> memoryMap = new ArrayList<MemoryElement>();
     private final Map<String, MemoryElement> labels = new LinkedHashMap<String, MemoryElement>();
+    private final Map<String, Long> equs = new LinkedHashMap<String, Long>();
     private final Map<Integer, MemoryElement> idt = new LinkedHashMap<Integer, MemoryElement>();
     private long locationCounter = 0;
     
@@ -45,13 +46,17 @@ public class Program {
         this.locationCounter = locationCounter;
     }
     
-    public void addMemoryElement(MemoryElement m) throws ParseException, Exception {
+    public void addMemoryElement(MemoryElement m) throws ParseException {
         
         // We must preserve the IDT
         if(this.locationCounter < 0x800)
             throw new ParseException("You are trying to put data/instructions over the IDT.");
         
-        m.setAddress(this.locationCounter);
+        try {
+            m.setAddress(this.locationCounter);
+        } catch(Exception e) {
+            throw new ParseException("Runtime error in the assembler:" + e.getMessage());
+        }
         memoryMap.add(m);
         this.locationCounter += m.getSize();
     }
@@ -62,6 +67,17 @@ public class Program {
         
         idt.put(idn, memory);
         return true;
+    }
+    
+    public ArrayList<MemoryElement> getMemoyMap() {
+        return this.memoryMap;
+    }
+    
+    public void addEqu(String name, Long value) throws ParseException {
+        if( this.equs.containsKey(name) )
+            throw new ParseException("An EQU with the same name has already been defined");
+        
+        this.equs.put(name, value);
     }
 
 }

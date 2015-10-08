@@ -22,7 +22,7 @@ public abstract class MemoryElement {
     }
     
     public void setAddress(long address) throws Exception {
-        if(address != -1)
+        if(this.address != -1)
                throw new Exception("Address has already been set");
         
         this.address = address;
@@ -33,7 +33,7 @@ public abstract class MemoryElement {
     }
     
     public void setSize(int size) throws Exception {
-        if(size != -1)
+        if(this.size != -1)
                throw new Exception("Size has already been set");
         
         this.size = size;

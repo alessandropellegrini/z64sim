@@ -14,6 +14,7 @@ public class DataElement extends MemoryElement {
     private byte[] value;
 
     public DataElement(byte[] value) {
+        super();
         this.value = value;
     }
 

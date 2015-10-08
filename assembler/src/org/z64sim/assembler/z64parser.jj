@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
 import org.z64sim.program.MemoryElement;
+import org.z64sim.program.DataElement;
+import org.z64sim.program.StringDataElement;
 import org.z64sim.program.Program;
 import org.z64sim.program.instructions.*;
 import org.z64sim.simulator.Register;
@@ -27,7 +29,7 @@ public class Assembler {
     private Program program = new Program();
 
     /** To support error recovery */
-    public List<ParseException> syntaxErrors = new ArrayList<ParseException>();
+    private List<ParseException> syntaxErrors = new ArrayList<ParseException>();
 
     /**
      * A String-based constructor for ease of use
@@ -36,6 +38,20 @@ public class Assembler {
      */
     public Assembler(String s) {
         this((Reader)(new StringReader(s)));
+    }
+
+    /**
+     * Return the assembled program, e.g. for displaying or simulation
+     */
+    public Program getProgram() {
+        return this.program;
+    }
+
+    /**
+     * Return found errors, e.g. to show them in the editor
+     */
+    public List<ParseException> getSyntaxErrors() {
+        return this.syntaxErrors;
     }
 
     /**
@@ -61,7 +77,7 @@ public class Assembler {
             return 2;
         else if(suffix.equals("l"))
             return 4;
-        throw new ParseException("Zero/Sign extension with wrong source prefix type");
+        throw new ParseException("Zero/Sign extension with wrong source prefix");
     }
 
     // TODO: some instructions would allow no suffix, but they end with a char which
@@ -97,6 +113,49 @@ public class Assembler {
         return Long.decode(s);
     }
 
+    // Converts a long to a byte[] vector, representing elements as little endians
+    private byte[] dataToByte(int elementSize, long value) throws ParseException {
+        byte[] data = new byte[elementSize];
+
+        switch(elementSize) {
+            case 1:
+                data[0] = (byte)(value);
+                break;
+            case 2:
+                data[1] = (byte)(value >> 8);
+                data[0] = (byte)(value);
+                break;
+            case 4:
+                data[3] = (byte)(value >> 24);
+                data[2] = (byte)(value >> 16);
+                data[1] = (byte)(value >> 8);
+                data[0] = (byte)(value);
+                break;
+            case 8:
+                data[7] = (byte)(value >> 56);
+                data[6] = (byte)(value >> 48);
+                data[5] = (byte)(value >> 40);
+                data[4] = (byte)(value >> 32);
+                data[3] = (byte)(value >> 24);
+                data[2] = (byte)(value >> 16);
+                data[1] = (byte)(value >> 8);
+                data[0] = (byte)(value);
+                break;
+            default:
+                throw new ParseException("Runtime error in the assembler");
+        }
+
+        return data;
+    }
+
+    byte[] getFilledMemoryArea(int size, byte value) {
+        byte[] fill = new byte[size];
+        for(int i = 0; i < size; i++) {
+            fill[i] = value;
+        }
+        return fill;
+    }
+
 }
 PARSER_END(Assembler)
 
@@ -127,8 +186,7 @@ TOKEN :
 
 TOKEN :
 { 
-  <COMMENT: ( "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n") ) |
-            ( "/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/") >
+  <COMMENT: ( "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n") ) >
 }
 
 
@@ -244,7 +302,7 @@ TOKEN:
 | <INSN_EXT: ("movs" | "movz")("bw"|"bl"|"bq"|"wl"|"wq"|"lq")>
 | <INSN_IN: "in"("b"|"w"|"l"|"q")?>
 | <INSN_OUT: "out"("b"|"w"|"l"|"q")?>
-| <INSN_IO_S: ("ins"
+| <INSN_IO_S :("ins"
            | "outs")("b"|"w"|"l")>
 | <IRET: "iret">
 }
@@ -283,45 +341,129 @@ TOKEN:
 
 void Program() :
 {}
-{ LocationCounter() <NEWLINE>
-  Data()
-  Code()
-  Drivers()
-  <PROGRAM_END>
-  (<NEWLINE>)* /* This is to consume newlines at the end of file */
-  <EOF>
+{
+    try {
+        (<COMMENT> | <NEWLINE>)*
+        LocationCounter() (<COMMENT> | <NEWLINE>)+
+        Data()
+        Code()
+        (Drivers())?
+        <PROGRAM_END>
+        (<COMMENT> | <NEWLINE>)*
+         /* This is to consume newlines at the end of file */
+        <EOF>
 
-  { /* TODO: when the program is assembled, pass it to other modules to display,
-       simulate, and manage it */ }
+        { /* TODO: when the program is assembled, pass it to other modules to display,
+             simulate, and manage it */
+
+             // All this was memory intensive: reclaim if possible!
+             System.gc();
+        }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
 
 
 void Data() :
-{}
 {
-    (   (<DATA_SECTION> | <BSS_SECTION>) <NEWLINE>
-        ((
-              LocationCounter()
-            | <EQU_ASSIGN> <LABEL_NAME> "," Expression()
-            | <LABEL_NAME> <ASSIGN> Expression()
-            | <LABEL>
-              (
-                   ( <BYTE_ASSIGN> | <WORD_ASSIGN> | <LONG_ASSIGN> | <QUAD_ASSIGN> ) Expression() ("," Expression())*
-                 | <ASCII_ASSIGN> <STRING_LITERAL>
-              )
-            | <FILL_ASSIGN> Expression() ( "," Expression() ( "," Expression() )? )?
-            | <COMM_ASSIGN> <LABEL_NAME> "," Expression()
-        ) <NEWLINE>)*
-    )+
+    Token t1, t2 = null, t3 = null;
+    long value = -1;
+    long repeat, size = -1; // Used for fill assignments
+    int elementSize;
+    byte[] data;
+    DataElement dataEl;
+}
+{
+    try {
+        (   (<DATA_SECTION> | <BSS_SECTION>)
+            (
+                  (<COMMENT> | <NEWLINE>)
+                |  LocationCounter()
+                | <EQU_ASSIGN> t1 = <LABEL_NAME> "," value = Expression()
+                  { this.program.addEqu(t1.image, value); }
+                | t1 = <LABEL_NAME> <ASSIGN> value = Expression()
+                  { this.program.addEqu(t1.image, value); }
+                | t1 = <LABEL>
+                  (
+                       ( <BYTE_ASSIGN> {elementSize = 1;} 
+                       | <WORD_ASSIGN> {elementSize = 2;}
+                       | <LONG_ASSIGN> {elementSize = 4;}
+                       | <QUAD_ASSIGN> {elementSize = 8;} ) 
+                          value = Expression()
+                          { data = dataToByte(elementSize, value); }
+                       ("," value = Expression()
+                          {
+                            byte additionalData[] = dataToByte(elementSize, value);
+                            byte updatedData[] = new byte[ data.length + additionalData.length ];
+                            System.arraycopy(data, 0, updatedData, 0, data.length);
+                            System.arraycopy(data, 0, updatedData, 0, data.length);
+                            data = updatedData;
+                          }
+                       )*
+                       {
+                         // Generate a DataElement from data[]
+                         dataEl = new DataElement(data);
+                         this.program.addMemoryElement(dataEl);
+
+                         // Add the label
+                         this.program.newLabel(t1.image, dataEl);
+                       }
+                     | <ASCII_ASSIGN> t2 = <STRING_LITERAL>
+                       { 
+                         // Remove the quotes and convert to StringDataElement[]
+                         dataEl = new StringDataElement(t2.image.substring(1, t2.image.length() - 1).getBytes());
+
+                        // Add the label
+                         this.program.newLabel(t1.image, dataEl);
+                       }
+                  )
+                | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
+                  {
+                    // Value is the third optional parameter
+                    if(value == -1)
+                        value = 0;
+
+                    // Size is the second optional parameter
+                    if(size == -1)
+                        size = 1;
+
+                    // Create 'repeat' DataElements set to value
+                    for(int i = 0; i < repeat; i++) {
+                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                    }
+
+                  }
+                | t1 = <COMM_ASSIGN> t2 = <LABEL_NAME> "," value = Expression()
+                  {
+                    // .comm assigns to zero
+                    dataEl = new DataElement( getFilledMemoryArea((int)value, (byte)0) );
+                    this.program.addMemoryElement(dataEl);
+                    this.program.newLabel(t2.image, dataEl);
+                  }
+            )+
+        )+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
 
 void Code() :
-{}
-{ 
-    (
-        <CODE_SECTION> <NEWLINE>
-        ( Statement() )*
-    )+
+{
+    Instruction i;
+}
+{
+    try {
+        (
+            <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
+            ( 
+                i = Statement()
+                {if(i != null) this.program.addMemoryElement(i);}
+            )*
+        )+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
 
 Instruction Drivers() :
@@ -330,39 +472,67 @@ Instruction Drivers() :
     Instruction insn;
 }
 { 
-    (
-        <DRIVER> (<INTEGER> | <LABEL_NAME>) <NEWLINE>
-        ( Statement() )*
-        t = <IRET> <NEWLINE>
-        {
-            return new InstructionClass5(t.image, null);
-        }
-    )+
+    try {
+        (
+            <DRIVER> (<INTEGER> | <LABEL_NAME>) (<COMMENT> | <NEWLINE>)+
+            ( Statement() )+
+            t = <IRET> (<COMMENT> | <NEWLINE>)+
+            {
+                return new InstructionClass5(t.image, null);
+            }
+        )+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
 
 
-void Statement() :
-{}
+Instruction Statement() :
 {
-  Label()
-| LocationCounter() <NEWLINE>
-| Instruction() <NEWLINE> 
-| <NEWLINE>
+    String label;
+    Instruction i = null;
+}
+{
+    try {
+        (
+            label = Label() i = Instruction()
+            {this.program.newLabel(label, i);}
+          | LocationCounter()
+          | i = Instruction()
+        )
+        (<COMMENT> | <NEWLINE>)+
+        { return i; }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
 }
 
 void LocationCounter() :
 {
+    Token t, t2 = null;
     long newLocationCounter;
-    Token t;
 }
 { 
     try {
-        (   <LOCATION_COUNTER> <ASSIGN>
-          | <ORG> ("," <INTEGER> )?
+        (   <LOCATION_COUNTER> <ASSIGN> t = <INTEGER>
+          | <ORG> t = <INTEGER> ("," t2 = <INTEGER> )?
         )
-        t = <INTEGER>
-        { program.setLocationCounter( stringToLong( t.image ) ); }
+        { 
+            newLocationCounter = stringToLong( t.image );
 
+            // if t2 != null, we have a fill assignment
+            if(t2 != null) {
+                byte value = (byte)stringToLong( t2.image );
+                long size = newLocationCounter - this.program.getLocationCounter();
+                byte[] fill = getFilledMemoryArea((int)size, value);
+                this.program.addMemoryElement( new DataElement(fill) );
+            } else {
+                // It's in the else branch as the addMemoryElement above already
+                // increases the location counter's value by size
+                program.setLocationCounter( newLocationCounter ); 
+            }
+        }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
@@ -536,6 +706,7 @@ Instruction Instruction() :
     { return insn; }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -555,6 +726,11 @@ String Label() :
         }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return "";  // otherwise javaCC throws exceptions. An empty string is
+                    // returned because the string is accessed by callers.
+                    // Nevertheless we're in an error condition, so our only goal
+                    // is to reach the end of the file to show as many errors as
+                    // possible
     }
 }
 
@@ -579,6 +755,7 @@ OperandRegister Register() :
         { return new OperandRegister( Register.getRegister64( t.image ) , 64 ); }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -663,6 +840,7 @@ OperandMemory Addressing(int size) :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -687,6 +865,7 @@ Operand FormatE(int size) :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -702,6 +881,7 @@ int FormatK() :
         { return (int)imm.getValue(); }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return -1; // otherwise javaCC throws exceptions
     }
 }
 
@@ -718,6 +898,7 @@ OperandRegister FormatG() :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -752,6 +933,7 @@ OperandMemory FormatM(int size) :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -779,6 +961,7 @@ Operand FormatB(int size) :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -801,6 +984,7 @@ OperandImmediate ConstantExpression() :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     } 
 }
 
@@ -826,6 +1010,7 @@ long Expression() :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return -1;
     } 
 }
 
@@ -848,6 +1033,7 @@ long Term() :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return -1;
     }
 }
 
@@ -873,5 +1059,6 @@ long Primary() :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return -1;
     }
 }
