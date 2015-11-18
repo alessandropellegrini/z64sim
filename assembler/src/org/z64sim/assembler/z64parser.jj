@@ -20,6 +20,7 @@ import org.z64sim.program.MemoryElement;
 import org.z64sim.program.DataElement;
 import org.z64sim.program.StringDataElement;
 import org.z64sim.program.Program;
+import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;
 import org.z64sim.simulator.Register;
 
@@ -65,18 +66,18 @@ public class Assembler {
         Token t;
         do {
             t = getNextToken();
-        } while (t.kind != kind);
+        } while (t.kind != kind && t.kind != EOF);
     }
 
     private int getSourceSuffixSize(String mnemonic) throws ParseException {
         String suffix = mnemonic.substring(mnemonic.length() - 2, mnemonic.length() - 1);
 
         if(suffix.equals("b"))
-            return 1;
+            return 8;
         else if(suffix.equals("w"))
-            return 2;
+            return 16;
         else if(suffix.equals("l"))
-            return 4;
+            return 32;
         throw new ParseException("Zero/Sign extension with wrong source prefix");
     }
 
@@ -86,13 +87,13 @@ public class Assembler {
         String suffix = mnemonic.substring(mnemonic.length() - 1);
 
         if(suffix.equals("b"))
-            return 1;
-        else if(suffix.equals("w"))
-            return 2;
-        else if(suffix.equals("l"))
-            return 4;
-        else if(suffix.equals("q"))
             return 8;
+        else if(suffix.equals("w"))
+            return 16;
+        else if(suffix.equals("l"))
+            return 32;
+        else if(suffix.equals("q"))
+            return 64;
         return -1; // No suffix given, depends on the operands
     }
 
@@ -104,11 +105,13 @@ public class Assembler {
 
     private long stringToLong(String s) throws ParseException {
 
-        if(s.substring(0,2).equals("0e"))
-            throw new ParseException("FLONUMS are still not supported"); // TODO
+        if(s.length() >= 2) {
+            if(s.substring(0,2).equals("0e"))
+                throw new ParseException("FLONUMS are still not supported"); // TODO
 
-        if(s.substring(0,2).equals("0b"))
-            return Long.parseLong(s.substring(2, s.length()), 2);
+            if(s.substring(0,2).equals("0b"))
+                return Long.parseLong(s.substring(2, s.length()), 2);
+        }
 
         return Long.decode(s);
     }
@@ -203,7 +206,7 @@ TOKEN:
 | <DATA_SECTION: ".data">
 | <CODE_SECTION: ".text">
 | <BSS_SECTION: ".bss">
-| <PROGRAM_END: ".end">
+| <PROGRAM_END: ".end"> // This is a dead token, to remove
 | <EQU_ASSIGN: ".equ">
 | <BYTE_ASSIGN: ".byte">
 | <WORD_ASSIGN: ".word">
@@ -348,15 +351,9 @@ void Program() :
         Data()
         Code()
         (Drivers())?
-        <PROGRAM_END>
-        (<COMMENT> | <NEWLINE>)*
-         /* This is to consume newlines at the end of file */
         <EOF>
 
-        { /* TODO: when the program is assembled, pass it to other modules to display,
-             simulate, and manage it */
-
-             // All this was memory intensive: reclaim if possible!
+        {    // All this was memory intensive: reclaim if possible!
              System.gc();
         }
     } catch (ParseException ex) {
@@ -381,9 +378,21 @@ void Data() :
                   (<COMMENT> | <NEWLINE>)
                 |  LocationCounter()
                 | <EQU_ASSIGN> t1 = <LABEL_NAME> "," value = Expression()
-                  { this.program.addEqu(t1.image, value); }
+                  { 
+                    try {
+                        this.program.addEqu(t1.image, value);
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
+                  }
                 | t1 = <LABEL_NAME> <ASSIGN> value = Expression()
-                  { this.program.addEqu(t1.image, value); }
+                  { 
+                    try {
+                        this.program.addEqu(t1.image, value);
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
+                  }
                 | t1 = <LABEL>
                   (
                        ( <BYTE_ASSIGN> {elementSize = 1;} 
@@ -402,9 +411,13 @@ void Data() :
                           }
                        )*
                        {
-                         // Generate a DataElement from data[]
-                         dataEl = new DataElement(data);
-                         this.program.addMemoryElement(dataEl);
+                        // Generate a DataElement from data[]
+                        dataEl = new DataElement(data);
+                        try {
+                            this.program.addMemoryElement(dataEl);
+                        } catch(ProgramException e) {
+                            throw new ParseException(e.getMessage());
+                        }
 
                          // Add the label
                          this.program.newLabel(t1.image, dataEl);
@@ -430,7 +443,11 @@ void Data() :
 
                     // Create 'repeat' DataElements set to value
                     for(int i = 0; i < repeat; i++) {
-                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                        try {
+                            this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                        } catch(ProgramException e) {
+                            throw new ParseException(e.getMessage());
+                        }
                     }
 
                   }
@@ -438,7 +455,11 @@ void Data() :
                   {
                     // .comm assigns to zero
                     dataEl = new DataElement( getFilledMemoryArea((int)value, (byte)0) );
-                    this.program.addMemoryElement(dataEl);
+                    try {
+                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
                     this.program.newLabel(t2.image, dataEl);
                   }
             )+
@@ -458,7 +479,14 @@ void Code() :
             <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
             ( 
                 i = Statement()
-                {if(i != null) this.program.addMemoryElement(i);}
+                {if(i != null) {
+                    try {
+                        this.program.addMemoryElement(i);
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
+                }
+}
             )*
         )+
     } catch (ParseException ex) {
@@ -474,15 +502,16 @@ Instruction Drivers() :
 { 
     try {
         (
-            <DRIVER> (<INTEGER> | <LABEL_NAME>) (<COMMENT> | <NEWLINE>)+
+            <DRIVER> (<INTEGER> | <LABEL_NAME>) (<COMMENT> | <NEWLINE>)*
             ( Statement() )+
-            t = <IRET> (<COMMENT> | <NEWLINE>)+
+            t = <IRET> (<COMMENT> | <NEWLINE>)*
             {
                 return new InstructionClass5(t.image, null);
             }
         )+
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -505,6 +534,7 @@ Instruction Statement() :
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
     }
 }
 
@@ -526,7 +556,11 @@ void LocationCounter() :
                 byte value = (byte)stringToLong( t2.image );
                 long size = newLocationCounter - this.program.getLocationCounter();
                 byte[] fill = getFilledMemoryArea((int)size, value);
-                this.program.addMemoryElement( new DataElement(fill) );
+                try {
+                    this.program.addMemoryElement( new DataElement(fill) );
+                } catch(ProgramException e) {
+                    throw new ParseException(e.getMessage());
+                }
             } else {
                 // It's in the else branch as the addMemoryElement above already
                 // increases the location counter's value by size
@@ -590,7 +624,7 @@ Instruction Instruction() :
 
             // Sanity check
             if(op1.getSize() != size)
-                throw new ParseException("Operand size and instruction suffix mismatch.");
+                throw new ParseException("Line " + t.beginLine + ": operand size and instruction suffix mismatch");
 
             // push and pop are class 1
             if(mnemonic.equals("push") || mnemonic.equals("pop"))
@@ -619,7 +653,7 @@ Instruction Instruction() :
         {
             // Sanity check
             if(op1.getSize() != size)
-                throw new ParseException("Operand size and instruction suffix mismatch.");
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             // They all belong to class 5
             insn = new InstructionClass5( stripSuffix(t.image), null);
@@ -632,7 +666,7 @@ Instruction Instruction() :
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != size)
-                throw new ParseException("Operand size and instruction suffix mismatch.");
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             // mov is class 1
             if(mnemonic.equals("mov"))
@@ -650,10 +684,10 @@ Instruction Instruction() :
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != sizeExt)
-                throw new ParseException("Operand size mismatch.");
+                throw new ParseException("Line " + t.beginLine + ": Operand size mismatch.");
 
             if(size >= sizeExt)
-                throw new ParseException("Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);
+                throw new ParseException("Line " + t.beginLine + ": Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         }
@@ -665,7 +699,7 @@ Instruction Instruction() :
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != size)
-                throw new ParseException("Operand size and instruction suffix mismatch.");
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         }
@@ -1046,14 +1080,14 @@ long Primary() :
     try {
 
         t = <INTEGER>
-        { return Integer.parseInt( t.image ); }
+        { return stringToLong( t.image ); }
       | <LOCATION_COUNTER>
         { return -1; /* TODO */ }
       | <LABEL_NAME>
         { /* TODO */ }
-      | <LBRACE> i=Expression() <RBRACE>
+      | <LBRACE> i = Expression() <RBRACE>
         { return i; }
-      | <MINUS> i=Primary()
+      | <MINUS> i = Primary()
         { return -i; }
       
 

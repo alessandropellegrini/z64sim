@@ -10,6 +10,7 @@ import org.z64sim.program.MemoryElement;
 import org.z64sim.program.DataElement;
 import org.z64sim.program.StringDataElement;
 import org.z64sim.program.Program;
+import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;
 import org.z64sim.simulator.Register;
 

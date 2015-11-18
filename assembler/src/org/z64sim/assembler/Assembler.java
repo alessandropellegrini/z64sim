@@ -10,6 +10,7 @@ import org.z64sim.program.MemoryElement;
 import org.z64sim.program.DataElement;
 import org.z64sim.program.StringDataElement;
 import org.z64sim.program.Program;
+import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;
 import org.z64sim.simulator.Register;
 
@@ -19,7 +20,7 @@ public class Assembler implements AssemblerConstants {
     private Program program = new Program();
 
     /** To support error recovery */
-    public List<ParseException> syntaxErrors = new ArrayList<ParseException>();
+    private List<ParseException> syntaxErrors = new ArrayList<ParseException>();
 
     /**
      * A String-based constructor for ease of use
@@ -38,6 +39,13 @@ public class Assembler implements AssemblerConstants {
     }
 
     /**
+     * Return found errors, e.g. to show them in the editor
+     */
+    public List<ParseException> getSyntaxErrors() {
+        return this.syntaxErrors;
+    }
+
+    /**
      * Error recovery function
      *
      * @param ex The exception keeping the parse error
@@ -48,18 +56,18 @@ public class Assembler implements AssemblerConstants {
         Token t;
         do {
             t = getNextToken();
-        } while (t.kind != kind);
+        } while (t.kind != kind && t.kind != EOF);
     }
 
     private int getSourceSuffixSize(String mnemonic) throws ParseException {
         String suffix = mnemonic.substring(mnemonic.length() - 2, mnemonic.length() - 1);
 
         if(suffix.equals("b"))
-            return 1;
+            return 8;
         else if(suffix.equals("w"))
-            return 2;
+            return 16;
         else if(suffix.equals("l"))
-            return 4;
+            return 32;
         throw new ParseException("Zero/Sign extension with wrong source prefix");
     }
 
@@ -69,13 +77,13 @@ public class Assembler implements AssemblerConstants {
         String suffix = mnemonic.substring(mnemonic.length() - 1);
 
         if(suffix.equals("b"))
-            return 1;
-        else if(suffix.equals("w"))
-            return 2;
-        else if(suffix.equals("l"))
-            return 4;
-        else if(suffix.equals("q"))
             return 8;
+        else if(suffix.equals("w"))
+            return 16;
+        else if(suffix.equals("l"))
+            return 32;
+        else if(suffix.equals("q"))
+            return 64;
         return -1; // No suffix given, depends on the operands
     }
 
@@ -87,11 +95,13 @@ public class Assembler implements AssemblerConstants {
 
     private long stringToLong(String s) throws ParseException {
 
-        if(s.substring(0,2).equals("0e"))
-            throw new ParseException("FLONUMS are still not supported"); // TODO
+        if(s.length() >= 2) {
+            if(s.substring(0,2).equals("0e"))
+                throw new ParseException("FLONUMS are still not supported"); // TODO
 
-        if(s.substring(0,2).equals("0b"))
-            return Long.parseLong(s.substring(2, s.length()), 2);
+            if(s.substring(0,2).equals("0b"))
+                return Long.parseLong(s.substring(2, s.length()), 2);
+        }
 
         return Long.decode(s);
     }
@@ -212,39 +222,8 @@ void Program() throws ParseException {
         jj_la1[4] = jj_gen;
         ;
       }
-      jj_consume_token(PROGRAM_END);
-      label_3:
-      while (true) {
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case NEWLINE:
-        case COMMENT:{
-          ;
-          break;
-          }
-        default:
-          jj_la1[5] = jj_gen;
-          break label_3;
-        }
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case COMMENT:{
-          jj_consume_token(COMMENT);
-          break;
-          }
-        case NEWLINE:{
-          jj_consume_token(NEWLINE);
-          break;
-          }
-        default:
-          jj_la1[6] = jj_gen;
-          jj_consume_token(-1);
-          throw new ParseException();
-        }
-      }
       jj_consume_token(0);
-/* TODO: when the program is assembled, pass it to other modules to display,
-             simulate, and manage it */
-
-             // All this was memory intensive: reclaim if possible!
+// All this was memory intensive: reclaim if possible!
              System.gc();
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
@@ -258,7 +237,7 @@ error_recover(ex, NEWLINE);
     byte[] data;
     DataElement dataEl;
     try {
-      label_4:
+      label_3:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case DATA_SECTION:{
@@ -270,11 +249,11 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[7] = jj_gen;
+          jj_la1[5] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
-        label_5:
+        label_4:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case NEWLINE:
@@ -289,7 +268,7 @@ error_recover(ex, NEWLINE);
               break;
               }
             default:
-              jj_la1[8] = jj_gen;
+              jj_la1[6] = jj_gen;
               jj_consume_token(-1);
               throw new ParseException();
             }
@@ -305,14 +284,22 @@ error_recover(ex, NEWLINE);
             t1 = jj_consume_token(LABEL_NAME);
             jj_consume_token(COMMA);
             value = Expression();
-this.program.addEqu(t1.image, value);
+try {
+                        this.program.addEqu(t1.image, value);
+                    } catch(ProgramException e) {
+                        {if (true) throw new ParseException(e.getMessage());}
+                    }
             break;
             }
           case LABEL_NAME:{
             t1 = jj_consume_token(LABEL_NAME);
             jj_consume_token(ASSIGN);
             value = Expression();
-this.program.addEqu(t1.image, value);
+try {
+                        this.program.addEqu(t1.image, value);
+                    } catch(ProgramException e) {
+                        {if (true) throw new ParseException(e.getMessage());}
+                    }
             break;
             }
           case LABEL:{
@@ -344,13 +331,13 @@ elementSize = 8;
                 break;
                 }
               default:
-                jj_la1[9] = jj_gen;
+                jj_la1[7] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
               }
               value = Expression();
 data = dataToByte(elementSize, value);
-              label_6:
+              label_5:
               while (true) {
                 switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
                 case COMMA:{
@@ -358,8 +345,8 @@ data = dataToByte(elementSize, value);
                   break;
                   }
                 default:
-                  jj_la1[10] = jj_gen;
-                  break label_6;
+                  jj_la1[8] = jj_gen;
+                  break label_5;
                 }
                 jj_consume_token(COMMA);
                 value = Expression();
@@ -370,8 +357,12 @@ byte additionalData[] = dataToByte(elementSize, value);
                             data = updatedData;
               }
 // Generate a DataElement from data[]
-                         dataEl = new DataElement(data);
-                         this.program.addMemoryElement(dataEl);
+                        dataEl = new DataElement(data);
+                        try {
+                            this.program.addMemoryElement(dataEl);
+                        } catch(ProgramException e) {
+                            {if (true) throw new ParseException(e.getMessage());}
+                        }
 
                          // Add the label
                          this.program.newLabel(t1.image, dataEl);
@@ -388,7 +379,7 @@ byte additionalData[] = dataToByte(elementSize, value);
               break;
               }
             default:
-              jj_la1[11] = jj_gen;
+              jj_la1[9] = jj_gen;
               jj_consume_token(-1);
               throw new ParseException();
             }
@@ -408,13 +399,13 @@ byte additionalData[] = dataToByte(elementSize, value);
                 break;
                 }
               default:
-                jj_la1[12] = jj_gen;
+                jj_la1[10] = jj_gen;
                 ;
               }
               break;
               }
             default:
-              jj_la1[13] = jj_gen;
+              jj_la1[11] = jj_gen;
               ;
             }
 // Value is the third optional parameter
@@ -427,7 +418,11 @@ byte additionalData[] = dataToByte(elementSize, value);
 
                     // Create 'repeat' DataElements set to value
                     for(int i = 0; i < repeat; i++) {
-                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                        try {
+                            this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                        } catch(ProgramException e) {
+                            {if (true) throw new ParseException(e.getMessage());}
+                        }
                     }
             break;
             }
@@ -438,12 +433,16 @@ byte additionalData[] = dataToByte(elementSize, value);
             value = Expression();
 // .comm assigns to zero
                     dataEl = new DataElement( getFilledMemoryArea((int)value, (byte)0) );
-                    this.program.addMemoryElement(dataEl);
+                    try {
+                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                    } catch(ProgramException e) {
+                        {if (true) throw new ParseException(e.getMessage());}
+                    }
                     this.program.newLabel(t2.image, dataEl);
             break;
             }
           default:
-            jj_la1[14] = jj_gen;
+            jj_la1[12] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
@@ -461,8 +460,8 @@ byte additionalData[] = dataToByte(elementSize, value);
             break;
             }
           default:
-            jj_la1[15] = jj_gen;
-            break label_5;
+            jj_la1[13] = jj_gen;
+            break label_4;
           }
         }
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -472,8 +471,8 @@ byte additionalData[] = dataToByte(elementSize, value);
           break;
           }
         default:
-          jj_la1[16] = jj_gen;
-          break label_4;
+          jj_la1[14] = jj_gen;
+          break label_3;
         }
       }
     } catch (ParseException ex) {
@@ -483,10 +482,10 @@ error_recover(ex, NEWLINE);
 
   final public void Code() throws ParseException {Instruction i;
     try {
-      label_7:
+      label_6:
       while (true) {
         jj_consume_token(CODE_SECTION);
-        label_8:
+        label_7:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case COMMENT:{
@@ -498,7 +497,7 @@ error_recover(ex, NEWLINE);
             break;
             }
           default:
-            jj_la1[17] = jj_gen;
+            jj_la1[15] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
@@ -509,11 +508,11 @@ error_recover(ex, NEWLINE);
             break;
             }
           default:
-            jj_la1[18] = jj_gen;
-            break label_8;
+            jj_la1[16] = jj_gen;
+            break label_7;
           }
         }
-        label_9:
+        label_8:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case LOCATION_COUNTER:
@@ -537,11 +536,17 @@ error_recover(ex, NEWLINE);
             break;
             }
           default:
-            jj_la1[19] = jj_gen;
-            break label_9;
+            jj_la1[17] = jj_gen;
+            break label_8;
           }
           i = Statement();
-if(i != null) this.program.addMemoryElement(i);
+if(i != null) {
+                    try {
+                        this.program.addMemoryElement(i);
+                    } catch(ProgramException e) {
+                        {if (true) throw new ParseException(e.getMessage());}
+                    }
+                }
         }
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case CODE_SECTION:{
@@ -549,8 +554,8 @@ if(i != null) this.program.addMemoryElement(i);
           break;
           }
         default:
-          jj_la1[20] = jj_gen;
-          break label_7;
+          jj_la1[18] = jj_gen;
+          break label_6;
         }
       }
     } catch (ParseException ex) {
@@ -561,7 +566,7 @@ error_recover(ex, NEWLINE);
   final public Instruction Drivers() throws ParseException {Token t;
     Instruction insn;
     try {
-      label_10:
+      label_9:
       while (true) {
         jj_consume_token(DRIVER);
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -574,12 +579,22 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[21] = jj_gen;
+          jj_la1[19] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
-        label_11:
+        label_10:
         while (true) {
+          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+          case NEWLINE:
+          case COMMENT:{
+            ;
+            break;
+            }
+          default:
+            jj_la1[20] = jj_gen;
+            break label_10;
+          }
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case COMMENT:{
             jj_consume_token(COMMENT);
@@ -590,22 +605,12 @@ error_recover(ex, NEWLINE);
             break;
             }
           default:
-            jj_la1[22] = jj_gen;
+            jj_la1[21] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
-          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case NEWLINE:
-          case COMMENT:{
-            ;
-            break;
-            }
-          default:
-            jj_la1[23] = jj_gen;
-            break label_11;
-          }
         }
-        label_12:
+        label_11:
         while (true) {
           Statement();
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -630,13 +635,23 @@ error_recover(ex, NEWLINE);
             break;
             }
           default:
-            jj_la1[24] = jj_gen;
-            break label_12;
+            jj_la1[22] = jj_gen;
+            break label_11;
           }
         }
         t = jj_consume_token(IRET);
-        label_13:
+        label_12:
         while (true) {
+          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+          case NEWLINE:
+          case COMMENT:{
+            ;
+            break;
+            }
+          default:
+            jj_la1[23] = jj_gen;
+            break label_12;
+          }
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
           case COMMENT:{
             jj_consume_token(COMMENT);
@@ -647,19 +662,9 @@ error_recover(ex, NEWLINE);
             break;
             }
           default:
-            jj_la1[25] = jj_gen;
+            jj_la1[24] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
-          }
-          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case NEWLINE:
-          case COMMENT:{
-            ;
-            break;
-            }
-          default:
-            jj_la1[26] = jj_gen;
-            break label_13;
           }
         }
 {if ("" != null) return new InstructionClass5(t.image, null);}
@@ -669,12 +674,14 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[27] = jj_gen;
-          break label_10;
+          jj_la1[25] = jj_gen;
+          break label_9;
         }
       }
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
+        {if ("" != null) return null;} // otherwise javaCC throws exceptions
+
     }
     throw new Error("Missing return statement in function");
   }
@@ -712,11 +719,11 @@ this.program.newLabel(label, i);
         break;
         }
       default:
-        jj_la1[28] = jj_gen;
+        jj_la1[26] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
-      label_14:
+      label_13:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case COMMENT:{
@@ -728,7 +735,7 @@ this.program.newLabel(label, i);
           break;
           }
         default:
-          jj_la1[29] = jj_gen;
+          jj_la1[27] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -739,13 +746,15 @@ this.program.newLabel(label, i);
           break;
           }
         default:
-          jj_la1[30] = jj_gen;
-          break label_14;
+          jj_la1[28] = jj_gen;
+          break label_13;
         }
       }
 {if ("" != null) return i;}
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
+        {if ("" != null) return null;} // otherwise javaCC throws exceptions
+
     }
     throw new Error("Missing return statement in function");
   }
@@ -770,13 +779,13 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[31] = jj_gen;
+          jj_la1[29] = jj_gen;
           ;
         }
         break;
         }
       default:
-        jj_la1[32] = jj_gen;
+        jj_la1[30] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -787,7 +796,11 @@ newLocationCounter = stringToLong( t.image );
                 byte value = (byte)stringToLong( t2.image );
                 long size = newLocationCounter - this.program.getLocationCounter();
                 byte[] fill = getFilledMemoryArea((int)size, value);
-                this.program.addMemoryElement( new DataElement(fill) );
+                try {
+                    this.program.addMemoryElement( new DataElement(fill) );
+                } catch(ProgramException e) {
+                    {if (true) throw new ParseException(e.getMessage());}
+                }
             } else {
                 // It's in the else branch as the addMemoryElement above already
                 // increases the location counter's value by size
@@ -849,7 +862,7 @@ mnemonic = stripSuffix(t.image);
 
             // Sanity check
             if(op1.getSize() != size)
-                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+                {if (true) throw new ParseException("Line " + t.beginLine + ": operand size and instruction suffix mismatch");}
 
             // push and pop are class 1
             if(mnemonic.equals("push") || mnemonic.equals("pop"))
@@ -869,7 +882,7 @@ mnemonic = stripSuffix(t.image);
           break;
           }
         default:
-          jj_la1[33] = jj_gen;
+          jj_la1[31] = jj_gen;
           ;
         }
         op1 = FormatG();
@@ -895,12 +908,12 @@ size = getSuffixSize( t.image );
           break;
           }
         default:
-          jj_la1[34] = jj_gen;
+          jj_la1[32] = jj_gen;
           op1 = FormatM(size);
         }
 // Sanity check
             if(op1.getSize() != size)
-                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+                {if (true) throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");}
 
             // They all belong to class 5
             insn = new InstructionClass5( stripSuffix(t.image), null);
@@ -916,7 +929,7 @@ mnemonic = stripSuffix(t.image);
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != size)
-                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+                {if (true) throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");}
 
             // mov is class 1
             if(mnemonic.equals("mov"))
@@ -937,10 +950,10 @@ sizeExt = getSuffixSize(t.image);
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != sizeExt)
-                {if (true) throw new ParseException("Operand size mismatch.");}
+                {if (true) throw new ParseException("Line " + t.beginLine + ": Operand size mismatch.");}
 
             if(size >= sizeExt)
-                {if (true) throw new ParseException("Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);}
+                {if (true) throw new ParseException("Line " + t.beginLine + ": Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);}
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         break;
@@ -955,7 +968,7 @@ mnemonic = stripSuffix(t.image);
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != size)
-                {if (true) throw new ParseException("Operand size and instruction suffix mismatch.");}
+                {if (true) throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");}
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         break;
@@ -1000,7 +1013,7 @@ size = getSourceSuffixSize( t.image );
         break;
         }
       default:
-        jj_la1[35] = jj_gen;
+        jj_la1[33] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1054,7 +1067,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[36] = jj_gen;
+        jj_la1[34] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1111,7 +1124,7 @@ base = Register.getRegister64( t.image );
           break;
           }
         default:
-          jj_la1[37] = jj_gen;
+          jj_la1[35] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -1144,7 +1157,7 @@ index = Register.getRegister64( t.image );
             break;
             }
           default:
-            jj_la1[38] = jj_gen;
+            jj_la1[36] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
           }
@@ -1154,14 +1167,14 @@ scale = Integer.parseInt( t.image );
           break;
           }
         default:
-          jj_la1[39] = jj_gen;
+          jj_la1[37] = jj_gen;
           ;
         }
         jj_consume_token(RBRACE);
         break;
         }
       default:
-        jj_la1[40] = jj_gen;
+        jj_la1[38] = jj_gen;
         ;
       }
 {if ("" != null) return new OperandMemory(base, base_size, index, index_size, scale, displacement, size);}
@@ -1185,7 +1198,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[41] = jj_gen;
+        jj_la1[39] = jj_gen;
         mem = Addressing(size);
       }
 if(reg != null)
@@ -1243,7 +1256,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[42] = jj_gen;
+        jj_la1[40] = jj_gen;
         memOp = Addressing(size);
       }
 {if ("" != null) return memOp;}
@@ -1276,7 +1289,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[43] = jj_gen;
+        jj_la1[41] = jj_gen;
         mem = FormatM(size);
 {if ("" != null) return mem;}
       }
@@ -1310,7 +1323,7 @@ error_recover(ex, NEWLINE);
     try {
       /* ACTUAL RULE */
               value = Term();
-      label_15:
+      label_14:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case PLUS:
@@ -1319,8 +1332,8 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[44] = jj_gen;
-          break label_15;
+          jj_la1[42] = jj_gen;
+          break label_14;
         }
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case PLUS:{
@@ -1336,7 +1349,7 @@ value -= i;
           break;
           }
         default:
-          jj_la1[45] = jj_gen;
+          jj_la1[43] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -1353,7 +1366,7 @@ error_recover(ex, NEWLINE);
     long i;
     try {
       value = Primary();
-      label_16:
+      label_15:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case TIMES:
@@ -1362,8 +1375,8 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[46] = jj_gen;
-          break label_16;
+          jj_la1[44] = jj_gen;
+          break label_15;
         }
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case TIMES:{
@@ -1379,7 +1392,7 @@ value /= i;
           break;
           }
         default:
-          jj_la1[47] = jj_gen;
+          jj_la1[45] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -1398,7 +1411,7 @@ error_recover(ex, NEWLINE);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case INTEGER:{
         t = jj_consume_token(INTEGER);
-{if ("" != null) return Integer.parseInt( t.image );}
+{if ("" != null) return stringToLong( t.image );}
         break;
         }
       case LOCATION_COUNTER:{
@@ -1425,7 +1438,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[48] = jj_gen;
+        jj_la1[46] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1444,20 +1457,41 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_24()
+  private boolean jj_3_1()
  {
-    if (jj_scan_token(INTEGER)) return true;
+    if (jj_3R_16()) return true;
     return false;
   }
 
-  private boolean jj_3R_18()
+  private boolean jj_3R_29()
  {
-    if (jj_3R_20()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_21()) { jj_scanpos = xsp; break; }
-    }
+    if (jj_scan_token(DIVIDE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_27()
+ {
+    if (jj_scan_token(MINUS)) return true;
+    if (jj_3R_19()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_22()
+ {
+    if (jj_scan_token(MINUS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_28()
+ {
+    if (jj_scan_token(TIMES)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_26()
+ {
+    if (jj_scan_token(LBRACE)) return true;
+    if (jj_3R_16()) return true;
     return false;
   }
 
@@ -1465,78 +1499,55 @@ error_recover(ex, NEWLINE);
  {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_24()) {
+    if (jj_3R_28()) {
     jj_scanpos = xsp;
-    if (jj_3R_25()) {
-    jj_scanpos = xsp;
-    if (jj_3R_26()) {
-    jj_scanpos = xsp;
-    if (jj_3R_27()) {
-    jj_scanpos = xsp;
-    if (jj_3R_28()) return true;
-    }
-    }
-    }
+    if (jj_3R_29()) return true;
     }
     return false;
   }
 
-  private boolean jj_3R_17()
+  private boolean jj_3R_18()
  {
-    if (jj_3R_18()) return true;
     Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_19()) { jj_scanpos = xsp; break; }
+    xsp = jj_scanpos;
+    if (jj_3R_21()) {
+    jj_scanpos = xsp;
+    if (jj_3R_22()) return true;
     }
-    return false;
-  }
-
-  private boolean jj_3_1()
- {
-    if (jj_3R_17()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_30()
- {
-    if (jj_scan_token(DIVIDE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_28()
- {
-    if (jj_scan_token(MINUS)) return true;
-    if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_23()
- {
-    if (jj_scan_token(MINUS)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_29()
- {
-    if (jj_scan_token(TIMES)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_27()
- {
-    if (jj_scan_token(LBRACE)) return true;
-    if (jj_3R_17()) return true;
     return false;
   }
 
   private boolean jj_3R_21()
  {
+    if (jj_scan_token(PLUS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_25()
+ {
+    if (jj_scan_token(LABEL_NAME)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_24()
+ {
+    if (jj_scan_token(LOCATION_COUNTER)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_23()
+ {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_17()
+ {
+    if (jj_3R_19()) return true;
     Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_29()) {
-    jj_scanpos = xsp;
-    if (jj_3R_30()) return true;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_20()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
@@ -1545,28 +1556,30 @@ error_recover(ex, NEWLINE);
  {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_22()) {
+    if (jj_3R_23()) {
     jj_scanpos = xsp;
-    if (jj_3R_23()) return true;
+    if (jj_3R_24()) {
+    jj_scanpos = xsp;
+    if (jj_3R_25()) {
+    jj_scanpos = xsp;
+    if (jj_3R_26()) {
+    jj_scanpos = xsp;
+    if (jj_3R_27()) return true;
+    }
+    }
+    }
     }
     return false;
   }
 
-  private boolean jj_3R_22()
+  private boolean jj_3R_16()
  {
-    if (jj_scan_token(PLUS)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_26()
- {
-    if (jj_scan_token(LABEL_NAME)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_25()
- {
-    if (jj_scan_token(LOCATION_COUNTER)) return true;
+    if (jj_3R_17()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_18()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
@@ -1581,7 +1594,7 @@ error_recover(ex, NEWLINE);
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-  final private int[] jj_la1 = new int[49];
+  final private int[] jj_la1 = new int[47];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -1589,10 +1602,10 @@ error_recover(ex, NEWLINE);
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xc,0xc,0xc,0xc,0x40000,0xc,0xc,0x140,0xc,0x7800,0x0,0xf800,0x0,0x0,0x3043c,0x3043c,0x140,0xc,0xc,0x30,0x80,0x100000,0xc,0xc,0x30,0xc,0xc,0x40000,0x30,0xc,0xc,0x0,0x30,0x80000,0x10000000,0x0,0x0,0x0,0x0,0x0,0x40000000,0x0,0x0,0x80000,0xc000000,0xc000000,0x30000000,0x30000000,0x48100010,};
+      jj_la1_0 = new int[] {0xc,0xc,0xc,0xc,0x40000,0x140,0xc,0x7800,0x0,0xf800,0x0,0x0,0x3043c,0x3043c,0x140,0xc,0xc,0x30,0x80,0x100000,0xc,0xc,0x30,0xc,0xc,0x40000,0x30,0xc,0xc,0x0,0x30,0x80000,0x10000000,0x0,0x0,0x0,0x0,0x0,0x40000000,0x0,0x0,0x80000,0xc000000,0xc000000,0x30000000,0x30000000,0x48100010,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x0,0x1,0x1,0x300000,0x300000,0x0,0x0,0x0,0x17ffe0,0x0,0x200000,0x0,0x0,0x17ffe0,0x0,0x0,0x0,0x17ffe0,0x0,0x0,0x1,0x0,0x0,0x0,0x7ffe0,0x1e,0x1e,0x1e,0x1,0x0,0x1e,0x100000,0x1e,0x0,0x0,0x0,0x0,0x200000,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x0,0x1,0x1,0x300000,0x300000,0x0,0x0,0x0,0x17ffe0,0x0,0x200000,0x0,0x0,0x17ffe0,0x0,0x0,0x0,0x17ffe0,0x0,0x0,0x1,0x0,0x0,0x0,0x7ffe0,0x1e,0x1e,0x1e,0x1,0x0,0x1e,0x100000,0x1e,0x0,0x0,0x0,0x0,0x200000,};
    }
   final private JJCalls[] jj_2_rtns = new JJCalls[1];
   private boolean jj_rescan = false;
@@ -1609,7 +1622,7 @@ error_recover(ex, NEWLINE);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 49; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 47; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1624,7 +1637,7 @@ error_recover(ex, NEWLINE);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 49; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 47; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1635,7 +1648,7 @@ error_recover(ex, NEWLINE);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 49; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 47; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1646,7 +1659,7 @@ error_recover(ex, NEWLINE);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 49; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 47; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1656,7 +1669,7 @@ error_recover(ex, NEWLINE);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 49; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 47; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1666,7 +1679,7 @@ error_recover(ex, NEWLINE);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 49; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 47; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1784,7 +1797,7 @@ error_recover(ex, NEWLINE);
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 49; i++) {
+    for (int i = 0; i < 47; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
