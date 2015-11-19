@@ -48,7 +48,7 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
-                    <code-name-base>org.z64sim.assembler</code-name-base>
+                    <code-name-base>org.z64sim.simulator</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
                     <run-dependency>
