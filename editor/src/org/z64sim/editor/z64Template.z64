@@ -6,4 +6,3 @@
 .text
 # This is a comment
 movl %eax, %ebx
-.end
