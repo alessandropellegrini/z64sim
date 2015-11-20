@@ -413,6 +413,7 @@ void Data() :
                        {
                         // Generate a DataElement from data[]
                         dataEl = new DataElement(data);
+                        dataEl.setSize(data.length);
                         try {
                             this.program.addMemoryElement(dataEl);
                         } catch(ProgramException e) {
@@ -444,17 +445,20 @@ void Data() :
                     // Create 'repeat' DataElements set to value
                     for(int i = 0; i < repeat; i++) {
                         try {
-                            this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                            dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)value) );
+                            dataEl.setSize((int)size);
+                            this.program.addMemoryElement(dataEl);
                         } catch(ProgramException e) {
                             throw new ParseException(e.getMessage());
                         }
                     }
 
                   }
-                | t1 = <COMM_ASSIGN> t2 = <LABEL_NAME> "," value = Expression()
+                | t1 = <COMM_ASSIGN> t2 = <LABEL_NAME> "," size = Expression()
                   {
                     // .comm assigns to zero
-                    dataEl = new DataElement( getFilledMemoryArea((int)value, (byte)0) );
+                    dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)0) );
+                    dataEl.setSize((int)size);
                     try {
                         this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
                     } catch(ProgramException e) {
@@ -481,6 +485,7 @@ void Code() :
                 i = Statement()
                 {if(i != null) {
                     try {
+                        // The size of the MemoryElement is added by the Instruction classes
                         this.program.addMemoryElement(i);
                     } catch(ProgramException e) {
                         throw new ParseException(e.getMessage());

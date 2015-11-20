@@ -21,6 +21,10 @@ public class InstructionClass3 extends Instruction {
         super(mnemonic);
         this.places = p;
         this.reg = r;
+        
+        // Set the size in memory
+        this.setSize(8);
+
 
         if (mnemonic.equals("sal")) {
             if (this.places <= 0) {

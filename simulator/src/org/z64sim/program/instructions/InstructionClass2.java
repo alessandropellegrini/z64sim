@@ -21,6 +21,13 @@ public class InstructionClass2 extends Instruction {
         super(mnemonic);
         this.source = s;
         this.destination = d;
+        
+        // Set the size in memory
+        if(s instanceof OperandImmediate && s.getSize() == 8)
+            this.setSize(16);
+        else
+            this.setSize(8);
+
 
         if (mnemonic.equals("add")) {
             if (source instanceof OperandMemory) {

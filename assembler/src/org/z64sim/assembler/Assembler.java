@@ -358,6 +358,7 @@ byte additionalData[] = dataToByte(elementSize, value);
               }
 // Generate a DataElement from data[]
                         dataEl = new DataElement(data);
+                        dataEl.setSize(data.length);
                         try {
                             this.program.addMemoryElement(dataEl);
                         } catch(ProgramException e) {
@@ -419,7 +420,9 @@ byte additionalData[] = dataToByte(elementSize, value);
                     // Create 'repeat' DataElements set to value
                     for(int i = 0; i < repeat; i++) {
                         try {
-                            this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
+                            dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)value) );
+                            dataEl.setSize((int)size);
+                            this.program.addMemoryElement(dataEl);
                         } catch(ProgramException e) {
                             {if (true) throw new ParseException(e.getMessage());}
                         }
@@ -430,9 +433,10 @@ byte additionalData[] = dataToByte(elementSize, value);
             t1 = jj_consume_token(COMM_ASSIGN);
             t2 = jj_consume_token(LABEL_NAME);
             jj_consume_token(COMMA);
-            value = Expression();
+            size = Expression();
 // .comm assigns to zero
-                    dataEl = new DataElement( getFilledMemoryArea((int)value, (byte)0) );
+                    dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)0) );
+                    dataEl.setSize((int)size);
                     try {
                         this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
                     } catch(ProgramException e) {
@@ -542,6 +546,7 @@ error_recover(ex, NEWLINE);
           i = Statement();
 if(i != null) {
                     try {
+                        // The size of the MemoryElement is added by the Instruction classes
                         this.program.addMemoryElement(i);
                     } catch(ProgramException e) {
                         {if (true) throw new ParseException(e.getMessage());}
@@ -1457,31 +1462,6 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3_1()
- {
-    if (jj_3R_16()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_29()
- {
-    if (jj_scan_token(DIVIDE)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_27()
- {
-    if (jj_scan_token(MINUS)) return true;
-    if (jj_3R_19()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_22()
- {
-    if (jj_scan_token(MINUS)) return true;
-    return false;
-  }
-
   private boolean jj_3R_28()
  {
     if (jj_scan_token(TIMES)) return true;
@@ -1580,6 +1560,31 @@ error_recover(ex, NEWLINE);
       xsp = jj_scanpos;
       if (jj_3R_18()) { jj_scanpos = xsp; break; }
     }
+    return false;
+  }
+
+  private boolean jj_3_1()
+ {
+    if (jj_3R_16()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_29()
+ {
+    if (jj_scan_token(DIVIDE)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_27()
+ {
+    if (jj_scan_token(MINUS)) return true;
+    if (jj_3R_19()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_22()
+ {
+    if (jj_scan_token(MINUS)) return true;
     return false;
   }
 

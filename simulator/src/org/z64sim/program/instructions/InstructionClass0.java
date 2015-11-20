@@ -29,6 +29,9 @@ public class InstructionClass0 extends Instruction {
     public InstructionClass0(String mnemonic, int idn) {
         super(mnemonic);
         this.idn = idn;
+        
+        // Set the size in memory
+        this.setSize(8);
 
         if (mnemonic.equals("halt")) {
             opcode += 1;

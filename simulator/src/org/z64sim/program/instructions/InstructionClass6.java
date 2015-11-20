@@ -22,6 +22,9 @@ public class InstructionClass6 extends Instruction {
         this.bit = 0; /* depends on the mnemonic */
 
         this.target = t;
+        
+        // Set the size in memory
+        this.setSize(8);
 
         if (mnemonic.equals("jc")) {
             this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_1));

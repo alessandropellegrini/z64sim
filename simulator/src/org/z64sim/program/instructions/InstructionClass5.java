@@ -20,6 +20,9 @@ public class InstructionClass5 extends Instruction {
         super(mnemonic);
         this.target = t;
 
+        // Set the size in memory
+        this.setSize(8);
+        
         if (mnemonic.equals("jmp")) {
             if (target instanceof OperandMemory) {
                 this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));

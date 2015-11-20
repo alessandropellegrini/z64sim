@@ -21,6 +21,9 @@ public class InstructionClass4 extends Instruction {
         super(mnemonic);
         this.bit = 0; /* depends on the mnemonic */
         this.val = 0; /* depends on the mnemonic: 0 for clear, 1 for set */
+        
+        // Set the size in memory
+        this.setSize(8);
 
         if (mnemonic.equals("clc")) {
             this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_R));

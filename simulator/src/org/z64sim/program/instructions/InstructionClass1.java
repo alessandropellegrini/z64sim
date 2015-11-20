@@ -31,6 +31,12 @@ public class InstructionClass1 extends Instruction {
         this.source = s;
         this.destination = d;
         this.implicitSize = implicitSize;
+        
+        // Set the size in memory
+        if(s instanceof OperandImmediate && s.getSize() == 8)
+            this.setSize(16);
+        else
+            this.setSize(8);
 
         if (mnemonic.equals("mov")) {
             
