@@ -32,9 +32,9 @@ public abstract class MemoryElement {
         return size;
     }
     
-    public void setSize(int size) throws Exception {
+    public void setSize(int size) throws RuntimeException {
         if(this.size != -1)
-               throw new Exception("Size has already been set");
+               throw new RuntimeException("Size has already been set");
         
         this.size = size;
     }

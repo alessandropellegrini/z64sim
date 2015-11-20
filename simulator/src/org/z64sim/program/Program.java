@@ -8,7 +8,7 @@ package org.z64sim.program;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.z64sim.assembler.ParseException;
+
 
 /**
  *
@@ -16,10 +16,10 @@ import org.z64sim.assembler.ParseException;
  */
 public class Program {
     
-    private final ArrayList<MemoryElement> memoryMap = new ArrayList<MemoryElement>();
-    private final Map<String, MemoryElement> labels = new LinkedHashMap<String, MemoryElement>();
-    private final Map<String, Long> equs = new LinkedHashMap<String, Long>();
-    private final Map<Integer, MemoryElement> idt = new LinkedHashMap<Integer, MemoryElement>();
+    private final ArrayList<MemoryElement> memoryMap = new ArrayList<>();
+    private final Map<String, MemoryElement> labels = new LinkedHashMap<>();
+    private final Map<String, Long> equs = new LinkedHashMap<>();
+    private final Map<Integer, MemoryElement> idt = new LinkedHashMap<>();
     private long locationCounter = 0;
     
     public Program() {
@@ -46,18 +46,20 @@ public class Program {
         this.locationCounter = locationCounter;
     }
     
-    public void addMemoryElement(MemoryElement m) throws ParseException {
+    public void addMemoryElement(MemoryElement m) throws ProgramException {
         
         // We must preserve the IDT
         if(this.locationCounter < 0x800)
-            throw new ParseException("You are trying to put data/instructions over the IDT.");
+            throw new ProgramException("You are trying to put data/instructions over the IDT.");
         
         try {
             m.setAddress(this.locationCounter);
         } catch(Exception e) {
-            throw new ParseException("Runtime error in the assembler:" + e.getMessage());
+            throw new ProgramException("Runtime error in the assembler:" + e.getMessage());
         }
         memoryMap.add(m);
+        if(m.getSize() == -1)
+            throw new RuntimeException("Adding a Data Element with unspecified size");
         this.locationCounter += m.getSize();
     }
     
@@ -69,13 +71,13 @@ public class Program {
         return true;
     }
     
-    public ArrayList<MemoryElement> getMemoyMap() {
+    public ArrayList<MemoryElement> getMemoryMap() {
         return this.memoryMap;
     }
     
-    public void addEqu(String name, Long value) throws ParseException {
+    public void addEqu(String name, Long value) throws ProgramException {
         if( this.equs.containsKey(name) )
-            throw new ParseException("An EQU with the same name has already been defined");
+            throw new ProgramException("An EQU with the same name has already been defined");
         
         this.equs.put(name, value);
     }
