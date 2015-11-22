@@ -712,7 +712,10 @@ Instruction Instruction() :
         t = <INSN_IN> t2 = <REG_16> <COMMA> op1 = Register() /* programmatically check for registers */
         {
             size = getSourceSuffixSize( t.image );
-            mnemonic = stripSuffix(stripSuffix(t.image)); // There are two siffices here, one for source, one for destination
+            mnemonic = stripSuffix(t.image);
+
+            if(size > 32)
+                throw new ParseException("Wrong size suffix for in instruction");
 
             if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
                 throw new ParseException("Wrong operands for instruction " + t.image + ".");
@@ -725,6 +728,9 @@ Instruction Instruction() :
             size = getSourceSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
+            if(size > 32)
+                throw new ParseException("Wrong size suffix for out instruction");
+
             if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
                 throw new ParseException("Wrong operands for instruction " + t.image + ".");
 
@@ -733,11 +739,11 @@ Instruction Instruction() :
       | 
         t = <INSN_IO_S>
         {
-            size = getSourceSuffixSize( t.image );
+            size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
-            if(size == -1 || size == 8)
-                throw new ParseException("Wrong size suffix for instruction" + mnemonic);
+            if(size == -1)
+                throw new ParseException("Wrong size suffix for instruction " + mnemonic);
 
             insn = new InstructionClass7(t.image, size);
         }

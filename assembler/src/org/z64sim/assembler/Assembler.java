@@ -984,7 +984,10 @@ mnemonic = stripSuffix(t.image);
         jj_consume_token(COMMA);
         op1 = Register();
 size = getSourceSuffixSize( t.image );
-            mnemonic = stripSuffix(stripSuffix(t.image)); // There are two siffices here, one for source, one for destination
+            mnemonic = stripSuffix(t.image);
+
+            if(size > 32)
+                {if (true) throw new ParseException("Wrong size suffix for in instruction");}
 
             if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
                 {if (true) throw new ParseException("Wrong operands for instruction " + t.image + ".");}
@@ -1000,6 +1003,9 @@ size = getSourceSuffixSize( t.image );
 size = getSourceSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
+            if(size > 32)
+                {if (true) throw new ParseException("Wrong size suffix for out instruction");}
+
             if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
                 {if (true) throw new ParseException("Wrong operands for instruction " + t.image + ".");}
 
@@ -1008,11 +1014,11 @@ size = getSourceSuffixSize( t.image );
         }
       case INSN_IO_S:{
         t = jj_consume_token(INSN_IO_S);
-size = getSourceSuffixSize( t.image );
+size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
-            if(size == -1 || size == 8)
-                {if (true) throw new ParseException("Wrong size suffix for instruction" + mnemonic);}
+            if(size == -1)
+                {if (true) throw new ParseException("Wrong size suffix for instruction " + mnemonic);}
 
             insn = new InstructionClass7(t.image, size);
         break;
@@ -1462,59 +1468,6 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_28()
- {
-    if (jj_scan_token(TIMES)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_26()
- {
-    if (jj_scan_token(LBRACE)) return true;
-    if (jj_3R_16()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_20()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_28()) {
-    jj_scanpos = xsp;
-    if (jj_3R_29()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_18()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_21()) {
-    jj_scanpos = xsp;
-    if (jj_3R_22()) return true;
-    }
-    return false;
-  }
-
-  private boolean jj_3R_21()
- {
-    if (jj_scan_token(PLUS)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_25()
- {
-    if (jj_scan_token(LABEL_NAME)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_24()
- {
-    if (jj_scan_token(LOCATION_COUNTER)) return true;
-    return false;
-  }
-
   private boolean jj_3R_23()
  {
     if (jj_scan_token(INTEGER)) return true;
@@ -1585,6 +1538,59 @@ error_recover(ex, NEWLINE);
   private boolean jj_3R_22()
  {
     if (jj_scan_token(MINUS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_28()
+ {
+    if (jj_scan_token(TIMES)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_26()
+ {
+    if (jj_scan_token(LBRACE)) return true;
+    if (jj_3R_16()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_20()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_28()) {
+    jj_scanpos = xsp;
+    if (jj_3R_29()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_18()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_21()) {
+    jj_scanpos = xsp;
+    if (jj_3R_22()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_21()
+ {
+    if (jj_scan_token(PLUS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_25()
+ {
+    if (jj_scan_token(LABEL_NAME)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_24()
+ {
+    if (jj_scan_token(LOCATION_COUNTER)) return true;
     return false;
   }
 
