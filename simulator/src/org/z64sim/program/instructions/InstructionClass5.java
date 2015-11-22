@@ -22,52 +22,59 @@ public class InstructionClass5 extends Instruction {
 
         // Set the size in memory
         this.setSize(8);
-        
-        if (mnemonic.equals("jmp")) {
-            if (target instanceof OperandMemory) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-            } else if (target instanceof OperandRegister) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.R, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-            }
-        } else if (mnemonic.equals("call")) {
-            if (target instanceof OperandMemory) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB_8, MicroOperation.RSP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMDR));
+
+        switch (mnemonic) {
+            case "jmp":
+                if (target instanceof OperandMemory) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                } else if (target instanceof OperandRegister) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.R, MicroOperation.EMAR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                }
+                break;
+            case "call":
+                if (target instanceof OperandMemory) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB_8, MicroOperation.RSP));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMDR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.M, MicroOperation.RIP));
+                } else if (target instanceof OperandRegister) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB_8, MicroOperation.RSP));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMDR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.R, MicroOperation.EMAR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                }
+                break;
+            case "ret":
                 this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
-                this.addMicroOperation(new MicroOperation(MicroOperation.M, MicroOperation.RIP));
-            } else if (target instanceof OperandRegister) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB_8, MicroOperation.RSP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
-                this.addMicroOperation(new MicroOperation(MicroOperation.R, MicroOperation.EMAR));
                 this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
                 this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-            }
-        } else if (mnemonic.equals("ret")) {
-            this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-            this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-            this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
-        } else if (mnemonic.equals("iret")) {
-            this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.FLAGS));
-            this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-            this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
-            this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-            this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-            this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
+                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
+                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
+                break;
+            case "iret":
+                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.FLAGS));
+                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
+                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
+                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
+                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
+                break;
+            default:
+                throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
     }
 
@@ -77,8 +84,17 @@ public class InstructionClass5 extends Instruction {
     }
 
     @Override
-    public byte[] getRepresentation() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String toString() {
+        String mnem = this.mnemonic;
+
+        if (this.target != null) {
+            if (this.target instanceof OperandRegister) {
+                mnem = mnem.concat("*");
+            }
+            mnem = mnem.concat(this.target.toString());
+        }
+
+        return mnem;
     }
 
 }

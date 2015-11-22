@@ -5,6 +5,8 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.simulator.Register;
+
 public class OperandRegister extends Operand {
 
     private final int register;
@@ -16,5 +18,10 @@ public class OperandRegister extends Operand {
 
     public int getRegister() {
         return register;
+    }
+    
+    @Override
+    public String toString() {
+        return Register.getRegisterName(this.register, this.size);
     }
 }

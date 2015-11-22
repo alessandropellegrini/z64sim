@@ -24,65 +24,75 @@ public class InstructionClass3 extends Instruction {
         
         // Set the size in memory
         this.setSize(8);
+        
+        // First byte is the class
+        byte[] encoding = {0b00110000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
-        if (mnemonic.equals("sal")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAL_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAL_K, MicroOperation.D));
-        } else if (mnemonic.equals("shl")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHL_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHL_K, MicroOperation.D));
-        } else if (mnemonic.equals("sar")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAR_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAR_K, MicroOperation.D));
-        } else if (mnemonic.equals("shr")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHR_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHR_K, MicroOperation.D));
-        } else if (mnemonic.equals("rcl")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCL_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCL_K, MicroOperation.D));
-        } else if (mnemonic.equals("rcr")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCR_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCR_K, MicroOperation.D));
-        } else if (mnemonic.equals("rol")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROL_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROL_K, MicroOperation.D));
-        } else if (mnemonic.equals("ror")) {
-            if (this.places <= 0) {
-                this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROR_RCX, MicroOperation.D));
-            }
-            this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
-            this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROR_K, MicroOperation.D));
+        switch (mnemonic) {
+            case "sal":
+                
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAL_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAL_K, MicroOperation.D));
+                break;
+            case "shl":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHL_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHL_K, MicroOperation.D));
+                break;
+            case "sar":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAR_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAR_K, MicroOperation.D));
+                break;
+            case "shr":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHR_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SHR_K, MicroOperation.D));
+                break;
+            case "rcl":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCL_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCL_K, MicroOperation.D));
+                break;
+            case "rcr":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCR_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_RCR_K, MicroOperation.D));
+                break;
+            case "rol":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROL_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROL_K, MicroOperation.D));
+                break;
+            case "ror":
+                if (this.places <= 0) {
+                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                    this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROR_RCX, MicroOperation.D));
+                }   this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
+                this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_ROR_K, MicroOperation.D));
+                break;
+            default:
+                throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
         }
+        
+        this.setValue(encoding);
     }
 
     @Override
@@ -91,8 +101,17 @@ public class InstructionClass3 extends Instruction {
     }
 
     @Override
-    public byte[] getRepresentation() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String toString() {
+        
+        String mnem = this.mnemonic;
+        
+        if(this.places != -1) {
+            mnem = mnem.concat("$" + this.places + ", ");
+        }
+        
+        mnem = mnem.concat(this.reg.toString());
+        
+        return mnem;
     }
 
 }

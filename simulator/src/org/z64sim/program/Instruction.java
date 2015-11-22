@@ -6,7 +6,6 @@
 package org.z64sim.program;
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
 import org.z64sim.program.muops.MicroOperation;
 
 /**
@@ -15,15 +14,17 @@ import org.z64sim.program.muops.MicroOperation;
  */
 public abstract class Instruction extends MemoryElement {
     
-    private static final Logger logger = Logger.getLogger(Instruction.class.getName());
     private ArrayList<MicroOperation> microOps;
-    private final String mnemonic;
-    private byte type;
+    protected final String mnemonic;
+    protected byte type;
     
     public Instruction(String mnemonic) {
         this.mnemonic = mnemonic;
     }
 
+    // toString() must be explicitly re-implemented
+    public abstract String toString();
+    
     public void addMicroOperation(MicroOperation muop) {
         this.microOps.add(muop);
     }
@@ -36,5 +37,4 @@ public abstract class Instruction extends MemoryElement {
     
     public abstract void run();
     
-    public abstract byte[] getRepresentation();
 }

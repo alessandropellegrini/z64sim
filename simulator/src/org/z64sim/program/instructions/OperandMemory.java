@@ -5,6 +5,8 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.simulator.Register;
+
 public class OperandMemory extends Operand {
 
     private int base = -1;
@@ -50,5 +52,32 @@ public class OperandMemory extends Operand {
 
     public int getBaseSize() {
         return base_size;
+    }
+    
+    public String toString() {
+        String representation = "";
+        
+        if(this.displacement != -1) {
+            representation = representation.concat(String.format("#08x", this.displacement));
+        }
+        
+        if(this.base != -1 || this.index != -1) {
+            representation = representation.concat("(");
+        }
+        
+        if(this.base != -1) {
+            representation = representation.concat(Register.getRegisterName(this.base, this.base_size));
+        }
+        
+        if(this.index != -1) {
+            representation = representation.concat(", " + Register.getRegisterName(this.index, this.index_size));
+            representation = representation.concat(", " + this.scale);
+        }
+        
+        if(this.base != -1 || this.index != -1) {
+            representation = representation.concat(")");
+        }
+        
+        return representation;
     }
 }

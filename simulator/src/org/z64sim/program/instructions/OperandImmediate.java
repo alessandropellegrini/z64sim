@@ -17,4 +17,9 @@ public class OperandImmediate extends Operand {
     public long getValue() {
         return value;
     }
+    
+    @Override
+    public String toString() {
+        return "$" + this.value;
+    }
 }

@@ -16,44 +16,35 @@ public class InstructionClass0 extends Instruction {
 
     int idn;
 
-    private final byte[] istruzione = new byte[8];
-    private byte opcode = 00000000;
-    private byte mode = 00000000;
-    private byte sib = 00000000;
-    private byte rm = 00000000;
-    private byte displacementa = 00000000;
-    private byte displacementb = 00000000;
-    private byte displacementc = 00000000;
-    private byte displacementd = 00000000;
-
     public InstructionClass0(String mnemonic, int idn) {
         super(mnemonic);
         this.idn = idn;
-        
+
         // Set the size in memory
         this.setSize(8);
+        
+        byte encoding[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-        if (mnemonic.equals("halt")) {
-            opcode += 1;
-            this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
-            
-        } else if (mnemonic.equals("nop")) {
-            opcode += 10;
-            this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
-            this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
+        switch (mnemonic) {
+            case "halt":
+                encoding[0] = 0x01;
+                this.type = 0x01;
+                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
+                break;
+            case "nop":
+                encoding[0] = 0x02;
+                this.type = 0x02;
+                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
+                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
+                break;
+            default:
+                throw new RuntimeException("Unknown Class 0 instruction: " + mnemonic);
         }
-        istruzione[0] = opcode;
-        istruzione[1] = mode;
-        istruzione[2] = sib;
-        istruzione[3] = rm;
-        istruzione[4] = displacementa;
-        istruzione[5] = displacementb;
-        istruzione[6] = displacementc;
-        istruzione[7] = displacementd;
 
+        this.setValue(encoding);
     }
 
     @Override
@@ -62,8 +53,8 @@ public class InstructionClass0 extends Instruction {
     }
 
     @Override
-    public byte[] getRepresentation() {
-        return istruzione; //To change body of generated methods, choose Tools | Templates.
+    public String toString() {
+        return this.mnemonic;
     }
 
 }
