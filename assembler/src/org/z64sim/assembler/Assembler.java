@@ -6,9 +6,8 @@ import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.program.MemoryElement;
-import org.z64sim.program.DataElement;
-import org.z64sim.program.StringDataElement;
+import org.z64sim.memory.MemoryElement;
+import org.z64sim.memory.DataElement;
 import org.z64sim.program.Program;
 import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;
@@ -356,27 +355,22 @@ byte additionalData[] = dataToByte(elementSize, value);
                             System.arraycopy(data, 0, updatedData, 0, data.length);
                             data = updatedData;
               }
-// Generate a DataElement from data[]
-                        dataEl = new DataElement(data);
-                        dataEl.setSize(data.length);
-                        try {
-                            this.program.addMemoryElement(dataEl);
-                        } catch(ProgramException e) {
-                            {if (true) throw new ParseException(e.getMessage());}
-                        }
+// Put data in memory
+                        long addr = this.program.addData(data);
 
                          // Add the label
-                         this.program.newLabel(t1.image, dataEl);
+                         this.program.newLabel(t1.image, addr);
               break;
               }
             case ASCII_ASSIGN:{
               jj_consume_token(ASCII_ASSIGN);
               t2 = jj_consume_token(STRING_LITERAL);
-// Remove the quotes and convert to StringDataElement[]
-                         dataEl = new StringDataElement(t2.image.substring(1, t2.image.length() - 1).getBytes());
+// Put data in memory
+                         byte[] str = t2.image.substring(1, t2.image.length() - 1).getBytes();
+                         long addr = this.program.addData(str);
 
                         // Add the label
-                         this.program.newLabel(t1.image, dataEl);
+                         this.program.newLabel(t1.image, addr);
               break;
               }
             default:
@@ -418,15 +412,7 @@ byte additionalData[] = dataToByte(elementSize, value);
                         size = 1;
 
                     // Create 'repeat' DataElements set to value
-                    for(int i = 0; i < repeat; i++) {
-                        try {
-                            dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)value) );
-                            dataEl.setSize((int)size);
-                            this.program.addMemoryElement(dataEl);
-                        } catch(ProgramException e) {
-                            {if (true) throw new ParseException(e.getMessage());}
-                        }
-                    }
+                    this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
             break;
             }
           case COMM_ASSIGN:{
@@ -435,14 +421,8 @@ byte additionalData[] = dataToByte(elementSize, value);
             jj_consume_token(COMMA);
             size = Expression();
 // .comm assigns to zero
-                    dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)0) );
-                    dataEl.setSize((int)size);
-                    try {
-                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
-                    } catch(ProgramException e) {
-                        {if (true) throw new ParseException(e.getMessage());}
-                    }
-                    this.program.newLabel(t2.image, dataEl);
+                    long addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
+                    this.program.newLabel(t2.image, addr);
             break;
             }
           default:
@@ -547,7 +527,7 @@ error_recover(ex, NEWLINE);
 if(i != null) {
                     try {
                         // The size of the MemoryElement is added by the Instruction classes
-                        this.program.addMemoryElement(i);
+                        this.program.addInstructionToMemory(i);
                     } catch(ProgramException e) {
                         {if (true) throw new ParseException(e.getMessage());}
                     }
@@ -698,7 +678,7 @@ error_recover(ex, NEWLINE);
       case LABEL:{
         label = Label();
         i = Instruction();
-this.program.newLabel(label, i);
+this.program.newLabel(label, this.program.getLocationCounter());
         break;
         }
       case LOCATION_COUNTER:
@@ -800,12 +780,8 @@ newLocationCounter = stringToLong( t.image );
             if(t2 != null) {
                 byte value = (byte)stringToLong( t2.image );
                 long size = newLocationCounter - this.program.getLocationCounter();
-                byte[] fill = getFilledMemoryArea((int)size, value);
-                try {
-                    this.program.addMemoryElement( new DataElement(fill) );
-                } catch(ProgramException e) {
-                    {if (true) throw new ParseException(e.getMessage());}
-                }
+                this.program.addData(getFilledMemoryArea((int)size, value));
+
             } else {
                 // It's in the else branch as the addMemoryElement above already
                 // increases the location counter's value by size
@@ -1250,20 +1226,19 @@ error_recover(ex, NEWLINE);
 /* Both label and direct address */
   final public OperandMemory FormatM(int size) throws ParseException {String label;
     OperandMemory memOp;
-    MemoryElement memEl;
+    long address;
     try {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case LABEL:{
         label = Label();
 // Convert the label into a memory address, if already defined
-            memEl = program.findLabelAddress(label);
-            if(memEl == null)
+            address = program.findLabelAddress(label);
+            if(address == -1)
                 {if (true) throw new ParseException("Trying to address a label which has not been defined");}
 
             // This is a memory operand with displacement only (pointing
             // to the label's address
-            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)memEl.getAddress(), size);
-
+            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)address, size);
         break;
         }
       default:
@@ -1468,6 +1443,18 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
+  private boolean jj_3R_25()
+ {
+    if (jj_scan_token(LABEL_NAME)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_24()
+ {
+    if (jj_scan_token(LOCATION_COUNTER)) return true;
+    return false;
+  }
+
   private boolean jj_3R_23()
  {
     if (jj_scan_token(INTEGER)) return true;
@@ -1579,18 +1566,6 @@ error_recover(ex, NEWLINE);
   private boolean jj_3R_21()
  {
     if (jj_scan_token(PLUS)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_25()
- {
-    if (jj_scan_token(LABEL_NAME)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_24()
- {
-    if (jj_scan_token(LOCATION_COUNTER)) return true;
     return false;
   }
 

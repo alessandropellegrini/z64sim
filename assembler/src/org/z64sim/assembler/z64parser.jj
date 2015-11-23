@@ -16,9 +16,8 @@ import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.program.MemoryElement;
-import org.z64sim.program.DataElement;
-import org.z64sim.program.StringDataElement;
+import org.z64sim.memory.MemoryElement;
+import org.z64sim.memory.DataElement;
 import org.z64sim.program.Program;
 import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;
@@ -188,13 +187,13 @@ TOKEN :
 }
 
 TOKEN :
-{ 
+{
   <COMMENT: ( "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n") ) >
 }
 
 
-/** 
- * Regular tokens start here 
+/**
+ * Regular tokens start here
  */
 
 
@@ -212,7 +211,7 @@ TOKEN:
 | <WORD_ASSIGN: ".word">
 | <LONG_ASSIGN: ".long">
 | <QUAD_ASSIGN: ".quad">
-| <ASCII_ASSIGN: ".ascii"> 
+| <ASCII_ASSIGN: ".ascii">
 | <FILL_ASSIGN: ".fill">
 | <COMM_ASSIGN: ".comm">
 | <DRIVER: (".driver" | ".handler")>
@@ -246,29 +245,29 @@ TOKEN:
 
 /** Instructions */
 TOKEN:
-{ <INSN_0: ( "movs" 
+{ <INSN_0: ( "movs"
            | "stos" )("b"|"w"|"l"|"q")?>
-| <INSN_0_WQ: ("pushf" 
+| <INSN_0_WQ: ("pushf"
              | "popf" )("w"|"l"|"q")?>
-| <INSN_0_NOSUFF:  "ret" 
-                 | "clc" 
-                 | "clp" 
-                 | "clz" 
-                 | "cls" 
-                 | "cli" 
-                 | "cld" 
-                 | "clo" 
-                 | "stc" 
+| <INSN_0_NOSUFF:  "ret"
+                 | "clc"
+                 | "clp"
+                 | "clz"
+                 | "cls"
+                 | "cli"
+                 | "cld"
+                 | "clo"
+                 | "stc"
                  | "stp"
-                 | "stz" 
-                 | "sts" 
+                 | "stz"
+                 | "sts"
                  | "sti"
-                 | "std" 
-                 | "sto" 
-                 | "hlt" 
+                 | "std"
+                 | "sto"
+                 | "hlt"
                  | "nop">
 | <INSN_1_S: "int">
-| <INSN_LEA: "lea"("b"|"w"|"l"|"q")?>   
+| <INSN_LEA: "lea"("b"|"w"|"l"|"q")?>
 | <INSN_1_E: ("push"
            | "pop"
            | "neg"
@@ -378,7 +377,7 @@ void Data() :
                   (<COMMENT> | <NEWLINE>)
                 |  LocationCounter()
                 | <EQU_ASSIGN> t1 = <LABEL_NAME> "," value = Expression()
-                  { 
+                  {
                     try {
                         this.program.addEqu(t1.image, value);
                     } catch(ProgramException e) {
@@ -386,7 +385,7 @@ void Data() :
                     }
                   }
                 | t1 = <LABEL_NAME> <ASSIGN> value = Expression()
-                  { 
+                  {
                     try {
                         this.program.addEqu(t1.image, value);
                     } catch(ProgramException e) {
@@ -395,10 +394,10 @@ void Data() :
                   }
                 | t1 = <LABEL>
                   (
-                       ( <BYTE_ASSIGN> {elementSize = 1;} 
+                       ( <BYTE_ASSIGN> {elementSize = 1;}
                        | <WORD_ASSIGN> {elementSize = 2;}
                        | <LONG_ASSIGN> {elementSize = 4;}
-                       | <QUAD_ASSIGN> {elementSize = 8;} ) 
+                       | <QUAD_ASSIGN> {elementSize = 8;} )
                           value = Expression()
                           { data = dataToByte(elementSize, value); }
                        ("," value = Expression()
@@ -411,25 +410,20 @@ void Data() :
                           }
                        )*
                        {
-                        // Generate a DataElement from data[]
-                        dataEl = new DataElement(data);
-                        dataEl.setSize(data.length);
-                        try {
-                            this.program.addMemoryElement(dataEl);
-                        } catch(ProgramException e) {
-                            throw new ParseException(e.getMessage());
-                        }
+                        // Put data in memory
+                        long addr = this.program.addData(data);
 
                          // Add the label
-                         this.program.newLabel(t1.image, dataEl);
+                         this.program.newLabel(t1.image, addr);
                        }
                      | <ASCII_ASSIGN> t2 = <STRING_LITERAL>
-                       { 
-                         // Remove the quotes and convert to StringDataElement[]
-                         dataEl = new StringDataElement(t2.image.substring(1, t2.image.length() - 1).getBytes());
+                       {
+                         // Put data in memory
+                         byte[] str = t2.image.substring(1, t2.image.length() - 1).getBytes();
+                         long addr = this.program.addData(str);
 
                         // Add the label
-                         this.program.newLabel(t1.image, dataEl);
+                         this.program.newLabel(t1.image, addr);
                        }
                   )
                 | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
@@ -443,28 +437,13 @@ void Data() :
                         size = 1;
 
                     // Create 'repeat' DataElements set to value
-                    for(int i = 0; i < repeat; i++) {
-                        try {
-                            dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)value) );
-                            dataEl.setSize((int)size);
-                            this.program.addMemoryElement(dataEl);
-                        } catch(ProgramException e) {
-                            throw new ParseException(e.getMessage());
-                        }
-                    }
-
+                    this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
                   }
                 | t1 = <COMM_ASSIGN> t2 = <LABEL_NAME> "," size = Expression()
                   {
                     // .comm assigns to zero
-                    dataEl = new DataElement( getFilledMemoryArea((int)size, (byte)0) );
-                    dataEl.setSize((int)size);
-                    try {
-                        this.program.addMemoryElement( new DataElement( getFilledMemoryArea((int)size, (byte)value) ) );
-                    } catch(ProgramException e) {
-                        throw new ParseException(e.getMessage());
-                    }
-                    this.program.newLabel(t2.image, dataEl);
+                    long addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
+                    this.program.newLabel(t2.image, addr);
                   }
             )+
         )+
@@ -481,12 +460,12 @@ void Code() :
     try {
         (
             <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
-            ( 
+            (
                 i = Statement()
                 {if(i != null) {
                     try {
                         // The size of the MemoryElement is added by the Instruction classes
-                        this.program.addMemoryElement(i);
+                        this.program.addInstructionToMemory(i);
                     } catch(ProgramException e) {
                         throw new ParseException(e.getMessage());
                     }
@@ -504,7 +483,7 @@ Instruction Drivers() :
     Token t;
     Instruction insn;
 }
-{ 
+{
     try {
         (
             <DRIVER> (<INTEGER> | <LABEL_NAME>) (<COMMENT> | <NEWLINE>)*
@@ -530,7 +509,7 @@ Instruction Statement() :
     try {
         (
             label = Label() i = Instruction()
-            {this.program.newLabel(label, i);}
+            {this.program.newLabel(label, this.program.getLocationCounter());}
           | LocationCounter()
           | i = Instruction()
         )
@@ -548,28 +527,24 @@ void LocationCounter() :
     Token t, t2 = null;
     long newLocationCounter;
 }
-{ 
+{
     try {
         (   <LOCATION_COUNTER> <ASSIGN> t = <INTEGER>
           | <ORG> t = <INTEGER> ("," t2 = <INTEGER> )?
         )
-        { 
+        {
             newLocationCounter = stringToLong( t.image );
 
             // if t2 != null, we have a fill assignment
             if(t2 != null) {
                 byte value = (byte)stringToLong( t2.image );
                 long size = newLocationCounter - this.program.getLocationCounter();
-                byte[] fill = getFilledMemoryArea((int)size, value);
-                try {
-                    this.program.addMemoryElement( new DataElement(fill) );
-                } catch(ProgramException e) {
-                    throw new ParseException(e.getMessage());
-                }
+                this.program.addData(getFilledMemoryArea((int)size, value));
+
             } else {
                 // It's in the else branch as the addMemoryElement above already
                 // increases the location counter's value by size
-                program.setLocationCounter( newLocationCounter ); 
+                program.setLocationCounter( newLocationCounter );
             }
         }
     } catch (ParseException ex) {
@@ -591,7 +566,7 @@ Instruction Instruction() :
 }
 {
     try {
-    ( 
+    (
         t = <INSN_0>
         {
             size = getSuffixSize( t.image );
@@ -618,10 +593,10 @@ Instruction Instruction() :
             else
                 insn = new InstructionClass4(t.image);
         }
-      | 
+      |
         t = <INSN_1_S> t2 = <INTEGER>
         { insn = new InstructionClass0(t.image, Integer.parseInt(t2.image)); }
-      | 
+      |
         t = <INSN_1_E>  { size = getSuffixSize(t.image); }
         op1 = FormatE(size)
         {
@@ -634,25 +609,25 @@ Instruction Instruction() :
             // push and pop are class 1
             if(mnemonic.equals("push") || mnemonic.equals("pop"))
                 insn = new InstructionClass1(mnemonic, op1, null, -1);
-            
+
             // neg and not are class 2
             else
                 insn = new InstructionClass2(mnemonic, op1, null);
         }
-      | 
+      |
         t = <INSN_SHIFT> ( i = FormatK() <COMMA> )? op1 = FormatG()
         {
             // Shift instructions belong all to class 3
             insn = new InstructionClass3(stripSuffix(t.image), i, (OperandRegister)op1);
         }
-      | 
+      |
         t = <INSN_1_M>  { size = getSuffixSize( t.image ); }
         op1 = FormatM(size)
         {
             // They all belong to class 6
             insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         }
-      | 
+      |
         t = <INSN_JC> { size = getSuffixSize( t.image ); }
         ( ( <TIMES> op1 = FormatG() ) | op1 = FormatM(size) )
         {
@@ -663,7 +638,7 @@ Instruction Instruction() :
             // They all belong to class 5
             insn = new InstructionClass5( stripSuffix(t.image), null);
         }
-      | 
+      |
         t = <INSN_B_E>  { size = getSuffixSize( t.image ); }
         op1 = FormatB(size) <COMMA> op2 = FormatE(size)
         {
@@ -680,7 +655,7 @@ Instruction Instruction() :
             else
                 insn = new InstructionClass2(mnemonic, op1, op2);
         }
-      | 
+      |
         t = <INSN_EXT>  { size = getSourceSuffixSize( t.image ); }
         op1 = FormatE(size) <COMMA> op2 = FormatG()
         {
@@ -696,7 +671,7 @@ Instruction Instruction() :
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         }
-      | 
+      |
         t = <INSN_LEA> { size = getSourceSuffixSize( t.image ); }
         op1 = FormatE(size) <COMMA> op2 = FormatE(size)
         {
@@ -708,7 +683,7 @@ Instruction Instruction() :
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         }
-      | 
+      |
         t = <INSN_IN> t2 = <REG_16> <COMMA> op1 = Register() /* programmatically check for registers */
         {
             size = getSourceSuffixSize( t.image );
@@ -722,7 +697,7 @@ Instruction Instruction() :
 
             insn = new InstructionClass7(mnemonic, size);
         }
-      | 
+      |
         t = <INSN_OUT> op1 = Register() <COMMA> t2 = <REG_16> /* programmatically check for registers */
         {
             size = getSourceSuffixSize( t.image );
@@ -736,7 +711,7 @@ Instruction Instruction() :
 
             insn = new InstructionClass7(mnemonic, size);
         }
-      | 
+      |
         t = <INSN_IO_S>
         {
             size = getSuffixSize( t.image );
@@ -762,10 +737,10 @@ String Label() :
 {
     Token t;
 }
-{ 
+{
     try {
         t = <LABEL>
-        { 
+        {
           // Remove trailing ':'
           return t.image.substring(0, t.image.length()-1);
         }
@@ -789,13 +764,13 @@ OperandRegister Register() :
     try {
         t = <REG_8>
         { return new OperandRegister( Register.getRegister8( t.image ) , 8 ); }
-      | 
-        t = <REG_16> 
+      |
+        t = <REG_16>
         { return new OperandRegister( Register.getRegister16( t.image ) , 16 ); }
-      | 
-        t = <REG_32> 
+      |
+        t = <REG_32>
         { return new OperandRegister( Register.getRegister32( t.image ) , 32 ); }
-      | 
+      |
         t = <REG_64>
         { return new OperandRegister( Register.getRegister64( t.image ) , 64 ); }
     } catch (ParseException ex) {
@@ -817,7 +792,7 @@ OperandMemory Addressing(int size) :
     long dispLong;
     Token t;
 }
-{ 
+{
     try {
 
         /* ACTUAL RULE */
@@ -827,60 +802,60 @@ OperandMemory Addressing(int size) :
         ( <LBRACE>
          (
                 t = <REG_8>
-                { 
-                    base = Register.getRegister8( t.image ); 
+                {
+                    base = Register.getRegister8( t.image );
                     base_size = 8;
                 }
-              | 
-                t = <REG_16> 
-                { 
-                    base = Register.getRegister16( t.image ); 
+              |
+                t = <REG_16>
+                {
+                    base = Register.getRegister16( t.image );
                     base_size = 16;
                 }
-              | 
+              |
                 t = <REG_32>
-                { 
-                    base = Register.getRegister32( t.image ); 
+                {
+                    base = Register.getRegister32( t.image );
                     base_size = 32;
                 }
-              | 
+              |
                 t = <REG_64>
-                { 
-                    base = Register.getRegister64( t.image ); 
+                {
+                    base = Register.getRegister64( t.image );
                     base_size = 64;
                 }
         )
             ("," (
-                t = <REG_8> 
-                { 
-                    index = Register.getRegister8( t.image ); 
+                t = <REG_8>
+                {
+                    index = Register.getRegister8( t.image );
                     index_size = 8;
                 }
-              | 
-                t = <REG_16> 
-                { 
-                    index = Register.getRegister16( t.image ); 
+              |
+                t = <REG_16>
+                {
+                    index = Register.getRegister16( t.image );
                     index_size = 16;
                 }
-              | 
+              |
                 t = <REG_32>
-                { 
-                    index = Register.getRegister32( t.image ); 
+                {
+                    index = Register.getRegister32( t.image );
                     index_size = 32;
                 }
-              | 
+              |
                 t = <REG_64>
-                { 
-                    index = Register.getRegister64( t.image ); 
+                {
+                    index = Register.getRegister64( t.image );
                     index_size = 64;
                 }
                  )
-             "," 
+             ","
                 t = <INTEGER>
                 { scale = Integer.parseInt( t.image ); }
             )?
         <RBRACE> )?
-        
+
         { return new OperandMemory(base, base_size, index, index_size, scale, displacement, size); }
 
     } catch (ParseException ex) {
@@ -895,11 +870,11 @@ Operand FormatE(int size) :
     OperandMemory mem = null;
     OperandRegister reg = null;
 }
-{ 
+{
     try {
       (
-        reg = Register() 
-      | 
+        reg = Register()
+      |
         mem = Addressing(size)
       )
       {
@@ -920,7 +895,7 @@ int FormatK() :
 {
     OperandImmediate imm;
 }
-{ 
+{
     try {
         imm = ConstantExpression()
         { return (int)imm.getValue(); }
@@ -949,11 +924,11 @@ OperandRegister FormatG() :
 
 
 /* Both label and direct address */
-OperandMemory FormatM(int size) : 
+OperandMemory FormatM(int size) :
 {
     String label;
     OperandMemory memOp;
-    MemoryElement memEl;
+    long address;
 }
 {
     try {
@@ -962,16 +937,15 @@ OperandMemory FormatM(int size) :
          label = Label()
          {
             // Convert the label into a memory address, if already defined
-            memEl = program.findLabelAddress(label);
-            if(memEl == null)
+            address = program.findLabelAddress(label);
+            if(address == -1)
                 throw new ParseException("Trying to address a label which has not been defined");
 
             // This is a memory operand with displacement only (pointing
             // to the label's address
-            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)memEl.getAddress(), size);
+            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)address, size);
          }
-         { /* TODO */ }
-       | 
+       |
           memOp = Addressing(size)
          )
          {return memOp;}
@@ -997,10 +971,10 @@ Operand FormatB(int size) :
         /* ACTUAL RULE */
           imm = ConstantExpression()
           { return imm; }
-        | 
+        |
           reg = FormatG()
           { return reg; }
-        | 
+        |
           mem = FormatM(size)
           { return mem; }
 
@@ -1030,7 +1004,7 @@ OperandImmediate ConstantExpression() :
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
         return null; // otherwise javaCC throws exceptions
-    } 
+    }
 }
 
 
@@ -1043,11 +1017,11 @@ long Expression() :
     try {
 
         /* ACTUAL RULE */
-        value = Term() 
-        ( 
-            <PLUS> i = Term() 
+        value = Term()
+        (
+            <PLUS> i = Term()
             { value += i; }
-        | 
+        |
             <MINUS> i = Term()
             { value -= i; }
         )*
@@ -1056,7 +1030,7 @@ long Expression() :
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
         return -1;
-    } 
+    }
 }
 
 long Term() :
@@ -1067,11 +1041,11 @@ long Term() :
 {
     try {
 
-        value = Primary() 
-        ( 
-            <TIMES> i = Primary() 
+        value = Primary()
+        (
+            <TIMES> i = Primary()
             { value *= i ; }
-        |   <DIVIDE> i = Primary() 
+        |   <DIVIDE> i = Primary()
             { value /= i; }
         )*
         { return value; }
@@ -1100,7 +1074,7 @@ long Primary() :
         { return i; }
       | <MINUS> i = Primary()
         { return -i; }
-      
+
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);

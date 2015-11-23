@@ -5,6 +5,7 @@
  */
 package org.z64sim.program;
 
+import org.z64sim.memory.MemoryElement;
 import java.util.ArrayList;
 import org.z64sim.program.muops.MicroOperation;
 

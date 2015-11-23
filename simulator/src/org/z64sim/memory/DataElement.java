@@ -3,24 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.z64sim.program;
+package org.z64sim.memory;
 
 /**
  *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class DataElement extends MemoryElement {
-    
-    private byte[] value;
 
     public DataElement(byte[] value) {
-        super();
-        this.value = value;
+        this.setValue(value);
     }
 
     @Override
     public void update() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
 }

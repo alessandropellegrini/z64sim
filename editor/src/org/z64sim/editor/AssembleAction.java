@@ -98,12 +98,10 @@ public final class AssembleAction implements ActionListener {
             }
         }
         
-        
         if(correct) {
             io.getOut().println("Program " + name + " has been assembled correctly.");
             
             // Show the memory map
-            Memory.memoryMap = assembler.getProgram().getMemoryMap();
             Memory.redrawMemory();
             
             // Bind the program to the simulators

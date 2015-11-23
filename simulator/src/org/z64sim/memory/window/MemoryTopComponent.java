@@ -10,6 +10,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.z64sim.memory.Memory;
 
 /**
  * Top component which displays something.
@@ -41,6 +42,7 @@ public final class MemoryTopComponent extends TopComponent {
         initComponents();
         setName(Bundle.CTL_MemoryTopComponent());
         setToolTipText(Bundle.HINT_MemoryTopComponent());
+        Memory.setWindow(this);
     }
 
     /**
@@ -71,7 +73,7 @@ public final class MemoryTopComponent extends TopComponent {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable memoryTable;
+    public javax.swing.JTable memoryTable;
     private javax.swing.JScrollPane scrollPane;
     // End of variables declaration//GEN-END:variables
     @Override
