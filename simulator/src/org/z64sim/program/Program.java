@@ -102,6 +102,9 @@ public class Program {
             this.locationCounter += 8;
             this.locationCounter = this.locationCounter & 0xfffffffffffffff8L;
         }
+
+        // The next address is the address of the first instruction to be executed
+        Memory.setEntryPoint(this.locationCounter);
     }
 
     public void addInstructionToMemory(Instruction i) throws ProgramException {
