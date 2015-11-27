@@ -26,7 +26,7 @@ public class InstructionClass0 extends Instruction {
         byte encoding[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         switch (mnemonic) {
-            case "halt":
+            case "hlt":
                 encoding[0] = 0x01;
                 this.type = 0x01;
                 this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
