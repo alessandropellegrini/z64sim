@@ -5,6 +5,7 @@
  */
 package org.z64sim.memory;
 
+import java.awt.Rectangle;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,8 +57,15 @@ public class Memory {
     public static void redrawMemory() {
         if (Memory.window != null) {
             Memory.window.memoryTable.setModel(new MemoryTableModel());
-            int _startRow = (int)(Memory._start / 8);
+            int _startRow = (int) (Memory._start / 8);
+
+            // Select the row corresponding to the entry point
             Memory.window.memoryTable.setRowSelectionInterval(_startRow, _startRow);
+
+            // Scroll to that row
+            Memory.window.memoryTable.scrollRectToVisible(new Rectangle(Memory.window.memoryTable.getCellRect(_startRow, 0, true)));
+
+            // Show the panel
             Memory.window.requestVisible();
         }
     }
@@ -89,7 +97,7 @@ public class Memory {
                 Exceptions.printStackTrace(ex);
             }
 
-            memoryMap.add(-(index+1),el);
+            memoryMap.add(-(index + 1), el);
             Collections.sort(memoryMap);
 
         }
