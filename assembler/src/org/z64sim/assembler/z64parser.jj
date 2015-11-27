@@ -352,7 +352,10 @@ void Program() :
         (Drivers())?
         <EOF>
 
-        {    // All this was memory intensive: reclaim if possible!
+        {   // Add space for the stack
+            this.program.addStackSpace();
+
+            // All this was memory intensive: reclaim if possible!
              System.gc();
         }
     } catch (ParseException ex) {
@@ -450,6 +453,7 @@ void Data() :
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
+    {this.program.finalizeData();}
 }
 
 void Code() :
@@ -542,9 +546,13 @@ void LocationCounter() :
                 this.program.addData(getFilledMemoryArea((int)size, value));
 
             } else {
-                // It's in the else branch as the addMemoryElement above already
-                // increases the location counter's value by size
-                program.setLocationCounter( newLocationCounter );
+                try {
+                    // It's in the else branch as the addMemoryElement above already
+                    // increases the location counter's value by size
+                    program.setLocationCounter( newLocationCounter );
+                } catch (ProgramException ex) {
+                    throw new ParseException("Line " + t.beginLine + ": " + ex.getMessage());
+                }
             }
         }
     } catch (ParseException ex) {

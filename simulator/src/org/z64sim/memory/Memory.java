@@ -15,6 +15,7 @@ import org.z64sim.program.ProgramException;
 
 /**
  * Kind of singleton class
+ *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class Memory {
@@ -24,10 +25,15 @@ public class Memory {
     private static long _start = 0; // This is the _start address of the program
 
     // This class cannot be instantiated
-    private Memory() {}
+    private Memory() {
+    }
 
     public static void setEntryPoint(long entry) {
         Memory._start = entry;
+    }
+
+    public static long getEntryPoint() {
+        return Memory._start;
     }
 
     public static void setWindow(MemoryTopComponent w) {
@@ -44,11 +50,14 @@ public class Memory {
 
     public static void wipeMemory() {
         Memory.memoryMap.clear();
+        Memory._start = 0;
     }
 
     public static void redrawMemory() {
-        if(Memory.window != null) {
+        if (Memory.window != null) {
             Memory.window.memoryTable.setModel(new MemoryTableModel());
+            int _startRow = (int)(Memory._start / 8);
+            Memory.window.memoryTable.setRowSelectionInterval(_startRow, _startRow);
             Memory.window.requestVisible();
         }
     }
@@ -56,36 +65,33 @@ public class Memory {
     public static synchronized MemoryElement getElementFromAddress(long address) {
         MemoryElement el;
 
-        // Try a fast binary search. This could fail if some instruction accesses
-        // a subportion of a data element (e.g., a quadword was declared, but
-        // it's now accessed on a byte basis.
-        int index = Collections.binarySearch(memoryMap, new MemoryElementSearchable(address) );
+        // All memory is organized on a quadword basis. So align the passedd
+        // address to a quadword.
+        long alignedAddress = address & 0xfffffffffffffff8L;
 
-        if(index >= 0) {
+        // Use the aligned address in a fast binary search. If an element with
+        // the given address is not found, the returned value is
+        // -(insertion point) - 1, thus immediately giving the possibility to
+        // create a new element at that position.
+        int index = Collections.binarySearch(memoryMap, new MemoryElementSearchable(alignedAddress));
+
+        if (index >= 0) {
             el = memoryMap.get(index);
         } else {
-            // In this case, the returned value is (-(insertion point) - 1).
-            // Therefore, we can immediately access the element that should be
-            // keeping the required data, if present.
-            el = memoryMap.get(-index);
 
-            if(!(el.getAddress() < address && el.getAddress() + el.getSize() > address)) {
-                // No element found. Create a new one, add it to the list,
-                // redraw the window. Here we assume that we're adding new data
-                // elements, so no mutagen code. Additionally, the assumption
-                // is that we're creating a quadword.
-                el = new DataElement(new byte[8]);
-                el.setSize(8);
+            el = new DataElement(new byte[8]);
+            el.setSize(8);
 
-                try {
-                    el.setAddress(address);
-                } catch (ProgramException ex) {
-                    // From the construction of the program, this should not be possible
-                    Exceptions.printStackTrace(ex);
-                }
-
-                memoryMap.add(-index, el);
+            try {
+                el.setAddress(alignedAddress);
+            } catch (ProgramException ex) {
+                // From the construction of the simulator, this should not be possible
+                Exceptions.printStackTrace(ex);
             }
+
+            memoryMap.add(-(index+1),el);
+            Collections.sort(memoryMap);
+
         }
         return el;
     }
@@ -93,22 +99,22 @@ public class Memory {
     public static synchronized void addData(long address, byte val) {
         MemoryElement mEl = getElementFromAddress(address);
 
-        if(!(mEl instanceof DataElement)) {
+        if (!(mEl instanceof DataElement)) {
             throw new RuntimeException("Adding data on top of an instruction?");
         }
 
-        DataElement el = (DataElement)mEl;
+        DataElement el = (DataElement) mEl;
 
         int offset = 0;
-        if(el.getAddress() != address) {
-            offset = (int)(address - el.getAddress());
+        if (el.getAddress() != address) {
+            offset = (int) (address - el.getAddress());
         }
 
-        el.getValue()[offset] = (byte)val;
+        el.getValue()[offset] = (byte) val;
     }
 
     public static void addMultiByte(long address, byte[] bytes) {
-        for(int i = 0; i < bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             addData(address++, bytes[i]);
         }
     }

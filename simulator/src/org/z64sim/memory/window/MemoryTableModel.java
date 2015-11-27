@@ -33,7 +33,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
     public int getRowCount() {
         if(memoryMap == null)
             return 0;
-        
+
         return memoryMap.size();
     }
 
@@ -46,9 +46,13 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
     public String getColumnName(int col) {
         return columnNames[col];
     }
-    
+
     @Override
     public boolean isCellEditable(int row, int col) {
+        // Cannot edit an instruction at all, so check if at that address there is one
+        if(Memory.getElementFromAddress(row * 8) instanceof Instruction)
+            return false;
+
         // Only the address and the mnemonic cannot be edited
         return col > 1;
     }
@@ -56,14 +60,14 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         Object ret;
-        
+
         long address = rowIndex * 8; // address is managed at a quadword basis
         MemoryElement el = Memory.getElementFromAddress(address);
         byte value[] = el.getValue();
         ByteBuffer wrapped = ByteBuffer.wrap(value);
         wrapped.order(ByteOrder.LITTLE_ENDIAN);
-        
-        
+
+
         switch(columnIndex) {
             case 0: // Address
                 ret = String.format("%08x", address);

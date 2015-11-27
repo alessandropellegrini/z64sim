@@ -26,6 +26,8 @@ public class Program {
     private final Map<String, Long> equs = new LinkedHashMap<>();
     private long locationCounter = 0;
 
+    private final static int STACK_SIZE = 0x800;
+
     public Program() {
 
         // Only one program at a time can be loaded in memory
@@ -40,6 +42,22 @@ public class Program {
             DataElement el = new DataElement(quadword.clone());
             try {
                 el.setAddress(i * 8);
+                el.setSize(8);
+            } catch (ProgramException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+            this.mMap.add(el);
+        }
+    }
+
+    public void addStackSpace() {
+        byte[] quadword = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        for(int i = 0; i < Program.STACK_SIZE / 8; i++) {
+            DataElement el = new DataElement(quadword.clone());
+            try {
+                el.setAddress(this.locationCounter);
+                el.setSize(8);
+                this.locationCounter += 8;
             } catch (ProgramException ex) {
                 Exceptions.printStackTrace(ex);
             }
@@ -65,8 +83,25 @@ public class Program {
         return locationCounter;
     }
 
-    public void setLocationCounter(long locationCounter) {
+    public void setLocationCounter(long locationCounter) throws ProgramException {
+        if(locationCounter < this.locationCounter)
+            throw new ProgramException("Moving backwards the location counter is not supported");
+
+        // Fill memory in between
+        for(long i = this.locationCounter; i < locationCounter; i++) {
+            Memory.addData(i, (byte)0x00);
+        }
+
         this.locationCounter = locationCounter;
+    }
+
+    public void finalizeData() {
+
+        // Align instructions to 8 bytes
+        if((this.locationCounter & 0xfffffffffffffff8L) != 0) {
+            this.locationCounter += 8;
+            this.locationCounter = this.locationCounter & 0xfffffffffffffff8L;
+        }
     }
 
     public void addInstructionToMemory(Instruction i) throws ProgramException {

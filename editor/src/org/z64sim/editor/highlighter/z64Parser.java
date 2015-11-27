@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -27,7 +25,6 @@ import org.netbeans.modules.parsing.spi.SourceModificationEvent;
 import org.netbeans.modules.csl.api.Severity;
 import org.netbeans.spi.editor.hints.ErrorDescription;
 import org.netbeans.spi.editor.hints.ErrorDescriptionFactory;
-import org.netbeans.spi.editor.hints.HintsController;
 import org.openide.filesystems.FileObject;
 import org.openide.text.NbDocument;
 import org.openide.util.Exceptions;
@@ -45,12 +42,6 @@ public class z64Parser extends Parser {
         this.snapshot = snapshot;
         Reader reader = new StringReader(snapshot.getText().toString());
         assembler = new Assembler(reader);
-        // This is moved to z64ParserHighlighter compile() method, as it runs in an external runnable
-        /*try {
-         assembler.Program();
-         } catch (org.z64sim.assembler.ParseException ex) {
-         Logger.getLogger(z64Parser.class.getName()).log(Level.INFO, null, ex);
-         }*/
     }
 
     @Override
@@ -110,7 +101,7 @@ public class z64Parser extends Parser {
         public List<? extends Error> getDiagnostics() {
 
             try {
-                List<ParseException> syntaxErrors = this.assembler.syntaxErrors;
+                List<ParseException> syntaxErrors = this.assembler.getSyntaxErrors();
                 Document document = this.snapshot.getSource().getDocument(false);
                 this.errors = new ArrayList<ErrorDescription>();
                 for (ParseException syntaxError : syntaxErrors) {
@@ -133,6 +124,7 @@ public class z64Parser extends Parser {
             return Collections.EMPTY_LIST;
         }
 
+        @Override
         public Snapshot getSnapshot() {
             return this.snapshot;
         }
@@ -144,11 +136,9 @@ public class z64Parser extends Parser {
         private final String description;
         private final int start;
         private final int end;
-        private final FileObject file;
 
         z64ParseError(String description, FileObject file, int start, int end) {
             this.description = description;
-            this.file = file;
             this.start = start;
             this.end = end;
         }

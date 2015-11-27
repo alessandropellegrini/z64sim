@@ -222,7 +222,10 @@ void Program() throws ParseException {
         ;
       }
       jj_consume_token(0);
-// All this was memory intensive: reclaim if possible!
+// Add space for the stack
+            this.program.addStackSpace();
+
+            // All this was memory intensive: reclaim if possible!
              System.gc();
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
@@ -462,6 +465,7 @@ byte additionalData[] = dataToByte(elementSize, value);
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
     }
+this.program.finalizeData();
   }
 
   final public void Code() throws ParseException {Instruction i;
@@ -783,9 +787,13 @@ newLocationCounter = stringToLong( t.image );
                 this.program.addData(getFilledMemoryArea((int)size, value));
 
             } else {
-                // It's in the else branch as the addMemoryElement above already
-                // increases the location counter's value by size
-                program.setLocationCounter( newLocationCounter );
+                try {
+                    // It's in the else branch as the addMemoryElement above already
+                    // increases the location counter's value by size
+                    program.setLocationCounter( newLocationCounter );
+                } catch (ProgramException ex) {
+                    {if (true) throw new ParseException("Line " + t.beginLine + ": " + ex.getMessage());}
+                }
             }
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
@@ -1443,35 +1451,6 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_25()
- {
-    if (jj_scan_token(LABEL_NAME)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_24()
- {
-    if (jj_scan_token(LOCATION_COUNTER)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_23()
- {
-    if (jj_scan_token(INTEGER)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_17()
- {
-    if (jj_3R_19()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_20()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   private boolean jj_3R_19()
  {
     Token xsp;
@@ -1488,6 +1467,17 @@ error_recover(ex, NEWLINE);
     }
     }
     }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_17()
+ {
+    if (jj_3R_19()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_20()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
@@ -1566,6 +1556,24 @@ error_recover(ex, NEWLINE);
   private boolean jj_3R_21()
  {
     if (jj_scan_token(PLUS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_25()
+ {
+    if (jj_scan_token(LABEL_NAME)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_24()
+ {
+    if (jj_scan_token(LOCATION_COUNTER)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_23()
+ {
+    if (jj_scan_token(INTEGER)) return true;
     return false;
   }
 
