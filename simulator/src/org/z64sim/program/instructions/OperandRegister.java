@@ -19,7 +19,7 @@ public class OperandRegister extends Operand {
     public int getRegister() {
         return register;
     }
-    
+
     @Override
     public String toString() {
         return Register.getRegisterName(this.register, this.size);

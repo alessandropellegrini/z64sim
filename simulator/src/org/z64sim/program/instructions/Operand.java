@@ -20,7 +20,7 @@ public abstract class Operand {
     public int getSize() {
         return this.size;
     }
-    
+
     // toString() must be explicitly re-implemented
     public abstract String toString();
 }

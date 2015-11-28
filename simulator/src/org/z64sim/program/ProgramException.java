@@ -10,7 +10,7 @@ package org.z64sim.program;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class ProgramException extends Exception {
-    
+
     public ProgramException(String msg) {
         super(msg);
     }

@@ -54,11 +54,11 @@ public final class AssembleAction implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent ev) {
         boolean correct = true;
-        
+
         // Get the document and the data object associated with the current context
         StyledDocument document = this.context.getDocument();
         DataObject dataObject = NbEditorUtilities.getDataObject(document);
-                       
+
         String text;
         try {
             text = document.getText(0, document.getEndPosition().getOffset());
@@ -70,13 +70,13 @@ public final class AssembleAction implements ActionListener {
         // Give a name to the tab
         String name = dataObject.getName();
         InputOutput io = IOProvider.getDefault().getIO ("Assemblying " + name, false);
-        
+
         try {
             io.getOut().reset();
             io.getErr().reset();
         } catch (IOException ex) {
         }
-        
+
         io.select();
 
         // Try to assemble the code
@@ -86,26 +86,26 @@ public final class AssembleAction implements ActionListener {
             assembler.Program();
         } catch (ParseException ex) {
         }
-        
+
         // Were there errors?
         if(!assembler.getSyntaxErrors().isEmpty()) {
             correct = false;
-            
+
             // Show them all
             Iterator<ParseException> iterator = assembler.getSyntaxErrors().iterator();
             while(iterator.hasNext()) {
                 io.getOut().println(iterator.next().getMessage());
             }
         }
-        
+
         if(correct) {
             io.getOut().println("Program " + name + " has been assembled correctly.");
-            
+
             // Show the memory map
             Memory.redrawMemory();
-            
+
             // Bind the program to the simulators
-            
+
         } else {
             io.getErr().println("Assemblying of " + name + " failed.");
             io.getErr().close();

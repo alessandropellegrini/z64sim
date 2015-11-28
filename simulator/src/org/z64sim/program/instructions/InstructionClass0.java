@@ -22,7 +22,7 @@ public class InstructionClass0 extends Instruction {
 
         // Set the size in memory
         this.setSize(8);
-        
+
         byte encoding[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         switch (mnemonic) {

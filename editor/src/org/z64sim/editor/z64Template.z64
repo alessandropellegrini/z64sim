@@ -1,8 +1,5 @@
 .org 0x800
 .data
 
-.equ size, 10
-
 .text
-# This is a comment
-movl %eax, %ebx
+    hlt

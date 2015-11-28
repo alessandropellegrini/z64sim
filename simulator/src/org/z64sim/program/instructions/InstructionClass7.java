@@ -18,9 +18,9 @@ public class InstructionClass7 extends Instruction {
     public InstructionClass7(String mnemonic, int size) {
         super(mnemonic);
         this.transfer_size = size;
-        
+
         byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        
+
         switch(mnemonic) {
             case "in":
                 encoding[0] |= (byte)0b10000000;
@@ -41,7 +41,7 @@ public class InstructionClass7 extends Instruction {
             default:
                 throw new RuntimeException("Unknown Class 7 instruction: " + mnemonic);
         }
-        
+
         this.setValue(encoding);
     }
 

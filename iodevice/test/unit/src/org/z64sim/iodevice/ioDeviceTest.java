@@ -31,12 +31,12 @@ public class ioDeviceTest {
 
         // Use any of the "call()" or "invoke()" functions directly on the chunk.
         chunk.call(LuaValue.valueOf(script));
-        
+
         try {
             Thread.sleep(4000);
         } catch (InterruptedException ex) {
             Logger.getLogger(ioDeviceTest.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 }

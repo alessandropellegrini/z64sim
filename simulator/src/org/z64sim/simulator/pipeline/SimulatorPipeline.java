@@ -10,5 +10,5 @@ package org.z64sim.simulator.pipeline;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class SimulatorPipeline {
-    
+
 }

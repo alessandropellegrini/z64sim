@@ -46,7 +46,7 @@ class z64Lexer implements Lexer<z64TokenId> {
         if (null == token) {
             return null;
         }
-        
+
         // When parsing, we must skip some characters. On the other hand, here
         // we must consider all characters as proper tokens. We use special
         // tokens here, in a hackish way to glue skip characters to proper tokens.
@@ -56,7 +56,7 @@ class z64Lexer implements Lexer<z64TokenId> {
             extraChars += glue.image.length();
             glue = glue.specialToken;
         }
-        
+
         // EOF must be handled in a special way, because at the end of the document
         // we can have any number of skip characters from the grammar
         if(token.kind == AssemblerTokenManager.EOF && extraChars > 0) {
@@ -64,7 +64,7 @@ class z64Lexer implements Lexer<z64TokenId> {
         } else if(token.kind == AssemblerTokenManager.EOF) {
             return null;
         }
-        
+
         return info.tokenFactory().createToken(z64LanguageHierarchy.getToken(token.kind), token.image.length() + extraChars);
     }
 

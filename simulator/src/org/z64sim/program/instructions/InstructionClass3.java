@@ -21,10 +21,10 @@ public class InstructionClass3 extends Instruction {
         super(mnemonic);
         this.places = p;
         this.reg = r;
-        
+
         // Set the size in memory
         this.setSize(8);
-        
+
         // First byte is the class
         byte[] encoding = {0b00110000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -32,7 +32,7 @@ public class InstructionClass3 extends Instruction {
 
         switch (mnemonic) {
             case "sal":
-                
+
                 if (this.places <= 0) {
                     this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP2));
                     this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SAL_RCX, MicroOperation.D));
@@ -91,7 +91,7 @@ public class InstructionClass3 extends Instruction {
             default:
                 throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
         }
-        
+
         this.setValue(encoding);
     }
 
@@ -102,15 +102,15 @@ public class InstructionClass3 extends Instruction {
 
     @Override
     public String toString() {
-        
+
         String mnem = this.mnemonic;
-        
+
         if(this.places != -1) {
             mnem = mnem.concat("$" + this.places + ", ");
         }
-        
+
         mnem = mnem.concat(this.reg.toString());
-        
+
         return mnem;
     }
 

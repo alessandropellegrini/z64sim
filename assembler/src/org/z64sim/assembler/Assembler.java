@@ -151,7 +151,7 @@ public class Assembler implements AssemblerConstants {
 /****************
  * PARSER RULES *
  ****************/
-  final public 
+  final public
 
 void Program() throws ParseException {
     try {
@@ -1298,7 +1298,7 @@ error_recover(ex, NEWLINE);
 /***************************************************/
 /* Rules to handle simple expressions in constants */
 /***************************************************/
-  final public 
+  final public
 OperandImmediate ConstantExpression() throws ParseException {long value;
     try {
       jj_consume_token(CONSTANT);

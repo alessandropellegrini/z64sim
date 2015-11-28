@@ -36,7 +36,7 @@ public class z64IndentTask implements IndentTask {
     public ExtraLock indentLock() {
         return null;
     }
-    
+
     /** If we have just inserted a block operator, then indent it to the left */
     private void reindentPreviousLine() throws BadLocationException {
         int caretOffset = context.caretOffset();

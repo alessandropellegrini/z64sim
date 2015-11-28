@@ -25,11 +25,11 @@ public class InstructionClass1 extends Instruction {
         this.source = s;
         this.destination = d;
         this.implicitSize = implicitSize;
-        
+
         // First byte is the opcode
         byte[] encoding = {0b00010000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        
+
         // Set the size in memory
         if(s instanceof OperandImmediate && s.getSize() == 8)
             this.setSize(16);
@@ -38,9 +38,9 @@ public class InstructionClass1 extends Instruction {
 
         switch (mnemonic) {
             case "mov":
-                
+
                 this.type = 0x00;
-               
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -164,7 +164,7 @@ public class InstructionClass1 extends Instruction {
                     this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
                     this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
                     this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_X, MicroOperation.RSP));
-                    
+
                 } else if (source instanceof OperandRegister) {
                     this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
                     this.addMicroOperation(new MicroOperation(MicroOperation.EMAR, MicroOperation.EMDR));
@@ -207,7 +207,7 @@ public class InstructionClass1 extends Instruction {
             default:
                 throw new RuntimeException("Unknown Class 1 instruction: " + mnemonic);
         }
-        
+
         this.setValue(encoding);
     }
 
@@ -218,7 +218,7 @@ public class InstructionClass1 extends Instruction {
 
     public String toString() {
         String mnem = this.mnemonic;
-        
+
         if(this.implicitSize != -1) {
             switch(this.implicitSize) {
                 case 8:
@@ -235,18 +235,18 @@ public class InstructionClass1 extends Instruction {
                     break;
                 default:
                     throw new RuntimeException("Implicit Size of Class 1 instruction is set, yet to a wrong value");
-                    
+
             }
         }
-        
+
         if(this.source != null) {
             mnem = mnem.concat(this.source.toString());
         }
-        
+
         if(this.destination != null) {
             mnem = mnem.concat(", " + this.destination.toString());
         }
-        
+
         return mnem;
     }
 

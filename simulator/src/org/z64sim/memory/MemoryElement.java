@@ -48,7 +48,7 @@ public abstract class MemoryElement implements Comparable<MemoryElement>, Compar
     public byte[] getValue() {
         return value;
     }
-    
+
     public void setValue(byte[] value) {
         this.value = value;
     }

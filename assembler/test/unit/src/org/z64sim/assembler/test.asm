@@ -18,7 +18,7 @@ array_size = . - array
     movsbw (%rax), %dx
     salw $3, %dx
     movw %dx, variable
-    
+
     movq $array, %rsi
     movq $array_dest, %rdi
     movq array_size/2, %rcx
@@ -27,14 +27,10 @@ array_size = . - array
 
     sti
     hlt
-    
+
 
 .driver DEVICE
 
     movw $DEVICE_ADDR, %dx
     inb %dx, %al
     iret
-
-
-
-.end

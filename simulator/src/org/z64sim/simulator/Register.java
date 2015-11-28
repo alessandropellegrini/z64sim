@@ -93,7 +93,7 @@ public class Register {
         int index;
 
         if (size != 8 && size != 16 && size != 32 && size != 64) {
-            
+
         }
 
         switch (size) {

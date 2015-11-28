@@ -393,8 +393,8 @@ class JavaCharStream
   }
 
 /** Constructor. */
-  
-  
+
+
 /** Constructor. */
   public JavaCharStream(java.io.Reader dstream,
                  int startline, int startcolumn, int buffersize)

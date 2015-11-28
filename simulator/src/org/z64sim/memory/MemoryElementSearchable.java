@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class MemoryElementSearchable extends MemoryElement {
-    
+
     public MemoryElementSearchable(long address) {
         try {
             this.setAddress(address);
@@ -27,5 +27,5 @@ public class MemoryElementSearchable extends MemoryElement {
     public void update() {
         throw new UnsupportedOperationException("Cannot update a searchable object");
     }
-    
+
 }

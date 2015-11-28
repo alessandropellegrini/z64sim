@@ -53,7 +53,7 @@ public final class NewFileAction implements ActionListener {
             Exceptions.printStackTrace(ex);
         }
     }
-    
+
     protected DataObject getDataObject() throws DataObjectNotFoundException, IOException {
         String templateName = getTemplate();
         FileObject fo = FileUtil.getConfigRoot().getFileObject(templateName);
@@ -62,7 +62,7 @@ public final class NewFileAction implements ActionListener {
         FileObject root = memFS.getRoot();
         DataFolder dataFolder = DataFolder.findFolder(root);
         DataObject gdo = template.createFromTemplate(
-               dataFolder, 
+               dataFolder,
                "New Document" + " (" + getNextCount() + ")");
         return gdo;
     }
@@ -74,5 +74,5 @@ public final class NewFileAction implements ActionListener {
     private static int getNextCount() {
         return _integer.incrementAndGet();
     }
-    
+
 }

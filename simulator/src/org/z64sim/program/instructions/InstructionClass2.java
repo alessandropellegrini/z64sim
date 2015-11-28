@@ -175,7 +175,7 @@ public class InstructionClass2 extends Instruction {
             case "sbb":
                 encoding[0] = (byte) (encoding[0] | 0x03);
                 this.type = 0x03;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -221,7 +221,7 @@ public class InstructionClass2 extends Instruction {
             case "cmp":
                 encoding[0] = (byte)(encoding[0] | 0x04);
                 this.type = 0x04;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -265,7 +265,7 @@ public class InstructionClass2 extends Instruction {
             case "test":
                 encoding[0] = (byte)(encoding[0] | 0x05);
                 this.type = 0x05;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -310,7 +310,7 @@ public class InstructionClass2 extends Instruction {
             case "neg":
                 encoding[0] = (byte)(encoding[0] | 0x06);
                 this.type = 0x06;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -332,7 +332,7 @@ public class InstructionClass2 extends Instruction {
             case "and":
                 encoding[0] = (byte)(encoding[0] | 0x07);
                 this.type = 0x07;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -381,7 +381,7 @@ public class InstructionClass2 extends Instruction {
             case "or":
                 encoding[0] = (byte)(encoding[0] | 0x08);
                 this.type = 0x08;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -430,7 +430,7 @@ public class InstructionClass2 extends Instruction {
             case "xor":
                 encoding[0] = (byte)(encoding[0] | 0x09);
                 this.type = 0x09;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {
@@ -479,7 +479,7 @@ public class InstructionClass2 extends Instruction {
             case "not":
                 encoding[0] = (byte)(encoding[0] | 0x0a);
                 this.type = 0x0a;
-                
+
                 if (source instanceof OperandMemory) {
                     OperandMemory o = (OperandMemory) s;
                     if (o.getIndex() != -1) {

@@ -1,6 +1,6 @@
 -- Sample luaj program that presents an animated Swing window.
--- 
--- This basic application handles key, and mouse input, has a basic animation loop, 
+--
+-- This basic application handles key, and mouse input, has a basic animation loop,
 -- and renders double-buffered graphics including the logo image in a swing frame.
 --
 
@@ -88,40 +88,40 @@ label:addMouseListener(luajava.createProxy("java.awt.event.MouseListener", {
 		--print('mousePressed', e:getX(), e:getY(), e)
 		x1,y1 = e:getX(),e:getY()
 	end,
-	-- mouseClicked = function(e) end, 
-	-- mouseEntered = function(e) end, 
-	-- mouseExited = function(e) end, 
-	-- mouseReleased = function(e) end, 
+	-- mouseClicked = function(e) end,
+	-- mouseEntered = function(e) end,
+	-- mouseExited = function(e) end,
+	-- mouseReleased = function(e) end,
 }))
 label:addMouseMotionListener(luajava.createProxy("java.awt.event.MouseMotionListener", {
 	mouseDragged = function(e)
 		--pri:wnt('mouseDragged', e:getX(), e:getY(), e)
 		x2,y2 = e:getX(),e:getY()
 	end,
-	-- mouseMoved= function(e) end, 
+	-- mouseMoved= function(e) end,
 }))
 
 -- add key listeners
 frame:addKeyListener(luajava.createProxy("java.awt.event.KeyListener", {
-	keyPressed = function(e) 
+	keyPressed = function(e)
 		local id, code, char, text = e:getID(), e:getKeyCode(), e:getKeyChar(), e:getKeyText(e:getKeyCode())
 		print('key id, code, char, text, pcall(string.char,char)', id, code, char, text, pcall(string.char,char))
 	end,
-	-- keyReleased = function(e) end, 
-	-- keyTyped = function(e) end, 
+	-- keyReleased = function(e) end,
+	-- keyTyped = function(e) end,
 }))
 
 -- use the window listener to kick off animation
 frame:addWindowListener(luajava.createProxy("java.awt.event.WindowListener", {
-	windowOpened = function(e) 
+	windowOpened = function(e)
 		swingUtilities:invokeLater(tick)
 	end,
-	-- windowActivated = function(e) end, 
-	-- windowClosed = function(e) end, 
-	-- windowClosing = function(e) end, 
-	-- windowDeactivated = function(e) end, 
-	-- windowDeiconified = function(e) end, 
-	-- windowIconified = function(e) end, 
+	-- windowActivated = function(e) end,
+	-- windowClosed = function(e) end,
+	-- windowClosing = function(e) end,
+	-- windowDeactivated = function(e) end,
+	-- windowDeiconified = function(e) end,
+	-- windowIconified = function(e) end,
 }))
 
 -- utility function to load an image from a file, for reference
