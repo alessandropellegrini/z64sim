@@ -147,7 +147,6 @@ class JavaCharStream
       }
       else
          maxNextCharInd += i;
-      return;
     }
     catch(java.io.IOException e) {
       if (bufpos != 0)
@@ -172,7 +171,8 @@ class JavaCharStream
     return nextCharBuf[nextCharInd];
   }
 
-/** @return starting character for token. */
+/** @return starting character for token.
+ *  @throws java.io.IOException */
   public char BeginToken() throws java.io.IOException
   {
     if (inBuf > 0)
@@ -252,7 +252,9 @@ class JavaCharStream
     bufcolumn[bufpos] = column;
   }
 
-/** Read a character. */
+/** Read a character.
+ * @return a read char
+ * @throws java.io.IOException */
   public char readChar() throws java.io.IOException
   {
     if (inBuf > 0)
@@ -364,12 +366,14 @@ class JavaCharStream
     return bufline[bufpos];
   }
 
-/** Get end column. */
+/** Get end column.
+ * @return end column */
   public int getEndColumn() {
     return bufcolumn[bufpos];
   }
 
-/** Get end line. */
+/** Get end line.
+ * @return end line */
   public int getEndLine() {
     return bufline[bufpos];
   }
@@ -384,7 +388,8 @@ class JavaCharStream
     return bufline[tokenBegin];
   }
 
-/** Retreat. */
+/** Retreat.
+ * @param amount chars to retreat */
   public void backup(int amount) {
 
     inBuf += amount;

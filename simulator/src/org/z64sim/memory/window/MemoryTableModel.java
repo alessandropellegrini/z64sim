@@ -80,7 +80,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
                 }
                 break;
             case 2: // Hex
-                ret = String.format("%08x", wrapped.getLong());
+                ret = String.format("%016x", wrapped.getLong());
                 break;
             case 3: // Int
                 ret = wrapped.getInt();

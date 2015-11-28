@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.memory.MemoryElement;
 import org.z64sim.memory.DataElement;
 import org.z64sim.program.Program;
 import org.z64sim.program.ProgramException;
@@ -32,6 +31,7 @@ public class Assembler implements AssemblerConstants {
 
     /**
      * Return the assembled program, e.g. for displaying or simulation
+     * @return the assembled program
      */
     public Program getProgram() {
         return this.program;
@@ -39,6 +39,7 @@ public class Assembler implements AssemblerConstants {
 
     /**
      * Return found errors, e.g. to show them in the editor
+     * @return list of ParseExceptions
      */
     public List<ParseException> getSyntaxErrors() {
         return this.syntaxErrors;
@@ -151,9 +152,14 @@ public class Assembler implements AssemblerConstants {
 /****************
  * PARSER RULES *
  ****************/
-  final public
 
-void Program() throws ParseException {
+
+/**
+ * This is the Axiom of the parser
+ *
+ * @throws org.z64sim.assembler.ParseException
+ */
+  final public void Program() throws ParseException {
     try {
       label_1:
       while (true) {
@@ -232,12 +238,11 @@ error_recover(ex, NEWLINE);
     }
   }
 
-  final public void Data() throws ParseException {Token t1, t2 = null, t3 = null;
+  final public void Data() throws ParseException {Token t1, t2;
     long value = -1;
     long repeat, size = -1; // Used for fill assignments
     int elementSize;
     byte[] data;
-    DataElement dataEl;
     try {
       label_3:
       while (true) {
@@ -419,13 +424,13 @@ byte additionalData[] = dataToByte(elementSize, value);
             break;
             }
           case COMM_ASSIGN:{
-            t1 = jj_consume_token(COMM_ASSIGN);
-            t2 = jj_consume_token(LABEL_NAME);
+            jj_consume_token(COMM_ASSIGN);
+            t1 = jj_consume_token(LABEL_NAME);
             jj_consume_token(COMMA);
             size = Expression();
 // .comm assigns to zero
                     long addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
-                    this.program.newLabel(t2.image, addr);
+                    this.program.newLabel(t1.image, addr);
             break;
             }
           default:
@@ -553,7 +558,6 @@ error_recover(ex, NEWLINE);
   }
 
   final public Instruction Drivers() throws ParseException {Token t;
-    Instruction insn;
     try {
       label_9:
       while (true) {
@@ -804,8 +808,7 @@ error_recover(ex, NEWLINE);
     int size;
     int sizeExt;
     String mnemonic;
-    Operand op1 = null,
-            op2 = null;
+    Operand op1, op2;
     int i = -1;
     Instruction insn = null;
     try {
@@ -1298,7 +1301,7 @@ error_recover(ex, NEWLINE);
 /***************************************************/
 /* Rules to handle simple expressions in constants */
 /***************************************************/
-  final public
+  final public 
 OperandImmediate ConstantExpression() throws ParseException {long value;
     try {
       jj_consume_token(CONSTANT);
@@ -1451,37 +1454,6 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_19()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_23()) {
-    jj_scanpos = xsp;
-    if (jj_3R_24()) {
-    jj_scanpos = xsp;
-    if (jj_3R_25()) {
-    jj_scanpos = xsp;
-    if (jj_3R_26()) {
-    jj_scanpos = xsp;
-    if (jj_3R_27()) return true;
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_17()
- {
-    if (jj_3R_19()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_20()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   private boolean jj_3R_16()
  {
     if (jj_3R_17()) return true;
@@ -1574,6 +1546,37 @@ error_recover(ex, NEWLINE);
   private boolean jj_3R_23()
  {
     if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_17()
+ {
+    if (jj_3R_19()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_20()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_19()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_23()) {
+    jj_scanpos = xsp;
+    if (jj_3R_24()) {
+    jj_scanpos = xsp;
+    if (jj_3R_25()) {
+    jj_scanpos = xsp;
+    if (jj_3R_26()) {
+    jj_scanpos = xsp;
+    if (jj_3R_27()) return true;
+    }
+    }
+    }
+    }
     return false;
   }
 

@@ -30,7 +30,7 @@ public class Register {
     public static final int R15 = 15;
 
     // Array to map virtual registers to physical registers
-    private static String[][] registers
+    private static final String[][] registers
             = {
                 {"%al", "%cl", "%dl", "%bl", "%spl", "%bpl", "%sil", "%dil", "%r8b", "%r9b", "%r10b", "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"},
                 {"%ax", "%bx", "%cx", "%dx", "%sp", "%bp", "%si", "%di", "%r8w", "%r9w", "%r10w", "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"},

@@ -5,7 +5,6 @@
  */
 package org.z64sim.memory;
 
-import org.z64sim.memory.MemoryElement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
