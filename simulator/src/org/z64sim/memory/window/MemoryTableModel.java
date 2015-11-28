@@ -70,7 +70,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
 
         switch(columnIndex) {
             case 0: // Address
-                ret = String.format("%08x", address);
+                ret = String.format("%016x", address);
                 break;
             case 1: // Mnemonic
                 if(el instanceof Instruction) {

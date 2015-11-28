@@ -26,7 +26,7 @@ public class Program {
     private final Map<String, Long> equs = new LinkedHashMap<>();
     private long locationCounter = 0;
 
-    private final static int STACK_SIZE = 0x800;
+    public final static int STACK_SIZE = 0x800;
 
     public Program() {
 
@@ -98,7 +98,7 @@ public class Program {
     public void finalizeData() {
 
         // Align instructions to 8 bytes
-        if((this.locationCounter & 0xfffffffffffffff8L) != 0) {
+        if((this.locationCounter & 0x07) != 0) {
             this.locationCounter += 8;
             this.locationCounter = this.locationCounter & 0xfffffffffffffff8L;
         }

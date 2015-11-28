@@ -355,7 +355,7 @@ data = dataToByte(elementSize, value);
 byte additionalData[] = dataToByte(elementSize, value);
                             byte updatedData[] = new byte[ data.length + additionalData.length ];
                             System.arraycopy(data, 0, updatedData, 0, data.length);
-                            System.arraycopy(data, 0, updatedData, 0, data.length);
+                            System.arraycopy(additionalData, 0, updatedData, data.length, additionalData.length);
                             data = updatedData;
               }
 // Put data in memory

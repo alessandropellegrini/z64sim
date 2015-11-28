@@ -12,6 +12,7 @@ import java.util.Collections;
 import org.openide.util.Exceptions;
 import org.z64sim.memory.window.MemoryTableModel;
 import org.z64sim.memory.window.MemoryTopComponent;
+import org.z64sim.program.Program;
 import org.z64sim.program.ProgramException;
 
 /**
@@ -51,6 +52,10 @@ public class Memory {
 
     public static void wipeMemory() {
         Memory.memoryMap.clear();
+        // This is a guess: 256 is the numbed of IDT elements, then we add
+        // the size, then we have space for 64 instructions, which is
+        // quite enough for many sample programs
+        Memory.memoryMap.ensureCapacity(256 + Program.STACK_SIZE / 8 + 64);
         Memory._start = 0;
     }
 
@@ -98,7 +103,6 @@ public class Memory {
             }
 
             memoryMap.add(-(index + 1), el);
-            Collections.sort(memoryMap);
 
         }
         return el;
@@ -108,7 +112,7 @@ public class Memory {
         MemoryElement mEl = getElementFromAddress(address);
 
         if (!(mEl instanceof DataElement)) {
-            throw new RuntimeException("Adding data on top of an instruction?");
+            throw new RuntimeException("Adding data on top of an instruction");
         }
 
         DataElement el = (DataElement) mEl;
