@@ -46,14 +46,72 @@ public class Register {
         this.value = 0L;
     }
 
+    // Everything in java is signed, so simple casts won't work, as we then
+    // re-cast to long, for uniformity
+    // Hex masks are "unsigned", as in C
+    // Declaring a long mask of wanted 1's does the job.
+    private long subRegister(int size, long value) {
+
+        switch (size) {
+            case 8:
+                return value & 0xFFL;
+            case 16:
+                return value & 0xFFFFL;
+            case 32:
+
+            case 64:
+                return value;
+            default:
+                throw new RuntimeException("Wrong register size in runtime access");
+        }
+    }
+
     // Read the value of a register
-    public Long getValue() {
+    public long getQuadword() {
         return this.value;
     }
 
-    // Update the value of a register
-    public void setValue(Long value) {
-        this.value = value;
+    public int getLongword() {
+        return (int) (this.value & 0xFFFFFFFFL);
+    }
+
+    public short getWord() {
+        return (short) (this.value & 0xFFFFL);
+    }
+
+    public byte getByte() {
+        return (byte) (this.value & 0xFFL);
+    }
+
+    // Returns the old value of the register, before updating
+    public long setQuadword(long val) {
+        long oldValue = this.value;
+        this.value = val;
+        return oldValue;
+    }
+
+    // Returns the old value of the register, before updating
+    public long setLongword(int val) {
+        long oldValue = this.value;
+        // We mask val as it gets sign extended to long before the bitwise or
+        this.value = (oldValue & 0xFFFFFFFF00000000L) | (val & 0xFFFFFFFFL);
+        return oldValue;
+    }
+
+    // Returns the old value of the register, before updating
+    public long setWord(short val) {
+        long oldValue = this.value;
+        // We mask val as it gets sign extended to long before the bitwise or
+        this.value = (oldValue & 0xFFFFFFFFFFFF0000L) | (val & 0xFFFFL);
+        return oldValue;
+    }
+
+    // Returns the old value of the register, before updating
+    public long setByte(byte val) {
+        long oldValue = this.value;
+        // We mask val as it gets sign extended to long before the bitwise or
+        this.value = (oldValue & 0xFFFFFFFFFFFFFF00L) | (val & 0xFFL);
+        return oldValue;
     }
 
     /* This works only because registers are placed in the registers[][] array

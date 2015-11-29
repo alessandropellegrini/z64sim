@@ -25,16 +25,93 @@ public class RegisterFlags extends Register {
         this.value = (long)0b010; // By default, bit 1 is always set in this register
     }
 
-    public void setBit(int bit) {
+    private void setBit(int bit) {
         this.value = this.value | (long)bit;
     }
 
-    public void clearBit(int bit) {
+    private void clearBit(int bit) {
         this.value = this.value & ~(long)bit;
     }
 
-    public boolean isSetBit(int bit) {
+    private boolean isSetBit(int bit) {
         return (this.value & (long)bit) != 0;
+    }
+    
+    public boolean getCF() {
+        return isSetBit(CF);
+    }
+    
+    public boolean getPF() {
+        return isSetBit(PF);
+    }
+    
+    public boolean getZF() {
+        return isSetBit(ZF);
+    }
+    
+    public boolean getSF() {
+        return isSetBit(SF);
+    }
+    
+    public boolean getIF() {
+        return isSetBit(IF);
+    }
+    
+    public boolean getDF() {
+        return isSetBit(DF);
+    }
+    
+    public boolean getOF() {
+        return isSetBit(OF);
+    }
+    
+    public void setCF(boolean set) {
+        if(set)
+            setBit(CF);
+        else
+            clearBit(CF);
+    }
+    
+    public void setPF(boolean set) {
+        if(set)
+            setBit(PF);
+        else
+            clearBit(PF);
+    }
+    
+    public void setZF(boolean set) {
+        if(set)
+            setBit(ZF);
+        else
+            clearBit(ZF);
+    }
+    
+    public void setSF(boolean set) {
+        if(set)
+            setBit(SF);
+        else
+            clearBit(SF);
+    }
+    
+    public void setIF(boolean set) {
+        if(set)
+            setBit(IF);
+        else
+            clearBit(IF);
+    }
+    
+    public void setDF(boolean set) {
+        if(set)
+            setBit(DF);
+        else
+            clearBit(DF);
+    }
+    
+    public void setOF(boolean set) {
+        if(set)
+            setBit(OF);
+        else
+            clearBit(OF);
     }
 
 }
