@@ -7,6 +7,7 @@ package org.z64sim.simulator;
 
 import java.beans.*;
 import java.io.Serializable;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -139,100 +140,80 @@ public class CpuState implements Serializable {
         return R15.getQuadword();
     }
 
+    private void updateRegister(Register r, Long v, String property) {
+        long oldValue = r.getQuadword();
+
+        try {
+            long newValue = v;
+            r.setQuadword(v);
+            propertySupport.firePropertyChange(property, oldValue, newValue);
+        } catch (NullPointerException e) {
+            JOptionPane.showMessageDialog(null, "The value specified for " + property + " is not a valid HEX value", "Register Value Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     public void setRAX(Long v) {
-        long oldValue = RAX.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RAX, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRCX(Long v) {
-        long oldValue = RCX.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RCX, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRDX(Long v) {
-        long oldValue = RDX.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RDX, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRBX(Long v) {
-        long oldValue = RBX.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RBX, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRSP(Long v) {
-        long oldValue = RSP.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RSP, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRBP(Long v) {
-        long oldValue = RBP.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RBP, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRSI(Long v) {
-        long oldValue = RSI.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RSI, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setRDI(Long v) {
-        long oldValue = RDI.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_RDI, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR8(Long v) {
-        long oldValue = R8.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R8, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR9(Long v) {
-        long oldValue = R9.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R9, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR10(Long v) {
-        long oldValue = R10.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R10, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR11(Long v) {
-        long oldValue = R11.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R11, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR12(Long v) {
-        long oldValue = R12.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R12, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR13(Long v) {
-        long oldValue = R13.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R13, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR14(Long v) {
-        long oldValue = R14.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R14, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public void setR15(Long v) {
-        long oldValue = R15.setQuadword(v);
-        long newValue = v;
-        propertySupport.firePropertyChange(PROP_R15, oldValue, newValue);
+        updateRegister(RAX, v, PROP_RAX);
     }
 
     public boolean getCF() {
@@ -312,11 +293,11 @@ public class CpuState implements Serializable {
         propertySupport.firePropertyChange(PROP_FLAGS, oldValue, newValue);
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
+    public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
         propertySupport.addPropertyChangeListener(listener);
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
+    public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
         propertySupport.removePropertyChangeListener(listener);
     }
 

@@ -28,7 +28,7 @@ import org.z64sim.memory.Memory;
 )
 @TopComponent.Registration(mode = "output", openAtStartup = false)
 @ActionID(category = "Window", id = "org.z64sim.simulator.multicycle.SimulatorMulticycleTopComponent")
-@ActionReference(path = "Menu/Window" , position = 3)
+@ActionReference(path = "Menu/Window", position = 3)
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_SimulatorMulticycleAction",
         preferredID = "SimulatorMulticycleTopComponent"
@@ -621,9 +621,9 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JSlider jSlider1;
     public javax.swing.JToolBar multicycleToolbar;
-    public javax.swing.JButton run;
+    private javax.swing.JButton run;
     private javax.swing.JLabel sliderSpeed;
-    public javax.swing.JButton step;
+    private javax.swing.JButton step;
     private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
     @Override
@@ -666,8 +666,15 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
 
         @Override
         public Long convertReverse(String value) {
-            String hexValue = "0x" + value; // Decode wants '0x' before the number to handle it as a hex
-            return Long.decode(hexValue);
+            Long converted;
+
+            try {
+                converted = Long.parseLong(value, 16); // CPU registers are represented in hex
+            } catch (NumberFormatException e) {
+                converted = null; // null is autocast from Long to long in setters from this class, causing an exception
+            }
+
+            return converted;
         }
     }
 }

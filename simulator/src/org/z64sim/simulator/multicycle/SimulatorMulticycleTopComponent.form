@@ -66,9 +66,6 @@
           <Events>
             <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="runMousePressed"/>
           </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
-          </AuxValues>
         </Component>
         <Component class="javax.swing.JButton" name="step">
           <Properties>
@@ -92,9 +89,6 @@
             <EventHandler event="mousePressed" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="stepMousePressed"/>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="stepActionPerformed"/>
           </Events>
-          <AuxValues>
-            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
-          </AuxValues>
         </Component>
         <Component class="javax.swing.JToolBar$Separator" name="jSeparator1">
         </Component>
