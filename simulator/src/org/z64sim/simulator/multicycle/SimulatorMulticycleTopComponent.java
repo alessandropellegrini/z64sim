@@ -13,6 +13,7 @@ import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 import org.z64sim.memory.Memory;
+import org.z64sim.simulator.Simulator;
 
 /**
  * Top component which displays something.
@@ -26,7 +27,7 @@ import org.z64sim.memory.Memory;
         iconBase = "org/z64sim/simulator/multicycle/multicycle.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "output", openAtStartup = false)
+@TopComponent.Registration(mode = "output", openAtStartup = true)
 @ActionID(category = "Window", id = "org.z64sim.simulator.multicycle.SimulatorMulticycleTopComponent")
 @ActionReference(path = "Menu/Window", position = 3)
 @TopComponent.OpenActionRegistration(
@@ -49,7 +50,6 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
 
-        // Initialize RIP value with application's entry point
     }
 
     /**
@@ -67,29 +67,29 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         step = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
-        jLabel9 = new javax.swing.JLabel();
-        jSlider1 = new javax.swing.JSlider();
-        sliderSpeed = new javax.swing.JLabel();
+        speed_label = new javax.swing.JLabel();
+        speedSlider = new javax.swing.JSlider();
+        speedValue = new javax.swing.JLabel();
         Registers = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
+        RAX_label = new javax.swing.JLabel();
         RAX_view = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
+        RCX_label = new javax.swing.JLabel();
         RCX_view = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
+        RDX_label = new javax.swing.JLabel();
         RDX_view = new javax.swing.JTextField();
         RBX_view = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
+        RBX_label = new javax.swing.JLabel();
+        RSP_label = new javax.swing.JLabel();
         RSP_view = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
+        RBP_label = new javax.swing.JLabel();
         RBP_view = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
+        RSI_label = new javax.swing.JLabel();
         RSI_view = new javax.swing.JTextField();
-        jLabel8 = new javax.swing.JLabel();
+        RDI_label = new javax.swing.JLabel();
         RDI_view = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
+        RIP_label = new javax.swing.JLabel();
         RIP_view = new javax.swing.JTextField();
-        jLabel11 = new javax.swing.JLabel();
+        FLAGS_label = new javax.swing.JLabel();
         OF = new javax.swing.JCheckBox();
         DF = new javax.swing.JCheckBox();
         IF = new javax.swing.JCheckBox();
@@ -98,27 +98,26 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         PF = new javax.swing.JCheckBox();
         CF = new javax.swing.JCheckBox();
         FLAGS_view = new javax.swing.JTextField();
-        jLabel12 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
+        R12_label = new javax.swing.JLabel();
+        R8_label = new javax.swing.JLabel();
         R8_view = new javax.swing.JTextField();
         R12_view = new javax.swing.JTextField();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel15 = new javax.swing.JLabel();
+        R9_label = new javax.swing.JLabel();
+        R13_label = new javax.swing.JLabel();
         R9_view = new javax.swing.JTextField();
         R13_view = new javax.swing.JTextField();
-        jLabel16 = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
+        R10_label = new javax.swing.JLabel();
+        R14_label = new javax.swing.JLabel();
         R10_view = new javax.swing.JTextField();
         R14_view = new javax.swing.JTextField();
-        jLabel18 = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
+        R11_label = new javax.swing.JLabel();
+        R15_label = new javax.swing.JLabel();
         R11_view = new javax.swing.JTextField();
         R15_view = new javax.swing.JTextField();
 
         multicycleToolbar.setRollover(true);
 
         run.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/z64sim/simulator/run24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(run, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.run.text")); // NOI18N
         run.setToolTipText(org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.run.toolTipText")); // NOI18N
         run.setFocusable(false);
         run.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -131,7 +130,6 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         multicycleToolbar.add(run);
 
         step.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/z64sim/simulator/step24.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(step, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.step.text")); // NOI18N
         step.setToolTipText(org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.step.toolTipText")); // NOI18N
         step.setActionCommand(org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.step.actionCommand")); // NOI18N
         step.setFocusable(false);
@@ -151,29 +149,29 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         multicycleToolbar.add(jSeparator1);
         multicycleToolbar.add(filler1);
 
-        jLabel9.setLabelFor(sliderSpeed);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel9, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel9.text")); // NOI18N
-        jLabel9.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
-        multicycleToolbar.add(jLabel9);
+        speed_label.setLabelFor(speedValue);
+        org.openide.awt.Mnemonics.setLocalizedText(speed_label, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.speed_label.text")); // NOI18N
+        speed_label.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        multicycleToolbar.add(speed_label);
 
-        jSlider1.setToolTipText(org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jSlider1.toolTipText")); // NOI18N
-        jSlider1.setValue(100);
-        multicycleToolbar.add(jSlider1);
+        speedSlider.setToolTipText(org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.speedSlider.toolTipText")); // NOI18N
+        speedSlider.setValue(100);
+        multicycleToolbar.add(speedSlider);
 
-        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, jSlider1, org.jdesktop.beansbinding.ELProperty.create("${value}"), sliderSpeed, org.jdesktop.beansbinding.BeanProperty.create("text"));
+        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, speedSlider, org.jdesktop.beansbinding.ELProperty.create("${value}"), speedValue, org.jdesktop.beansbinding.BeanProperty.create("text"));
         bindingGroup.addBinding(binding);
 
-        multicycleToolbar.add(sliderSpeed);
+        multicycleToolbar.add(speedValue);
 
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "RAX:"); // NOI18N
+        RAX_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RAX_label, "RAX:"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RAX}"), RAX_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel2.text")); // NOI18N
+        RCX_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RCX_label, "RCX:"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RCX}"), RCX_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
@@ -185,8 +183,8 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
             }
         });
 
-        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel3.text")); // NOI18N
+        RDX_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RDX_label, "RDX:"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RDX}"), RDX_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
@@ -196,54 +194,54 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel4.text")); // NOI18N
-        jLabel4.setMaximumSize(new java.awt.Dimension(25, 14));
-        jLabel4.setMinimumSize(new java.awt.Dimension(25, 14));
-        jLabel4.setPreferredSize(new java.awt.Dimension(25, 14));
+        RBX_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RBX_label, "RBX:");
+        RBX_label.setMaximumSize(new java.awt.Dimension(25, 14));
+        RBX_label.setMinimumSize(new java.awt.Dimension(25, 14));
+        RBX_label.setPreferredSize(new java.awt.Dimension(25, 14));
 
-        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel5, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel5.text")); // NOI18N
+        RSP_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RSP_label, "RSP:"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RSP}"), RSP_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel6, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel6.text")); // NOI18N
-        jLabel6.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel6.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel6.setPreferredSize(new java.awt.Dimension(24, 14));
+        RBP_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RBP_label, "RBP:"); // NOI18N
+        RBP_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        RBP_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        RBP_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RBP}"), RBP_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel7, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel7.text")); // NOI18N
-        jLabel7.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel7.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel7.setPreferredSize(new java.awt.Dimension(24, 14));
+        RSI_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RSI_label, "RSI:"); // NOI18N
+        RSI_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        RSI_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        RSI_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RSI}"), RSI_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel8.text")); // NOI18N
-        jLabel8.setMaximumSize(new java.awt.Dimension(30, 14));
-        jLabel8.setMinimumSize(new java.awt.Dimension(30, 14));
-        jLabel8.setPreferredSize(new java.awt.Dimension(30, 14));
+        RDI_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RDI_label, "RDI:"); // NOI18N
+        RDI_label.setMaximumSize(new java.awt.Dimension(30, 14));
+        RDI_label.setMinimumSize(new java.awt.Dimension(30, 14));
+        RDI_label.setPreferredSize(new java.awt.Dimension(30, 14));
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${RDI}"), RDI_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel10.text")); // NOI18N
-        jLabel10.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel10.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel10.setPreferredSize(new java.awt.Dimension(24, 14));
+        RIP_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(RIP_label, "RIP:"); // NOI18N
+        RIP_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        RIP_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        RIP_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
         RIP_view.setEnabled(false);
 
@@ -251,40 +249,40 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel11, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel11.text")); // NOI18N
+        FLAGS_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(FLAGS_label, "FLAGS:"); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(OF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.OF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(OF, "OF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${OF}"), OF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
 
-        org.openide.awt.Mnemonics.setLocalizedText(DF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.DF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(DF, "DF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${DF}"), DF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
 
-        org.openide.awt.Mnemonics.setLocalizedText(IF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.IF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(IF, "IF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${IF}"), IF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
 
-        org.openide.awt.Mnemonics.setLocalizedText(SF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.SF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(SF, "SF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${SF}"), SF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
 
-        org.openide.awt.Mnemonics.setLocalizedText(ZF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.ZF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(ZF, "ZF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${ZF}"), ZF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
 
-        org.openide.awt.Mnemonics.setLocalizedText(PF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.PF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(PF, "PF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${PF}"), PF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
 
-        org.openide.awt.Mnemonics.setLocalizedText(CF, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.CF.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(CF, "CF"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${CF}"), CF, org.jdesktop.beansbinding.BeanProperty.create("selected"));
         bindingGroup.addBinding(binding);
@@ -297,11 +295,11 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel12, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel12.text")); // NOI18N
+        R12_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R12_label, "R12:"); // NOI18N
 
-        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel13, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel13.text")); // NOI18N
+        R8_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R8_label, "R8:"); // NOI18N
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${r8}"), R8_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
@@ -311,17 +309,17 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel14, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel14.text")); // NOI18N
-        jLabel14.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel14.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel14.setPreferredSize(new java.awt.Dimension(24, 14));
+        R9_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R9_label, "R9:"); // NOI18N
+        R9_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        R9_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        R9_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
-        jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel15, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel15.text")); // NOI18N
-        jLabel15.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel15.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel15.setPreferredSize(new java.awt.Dimension(24, 14));
+        R13_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R13_label, "R13:"); // NOI18N
+        R13_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        R13_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        R13_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${r9}"), R9_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
@@ -331,17 +329,17 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel16.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel16, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel16.text")); // NOI18N
-        jLabel16.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel16.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel16.setPreferredSize(new java.awt.Dimension(24, 14));
+        R10_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R10_label, "R10:"); // NOI18N
+        R10_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        R10_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        R10_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
-        jLabel17.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel17, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel17.text")); // NOI18N
-        jLabel17.setMaximumSize(new java.awt.Dimension(24, 14));
-        jLabel17.setMinimumSize(new java.awt.Dimension(24, 14));
-        jLabel17.setPreferredSize(new java.awt.Dimension(24, 14));
+        R14_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R14_label, "R14:"); // NOI18N
+        R14_label.setMaximumSize(new java.awt.Dimension(24, 14));
+        R14_label.setMinimumSize(new java.awt.Dimension(24, 14));
+        R14_label.setPreferredSize(new java.awt.Dimension(24, 14));
 
         R10_view.setPreferredSize(new java.awt.Dimension(12, 20));
 
@@ -353,17 +351,17 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
         binding.setConverter(new ConvertLongToHexString());
         bindingGroup.addBinding(binding);
 
-        jLabel18.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel18, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel18.text")); // NOI18N
-        jLabel18.setMaximumSize(new java.awt.Dimension(25, 14));
-        jLabel18.setMinimumSize(new java.awt.Dimension(25, 14));
-        jLabel18.setPreferredSize(new java.awt.Dimension(25, 14));
+        R11_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R11_label, "R11:"); // NOI18N
+        R11_label.setMaximumSize(new java.awt.Dimension(25, 14));
+        R11_label.setMinimumSize(new java.awt.Dimension(25, 14));
+        R11_label.setPreferredSize(new java.awt.Dimension(25, 14));
 
-        jLabel19.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel19, org.openide.util.NbBundle.getMessage(SimulatorMulticycleTopComponent.class, "SimulatorMulticycleTopComponent.jLabel19.text")); // NOI18N
-        jLabel19.setMaximumSize(new java.awt.Dimension(25, 14));
-        jLabel19.setMinimumSize(new java.awt.Dimension(25, 14));
-        jLabel19.setPreferredSize(new java.awt.Dimension(25, 14));
+        R15_label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        org.openide.awt.Mnemonics.setLocalizedText(R15_label, "R15:"); // NOI18N
+        R15_label.setMaximumSize(new java.awt.Dimension(25, 14));
+        R15_label.setMinimumSize(new java.awt.Dimension(25, 14));
+        R15_label.setPreferredSize(new java.awt.Dimension(25, 14));
 
         binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, CPU, org.jdesktop.beansbinding.ELProperty.create("${r11}"), R11_view, org.jdesktop.beansbinding.BeanProperty.create("text_ON_ACTION_OR_FOCUS_LOST"));
         binding.setConverter(new ConvertLongToHexString());
@@ -384,7 +382,7 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
                         .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(RegistersLayout.createSequentialGroup()
                                 .addGap(142, 142, 142)
-                                .addComponent(jLabel11)
+                                .addComponent(FLAGS_label)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(OF)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -400,7 +398,7 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(CF))
                             .addGroup(RegistersLayout.createSequentialGroup()
-                                .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(RIP_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(RIP_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -409,64 +407,64 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
                         .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, RegistersLayout.createSequentialGroup()
                                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(RAX_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(RSP_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(RegistersLayout.createSequentialGroup()
                                         .addComponent(RAX_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel2)
+                                        .addComponent(RCX_label)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(RCX_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel3)
+                                        .addComponent(RDX_label)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(RDX_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(RBX_label, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addGroup(RegistersLayout.createSequentialGroup()
                                         .addComponent(RSP_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(RBP_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(RBP_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(RSI_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(RSI_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                        .addComponent(RDI_label, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(RegistersLayout.createSequentialGroup()
                                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(R8_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(R12_label, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(RegistersLayout.createSequentialGroup()
                                         .addComponent(R8_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(R9_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(R9_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(R10_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(R10_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(5, 5, 5)
-                                        .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(R11_label, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addGroup(RegistersLayout.createSequentialGroup()
                                         .addComponent(R12_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(R13_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(R13_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(R14_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(R14_view, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                        .addComponent(R15_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(RBX_view, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
@@ -481,48 +479,48 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(RDX_view, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel1)
+                        .addComponent(RAX_label)
                         .addComponent(RAX_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel2)
+                        .addComponent(RCX_label)
                         .addComponent(RCX_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(RBX_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel3)
-                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(RDX_label)
+                        .addComponent(RBX_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
+                    .addComponent(RSP_label)
                     .addComponent(RSP_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(RBP_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(RBP_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(RSI_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(RSI_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(RDI_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(RDI_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel13)
+                    .addComponent(R8_label)
                     .addComponent(R8_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R9_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(R9_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(R11_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R10_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R11_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(R10_view, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel12)
+                    .addComponent(R12_label)
                     .addComponent(R12_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R13_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(R13_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R14_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(R14_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R15_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(R15_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(RegistersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(RIP_label, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(RIP_view, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11)
+                    .addComponent(FLAGS_label)
                     .addComponent(OF)
                     .addComponent(DF)
                     .addComponent(IF)
@@ -574,75 +572,71 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
     private javax.swing.JCheckBox CF;
     private org.z64sim.simulator.CpuState CPU;
     private javax.swing.JCheckBox DF;
+    private javax.swing.JLabel FLAGS_label;
     private javax.swing.JTextField FLAGS_view;
     private javax.swing.JCheckBox IF;
     private javax.swing.JCheckBox OF;
     private javax.swing.JCheckBox PF;
+    private javax.swing.JLabel R10_label;
     private javax.swing.JTextField R10_view;
+    private javax.swing.JLabel R11_label;
     private javax.swing.JTextField R11_view;
+    private javax.swing.JLabel R12_label;
     private javax.swing.JTextField R12_view;
+    private javax.swing.JLabel R13_label;
     private javax.swing.JTextField R13_view;
+    private javax.swing.JLabel R14_label;
     private javax.swing.JTextField R14_view;
+    private javax.swing.JLabel R15_label;
     private javax.swing.JTextField R15_view;
+    private javax.swing.JLabel R8_label;
     private javax.swing.JTextField R8_view;
+    private javax.swing.JLabel R9_label;
     private javax.swing.JTextField R9_view;
+    private javax.swing.JLabel RAX_label;
     private javax.swing.JTextField RAX_view;
+    private javax.swing.JLabel RBP_label;
     private javax.swing.JTextField RBP_view;
+    private javax.swing.JLabel RBX_label;
     private javax.swing.JTextField RBX_view;
+    private javax.swing.JLabel RCX_label;
     private javax.swing.JTextField RCX_view;
+    private javax.swing.JLabel RDI_label;
     private javax.swing.JTextField RDI_view;
+    private javax.swing.JLabel RDX_label;
     private javax.swing.JTextField RDX_view;
+    private javax.swing.JLabel RIP_label;
     private javax.swing.JTextField RIP_view;
+    private javax.swing.JLabel RSI_label;
     private javax.swing.JTextField RSI_view;
+    private javax.swing.JLabel RSP_label;
     private javax.swing.JTextField RSP_view;
     private javax.swing.JPanel Registers;
     private javax.swing.JCheckBox SF;
     private javax.swing.JCheckBox ZF;
     private javax.swing.Box.Filler filler1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JToolBar.Separator jSeparator1;
-    private javax.swing.JSlider jSlider1;
     public javax.swing.JToolBar multicycleToolbar;
     private javax.swing.JButton run;
-    private javax.swing.JLabel sliderSpeed;
+    private javax.swing.JSlider speedSlider;
+    private javax.swing.JLabel speedValue;
+    private javax.swing.JLabel speed_label;
     private javax.swing.JButton step;
     private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
+
     @Override
     public void componentOpened() {
-        // Check whether there is an assembled file. If not, disable 'run' buttons
-        if (Memory.getEntryPoint() == 0) { // Entry point can never be zero in a real program
-            this.run.setEnabled(false);
-            this.step.setEnabled(false);
-        } else {
-            // This is not mandatory per se, but this method is called on the
-            // opened top component when a file is assembled, to reactivate buttons
-            this.run.setEnabled(true);
-            this.step.setEnabled(true);
-        }
+        checkEnabled();
+
+        // Register this window as the current Multicycle Simulator
+        Simulator.setMulticycle(this);
     }
 
     @Override
     public void componentClosed() {
-        // Nothing to do here
+        // Deregister as the current Multicycle Simulator
+        Simulator.resetMulticycle(this);
     }
 
     void writeProperties(java.util.Properties p) {
@@ -655,6 +649,21 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
+    }
+
+    public void checkEnabled() {
+        // Check whether there is an assembled file. If not, disable 'run' buttons
+        if (Memory.getEntryPoint() == 0) { // Entry point can never be zero in a real program
+            this.run.setEnabled(false);
+            this.step.setEnabled(false);
+            CPU.setRIP(0L);
+        } else {
+            // This is not mandatory per se, but this method is called on the
+            // opened top component when a file is assembled, to reactivate buttons
+            this.run.setEnabled(true);
+            this.step.setEnabled(true);
+            CPU.setRIP(Memory.getEntryPoint());
+        }
     }
 
     private class ConvertLongToHexString extends Converter<Long, String> {

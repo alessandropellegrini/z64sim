@@ -23,11 +23,12 @@ import org.z64sim.memory.MemoryElement;
 public class MemoryTableModel extends AbstractTableModel implements TableModelListener {
 
     private final ArrayList<MemoryElement> memoryMap = Memory.getMemory();
-
-    private final String[] columnNames = {"Address",
-                                          "Instruction",
-                                          "Hex Val.",
-                                          "Dec. Val"};
+   
+    // These are keys in the bundle file
+    private final String[] columnNames = {"MemoryTableModel.address",
+                                          "MemoryTableModel.instruction",
+                                          "MemoryTableModel.hex",
+                                          "MemoryTableModel.dec"};
 
     @Override
     public int getRowCount() {
@@ -44,7 +45,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
 
     @Override
     public String getColumnName(int col) {
-        return columnNames[col];
+        return org.openide.util.NbBundle.getMessage(MemoryTableModel.class, columnNames[col]);
     }
 
     @Override

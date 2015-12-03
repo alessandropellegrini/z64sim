@@ -69,7 +69,7 @@ public class CpuState implements Serializable {
     public void setRIP(Long newValue) {
         long oldValue = RIP.getQuadword();
         RIP.setQuadword(newValue);
-        propertySupport.firePropertyChange(PROP_FLAGS, oldValue, newValue);
+        propertySupport.firePropertyChange(PROP_RIP, oldValue, newValue);
     }
 
     public Long getRIP() {
@@ -157,63 +157,63 @@ public class CpuState implements Serializable {
     }
 
     public void setRCX(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RCX, v, PROP_RCX);
     }
 
     public void setRDX(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RDX, v, PROP_RDX);
     }
 
     public void setRBX(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RBX, v, PROP_RBX);
     }
 
     public void setRSP(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RSP, v, PROP_RSP);
     }
 
     public void setRBP(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RBP, v, PROP_RBP);
     }
 
     public void setRSI(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RSI, v, PROP_RSI);
     }
 
     public void setRDI(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(RDI, v, PROP_RDI);
     }
 
     public void setR8(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R8, v, PROP_R8);
     }
 
     public void setR9(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R9, v, PROP_R9);
     }
 
     public void setR10(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R10, v, PROP_R10);
     }
 
     public void setR11(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R11, v, PROP_R11);
     }
 
     public void setR12(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R12, v, PROP_R12);
     }
 
     public void setR13(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R13, v, PROP_R13);
     }
 
     public void setR14(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R14, v, PROP_R14);
     }
 
     public void setR15(Long v) {
-        updateRegister(RAX, v, PROP_RAX);
+        updateRegister(R15, v, PROP_R15);
     }
 
     public boolean getCF() {

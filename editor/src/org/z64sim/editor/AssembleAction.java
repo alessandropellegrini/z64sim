@@ -27,6 +27,7 @@ import org.openide.windows.InputOutput;
 import org.z64sim.assembler.Assembler;
 import org.z64sim.assembler.ParseException;
 import org.z64sim.memory.Memory;
+import org.z64sim.simulator.Simulator;
 
 @ActionID(
         category = "AsmFile",
@@ -104,7 +105,8 @@ public final class AssembleAction implements ActionListener {
             // Show the memory map
             Memory.redrawMemory();
 
-            // Bind the program to the simulators
+            // If a simulator is focused, engage it
+            Simulator.activate();
 
         } else {
             io.getErr().println("Assemblying of " + name + " failed.");
