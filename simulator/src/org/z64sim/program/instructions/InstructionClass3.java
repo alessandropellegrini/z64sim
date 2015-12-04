@@ -18,7 +18,7 @@ public class InstructionClass3 extends Instruction {
     private final OperandRegister reg;
 
     public InstructionClass3(String mnemonic, int p, OperandRegister r) {
-        super(mnemonic);
+        super(mnemonic, 3);
         this.places = p;
         this.reg = r;
 

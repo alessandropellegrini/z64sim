@@ -18,7 +18,7 @@ public class InstructionClass6 extends Instruction {
     private final OperandMemory target;
 
     public InstructionClass6(String mnemonic, OperandMemory t) {
-        super(mnemonic);
+        super(mnemonic, 6);
         this.bit = 0; /* depends on the mnemonic */
 
         this.target = t;
@@ -102,6 +102,10 @@ public class InstructionClass6 extends Instruction {
         String mnem = this.mnemonic;
         mnem = mnem.concat(this.target.toString());
         return mnem;
+    }
+
+    public Operand getTarget() {
+        return this.target;
     }
 
 }

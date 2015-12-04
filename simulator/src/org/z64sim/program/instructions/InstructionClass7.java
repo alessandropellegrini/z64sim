@@ -16,7 +16,7 @@ public class InstructionClass7 extends Instruction {
     private final int transfer_size; // The size of a data transfer
 
     public InstructionClass7(String mnemonic, int size) {
-        super(mnemonic);
+        super(mnemonic, 7);
         this.transfer_size = size;
 
         byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};

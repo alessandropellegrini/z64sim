@@ -80,4 +80,8 @@ public class OperandMemory extends Operand {
 
         return representation;
     }
+
+    public void relocate(long value) {
+        this.displacement += value;
+    }
 }

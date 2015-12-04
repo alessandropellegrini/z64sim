@@ -18,7 +18,7 @@ public class InstructionClass4 extends Instruction {
     private final byte val;
 
     public InstructionClass4(String mnemonic) {
-        super(mnemonic);
+        super(mnemonic, 4);
         this.bit = 0; /* depends on the mnemonic */
         this.val = 0; /* depends on the mnemonic: 0 for clear, 1 for set */
 

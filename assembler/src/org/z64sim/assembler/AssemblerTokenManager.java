@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.memory.DataElement;
 import org.z64sim.program.Program;
 import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;

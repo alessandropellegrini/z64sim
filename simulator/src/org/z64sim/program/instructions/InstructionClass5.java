@@ -17,7 +17,7 @@ public class InstructionClass5 extends Instruction {
     private final Operand target;
 
     public InstructionClass5(String mnemonic, Operand t) {
-        super(mnemonic);
+        super(mnemonic, 5);
         this.target = t;
 
         // Set the size in memory
@@ -95,6 +95,10 @@ public class InstructionClass5 extends Instruction {
         }
 
         return mnem;
+    }
+
+    public Operand getTarget() {
+        return this.target;
     }
 
 }

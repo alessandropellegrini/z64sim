@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.util.List;
 import java.util.ArrayList;
 import org.z64sim.program.Instruction;
-import org.z64sim.memory.DataElement;
 import org.z64sim.program.Program;
 import org.z64sim.program.ProgramException;
 import org.z64sim.program.instructions.*;
@@ -71,8 +70,6 @@ public class Assembler implements AssemblerConstants {
         throw new ParseException("Zero/Sign extension with wrong source prefix");
     }
 
-    // TODO: some instructions would allow no suffix, but they end with a char which
-    // could be interpreted as a suffix by this function.
     private int getSuffixSize(String mnemonic) {
         String suffix = mnemonic.substring(mnemonic.length() - 1);
 
@@ -141,7 +138,7 @@ public class Assembler implements AssemblerConstants {
         return data;
     }
 
-    byte[] getFilledMemoryArea(int size, byte value) {
+    private byte[] getFilledMemoryArea(int size, byte value) {
         byte[] fill = new byte[size];
         for(int i = 0; i < size; i++) {
             fill[i] = value;
@@ -228,8 +225,12 @@ public class Assembler implements AssemblerConstants {
         ;
       }
       jj_consume_token(0);
-// Add space for the stack
-            this.program.addStackSpace();
+// Finalize the program
+            try {
+                this.program.finalizeProgram();
+            } catch(ProgramException e) {
+                {if (true) throw new ParseException(e.getMessage());}
+            }
 
             // All this was memory intensive: reclaim if possible!
              System.gc();
@@ -243,6 +244,7 @@ error_recover(ex, NEWLINE);
     long repeat, size = -1; // Used for fill assignments
     int elementSize;
     byte[] data;
+    String l;
     try {
       label_3:
       while (true) {
@@ -366,8 +368,9 @@ byte additionalData[] = dataToByte(elementSize, value);
 // Put data in memory
                         long addr = this.program.addData(data);
 
-                         // Add the label
-                         this.program.newLabel(t1.image, addr);
+                         // Add the label, remove trailing ':'
+                         l = t1.image.substring(0, t1.image.length()-1);
+                         this.program.newLabel(l, addr);
               break;
               }
             case ASCII_ASSIGN:{
@@ -378,7 +381,8 @@ byte additionalData[] = dataToByte(elementSize, value);
                          long addr = this.program.addData(str);
 
                         // Add the label
-                         this.program.newLabel(t1.image, addr);
+                        l = t1.image.substring(0, t1.image.length()-1);
+                         this.program.newLabel(l, addr);
               break;
               }
             default:
@@ -430,7 +434,8 @@ byte additionalData[] = dataToByte(elementSize, value);
             size = Expression();
 // .comm assigns to zero
                     long addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
-                    this.program.newLabel(t1.image, addr);
+                    l = t1.image.substring(0, t1.image.length()-1);
+                    this.program.newLabel(l, addr);
             break;
             }
           default:
@@ -1235,21 +1240,18 @@ error_recover(ex, NEWLINE);
   }
 
 /* Both label and direct address */
-  final public OperandMemory FormatM(int size) throws ParseException {String label;
-    OperandMemory memOp;
+  final public OperandMemory FormatM(int size) throws ParseException {OperandMemory memOp;
     long address;
+    String l;
     try {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case LABEL:{
-        label = Label();
-// Convert the label into a memory address, if already defined
-            address = program.findLabelAddress(label);
-            if(address == -1)
-                {if (true) throw new ParseException("Trying to address a label which has not been defined");}
-
-            // This is a memory operand with displacement only (pointing
-            // to the label's address
-            memOp = new OperandMemory(-1, -1, -1, -1, -1, (int)address, size);
+        l = Label();
+// This is a memory operand with displacement only (pointing
+            // to the label's address. The real address will be placed in memory by
+            // relocation, at the end of the program's generation.
+            memOp = new OperandMemory(-1, -1, -1, -1, -1, 0, size);
+            this.program.addRelocationEntry(this.program.getLocationCounter(), l);
         break;
         }
       default:
@@ -1413,11 +1415,13 @@ error_recover(ex, NEWLINE);
         }
       case LOCATION_COUNTER:{
         jj_consume_token(LOCATION_COUNTER);
-{if ("" != null) return -1;} /* TODO */
+{if ("" != null) return this.program.getLocationCounter();}
         break;
         }
       case LABEL_NAME:{
-        jj_consume_token(LABEL_NAME);
+        t = jj_consume_token(LABEL_NAME);
+this.program.addRelocationEntry(this.program.getLocationCounter(), t.image);
+            {if ("" != null) return 0;} // This will be resolved later
 
         break;
         }
@@ -1454,26 +1458,9 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3R_16()
- {
-    if (jj_3R_17()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_18()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   private boolean jj_3_1()
  {
     if (jj_3R_16()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_29()
- {
-    if (jj_scan_token(DIVIDE)) return true;
     return false;
   }
 
@@ -1481,6 +1468,19 @@ error_recover(ex, NEWLINE);
  {
     if (jj_scan_token(MINUS)) return true;
     if (jj_3R_19()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_26()
+ {
+    if (jj_scan_token(LBRACE)) return true;
+    if (jj_3R_16()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_29()
+ {
+    if (jj_scan_token(DIVIDE)) return true;
     return false;
   }
 
@@ -1493,13 +1493,6 @@ error_recover(ex, NEWLINE);
   private boolean jj_3R_28()
  {
     if (jj_scan_token(TIMES)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_26()
- {
-    if (jj_scan_token(LBRACE)) return true;
-    if (jj_3R_16()) return true;
     return false;
   }
 
@@ -1576,6 +1569,17 @@ error_recover(ex, NEWLINE);
     }
     }
     }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_16()
+ {
+    if (jj_3R_17()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_18()) { jj_scanpos = xsp; break; }
     }
     return false;
   }

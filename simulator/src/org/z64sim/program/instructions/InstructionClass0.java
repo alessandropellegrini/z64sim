@@ -17,7 +17,7 @@ public class InstructionClass0 extends Instruction {
     int idn;
 
     public InstructionClass0(String mnemonic, int idn) {
-        super(mnemonic);
+        super(mnemonic, 0);
         this.idn = idn;
 
         // Set the size in memory

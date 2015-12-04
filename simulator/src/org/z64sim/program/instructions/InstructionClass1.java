@@ -21,7 +21,7 @@ public class InstructionClass1 extends Instruction {
     // 'l', 'q') here because they have no operands
 
     public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) {
-        super(mnemonic);
+        super(mnemonic, 1);
         this.source = s;
         this.destination = d;
         this.implicitSize = implicitSize;
@@ -248,6 +248,14 @@ public class InstructionClass1 extends Instruction {
         }
 
         return mnem;
+    }
+
+    public Operand getSource() {
+        return this.source;
+    }
+
+    public Operand getDestination() {
+        return this.destination;
     }
 
 }

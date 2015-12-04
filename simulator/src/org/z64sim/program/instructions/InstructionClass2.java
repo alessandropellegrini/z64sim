@@ -18,7 +18,7 @@ public class InstructionClass2 extends Instruction {
     private final Operand destination;
 
     public InstructionClass2(String mnemonic, Operand s, Operand d) {
-        super(mnemonic);
+        super(mnemonic, 2);
         this.source = s;
         this.destination = d;
 
@@ -521,6 +521,14 @@ public class InstructionClass2 extends Instruction {
         }
 
         return mnem;
+    }
+
+    public Operand getSource() {
+        return this.source;
+    }
+
+    public Operand getDestination() {
+        return this.destination;
     }
 
 }

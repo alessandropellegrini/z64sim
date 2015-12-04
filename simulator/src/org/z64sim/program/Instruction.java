@@ -15,12 +15,14 @@ import org.z64sim.program.muops.MicroOperation;
  */
 public abstract class Instruction extends MemoryElement {
 
-    private ArrayList<MicroOperation> microOps;
+    private final ArrayList<MicroOperation> microOps = new ArrayList<>();
     protected final String mnemonic;
+    protected final byte clas;
     protected byte type;
 
-    public Instruction(String mnemonic) {
+    public Instruction(String mnemonic, int clas) {
         this.mnemonic = mnemonic;
+        this.clas = (byte)clas;
     }
 
     // toString() must be explicitly re-implemented
@@ -34,6 +36,10 @@ public abstract class Instruction extends MemoryElement {
     public void update() {
         // Allowing to change the content of instructions allows for a sort of mutagen code.
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public byte getClas() {
+        return this.clas;
     }
 
     public abstract void run();

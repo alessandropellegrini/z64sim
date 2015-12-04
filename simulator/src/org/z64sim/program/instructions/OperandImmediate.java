@@ -7,7 +7,7 @@ package org.z64sim.program.instructions;
 
 public class OperandImmediate extends Operand {
 
-    private final long value;
+    private long value;
 
     public OperandImmediate(long value) {
         super(8); // An immediate is always 8 bytes long
@@ -21,5 +21,12 @@ public class OperandImmediate extends Operand {
     @Override
     public String toString() {
         return "$" + this.value;
+    }
+
+    // This call actually sums the value of the label. This is because we could
+    // write an instruction such as "movq $constant+10". The +10 is stored in the
+    // 'value' field of the object, and we have then to sum $constant.
+    public void relocate(long value) {
+        this.value += value;
     }
 }
