@@ -73,6 +73,14 @@ public class Assembler implements AssemblerConstants {
     private int getSuffixSize(String mnemonic) {
         String suffix = mnemonic.substring(mnemonic.length() - 1);
 
+        // Some instructions would allow no suffix, but they end with a char which
+        // could be interpreted as a suffix by this function. These cases are
+        // handled here, before checking the suffix.
+        switch(mnemonic) {
+            case "call":
+                return 64;
+        }
+
         if(suffix.equals("b"))
             return 8;
         else if(suffix.equals("w"))
@@ -85,6 +93,14 @@ public class Assembler implements AssemblerConstants {
     }
 
     private String stripSuffix(String mnemonic) {
+        // Some instructions would allow no suffix, but they end with a char which
+        // could be interpreted as a suffix by this function. These cases are
+        // handled here, before checking the suffix.
+        switch(mnemonic) {
+            case "call":
+                return mnemonic;
+        }
+
         if(getSuffixSize(mnemonic) != -1)
             return mnemonic.substring(0, mnemonic.length() - 1);
         return mnemonic;
@@ -382,49 +398,53 @@ byte additionalData[] = dataToByte(elementSize, value);
 
                         // Add the label
                         l = t1.image.substring(0, t1.image.length()-1);
-                         this.program.newLabel(l, addr);
+                        this.program.newLabel(l, addr);
               break;
               }
-            default:
-              jj_la1[9] = jj_gen;
-              jj_consume_token(-1);
-              throw new ParseException();
-            }
-            break;
-            }
-          case FILL_ASSIGN:{
-            jj_consume_token(FILL_ASSIGN);
-            repeat = Expression();
-            switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case COMMA:{
-              jj_consume_token(COMMA);
-              size = Expression();
+            case FILL_ASSIGN:{
+              jj_consume_token(FILL_ASSIGN);
+              repeat = Expression();
               switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
               case COMMA:{
                 jj_consume_token(COMMA);
-                value = Expression();
+                size = Expression();
+                switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+                case COMMA:{
+                  jj_consume_token(COMMA);
+                  value = Expression();
+                  break;
+                  }
+                default:
+                  jj_la1[9] = jj_gen;
+                  ;
+                }
                 break;
                 }
               default:
                 jj_la1[10] = jj_gen;
                 ;
               }
+// Value is the third optional parameter
+                          if(value == -1)
+                              value = 0;
+
+                          // Size is the second optional parameter
+                          if(size == -1)
+                              size = 1;
+
+                          // Create 'repeat' DataElements set to value
+                          long addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
+
+                          // Add the label
+                          l = t1.image.substring(0, t1.image.length()-1);
+                          this.program.newLabel(l, addr);
               break;
               }
             default:
               jj_la1[11] = jj_gen;
-              ;
+              jj_consume_token(-1);
+              throw new ParseException();
             }
-// Value is the third optional parameter
-                    if(value == -1)
-                        value = 0;
-
-                    // Size is the second optional parameter
-                    if(size == -1)
-                        size = 1;
-
-                    // Create 'repeat' DataElements set to value
-                    this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
             break;
             }
           case COMM_ASSIGN:{
@@ -449,7 +469,6 @@ byte additionalData[] = dataToByte(elementSize, value);
           case LOCATION_COUNTER:
           case ORG:
           case EQU_ASSIGN:
-          case FILL_ASSIGN:
           case COMM_ASSIGN:
           case LABEL:
           case LABEL_NAME:{
@@ -1276,7 +1295,8 @@ error_recover(ex, NEWLINE);
       case CONSTANT:{
         /* ACTUAL RULE */
                   imm = ConstantExpression();
-{if ("" != null) return imm;}
+imm.setSize(size); // The size of an immediate depends on the instruction suffix
+            {if ("" != null) return imm;}
         break;
         }
       case REG_8:
@@ -1303,7 +1323,7 @@ error_recover(ex, NEWLINE);
 /***************************************************/
 /* Rules to handle simple expressions in constants */
 /***************************************************/
-  final public 
+  final public
 OperandImmediate ConstantExpression() throws ParseException {long value;
     try {
       jj_consume_token(CONSTANT);
@@ -1458,16 +1478,16 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
-  private boolean jj_3_1()
- {
-    if (jj_3R_16()) return true;
-    return false;
-  }
-
   private boolean jj_3R_27()
  {
     if (jj_scan_token(MINUS)) return true;
     if (jj_3R_19()) return true;
+    return false;
+  }
+
+  private boolean jj_3_1()
+ {
+    if (jj_3R_16()) return true;
     return false;
   }
 
@@ -1603,10 +1623,10 @@ error_recover(ex, NEWLINE);
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xc,0xc,0xc,0xc,0x40000,0x140,0xc,0x7800,0x0,0xf800,0x0,0x0,0x3043c,0x3043c,0x140,0xc,0xc,0x30,0x80,0x100000,0xc,0xc,0x30,0xc,0xc,0x40000,0x30,0xc,0xc,0x0,0x30,0x80000,0x10000000,0x0,0x0,0x0,0x0,0x0,0x40000000,0x0,0x0,0x80000,0xc000000,0xc000000,0x30000000,0x30000000,0x48100010,};
+      jj_la1_0 = new int[] {0xc,0xc,0xc,0xc,0x40000,0x140,0xc,0x7800,0x0,0x0,0x0,0x1f800,0x2043c,0x2043c,0x140,0xc,0xc,0x30,0x80,0x100000,0xc,0xc,0x30,0xc,0xc,0x40000,0x30,0xc,0xc,0x0,0x30,0x80000,0x10000000,0x0,0x0,0x0,0x0,0x0,0x40000000,0x0,0x0,0x80000,0xc000000,0xc000000,0x30000000,0x30000000,0x48100010,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x0,0x1,0x1,0x300000,0x300000,0x0,0x0,0x0,0x17ffe0,0x0,0x200000,0x0,0x0,0x17ffe0,0x0,0x0,0x0,0x17ffe0,0x0,0x0,0x1,0x0,0x0,0x0,0x7ffe0,0x1e,0x1e,0x1e,0x1,0x0,0x1e,0x100000,0x1e,0x0,0x0,0x0,0x0,0x200000,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x1,0x0,0x300000,0x300000,0x0,0x0,0x0,0x17ffe0,0x0,0x200000,0x0,0x0,0x17ffe0,0x0,0x0,0x0,0x17ffe0,0x0,0x0,0x1,0x0,0x0,0x0,0x7ffe0,0x1e,0x1e,0x1e,0x1,0x0,0x1e,0x100000,0x1e,0x0,0x0,0x0,0x0,0x200000,};
    }
   final private JJCalls[] jj_2_rtns = new JJCalls[1];
   private boolean jj_rescan = false;

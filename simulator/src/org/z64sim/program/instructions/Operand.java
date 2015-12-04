@@ -11,7 +11,7 @@ package org.z64sim.program.instructions;
  */
 public abstract class Operand {
 
-    protected final int size;
+    protected int size;
 
     public Operand(int size) {
         this.size = size;
@@ -19,6 +19,10 @@ public abstract class Operand {
 
     public int getSize() {
         return this.size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
     }
 
     // toString() must be explicitly re-implemented

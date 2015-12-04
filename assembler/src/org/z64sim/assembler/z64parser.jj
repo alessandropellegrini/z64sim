@@ -83,6 +83,14 @@ public class Assembler {
     private int getSuffixSize(String mnemonic) {
         String suffix = mnemonic.substring(mnemonic.length() - 1);
 
+        // Some instructions would allow no suffix, but they end with a char which
+        // could be interpreted as a suffix by this function. These cases are
+        // handled here, before checking the suffix.
+        switch(mnemonic) {
+            case "call":
+                return 64;
+        }
+
         if(suffix.equals("b"))
             return 8;
         else if(suffix.equals("w"))
@@ -95,6 +103,14 @@ public class Assembler {
     }
 
     private String stripSuffix(String mnemonic) {
+        // Some instructions would allow no suffix, but they end with a char which
+        // could be interpreted as a suffix by this function. These cases are
+        // handled here, before checking the suffix.
+        switch(mnemonic) {
+            case "call":
+                return mnemonic;
+        }
+
         if(getSuffixSize(mnemonic) != -1)
             return mnemonic.substring(0, mnemonic.length() - 1);
         return mnemonic;
@@ -435,22 +451,26 @@ void Data() :
 
                         // Add the label
                         l = t1.image.substring(0, t1.image.length()-1);
-                         this.program.newLabel(l, addr);
+                        this.program.newLabel(l, addr);
+                       }
+                     | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
+                       {
+                          // Value is the third optional parameter
+                          if(value == -1)
+                              value = 0;
+
+                          // Size is the second optional parameter
+                          if(size == -1)
+                              size = 1;
+
+                          // Create 'repeat' DataElements set to value
+                          long addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
+
+                          // Add the label
+                          l = t1.image.substring(0, t1.image.length()-1);
+                          this.program.newLabel(l, addr);
                        }
                   )
-                | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
-                  {
-                    // Value is the third optional parameter
-                    if(value == -1)
-                        value = 0;
-
-                    // Size is the second optional parameter
-                    if(size == -1)
-                        size = 1;
-
-                    // Create 'repeat' DataElements set to value
-                    this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
-                  }
                 | <COMM_ASSIGN> t1 = <LABEL_NAME> "," size = Expression()
                   {
                     // .comm assigns to zero
@@ -983,7 +1003,10 @@ Operand FormatB(int size) :
 
         /* ACTUAL RULE */
           imm = ConstantExpression()
-          { return imm; }
+          {
+            imm.setSize(size); // The size of an immediate depends on the instruction suffix
+            return imm;
+          }
         |
           reg = FormatG()
           { return reg; }

@@ -10,7 +10,13 @@ public class OperandImmediate extends Operand {
     private long value;
 
     public OperandImmediate(long value) {
-        super(8); // An immediate is always 8 bytes long
+        super(32);
+        // Basically an immediate is 32-bit long, except when it cannot
+        // be represented using 32 bits (!!!)
+        if(value > Integer.MAX_VALUE) {
+            this.setSize(64);
+        }
+
         this.value = value;
     }
 
