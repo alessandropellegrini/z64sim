@@ -7,6 +7,7 @@ package org.z64sim.assembler;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import static org.testng.Assert.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -15,12 +16,18 @@ import org.testng.annotations.Test;
 
 /**
  *
- * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
+ * @author pellegrini
  */
-public class AssemblerNGTest {
-
-    public AssemblerNGTest() {
+public class AssemblerTestNGTest {
+    
+    public AssemblerTestNGTest() {
     }
+
+    // TODO add test methods here.
+    // The methods must be annotated with annotation @Test. For example:
+    //
+    // @Test
+    // public void hello() {}
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -37,7 +44,7 @@ public class AssemblerNGTest {
     @AfterMethod
     public void tearDownMethod() throws Exception {
     }
-
+    
     @Test
     public void testLexer() throws FileNotFoundException {
 

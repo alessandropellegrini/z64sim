@@ -392,6 +392,7 @@ void Data() :
     Token t1, t2;
     long value = -1;
     long repeat, size = -1; // Used for fill assignments
+    long addr;
     int elementSize;
     byte[] data;
     String l;
@@ -437,7 +438,7 @@ void Data() :
                        )*
                        {
                         // Put data in memory
-                        long addr = this.program.addData(data);
+                        addr = this.program.addData(data);
 
                          // Add the label, remove trailing ':'
                          l = t1.image.substring(0, t1.image.length()-1);
@@ -447,7 +448,7 @@ void Data() :
                        {
                          // Put data in memory
                          byte[] str = t2.image.substring(1, t2.image.length() - 1).getBytes();
-                         long addr = this.program.addData(str);
+                         addr = this.program.addData(str);
 
                         // Add the label
                         l = t1.image.substring(0, t1.image.length()-1);
@@ -464,7 +465,7 @@ void Data() :
                               size = 1;
 
                           // Create 'repeat' DataElements set to value
-                          long addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
+                          addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
 
                           // Add the label
                           l = t1.image.substring(0, t1.image.length()-1);
@@ -474,7 +475,7 @@ void Data() :
                 | <COMM_ASSIGN> t1 = <LABEL_NAME> "," size = Expression()
                   {
                     // .comm assigns to zero
-                    long addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
+                    addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
                     l = t1.image.substring(0, t1.image.length()-1);
                     this.program.newLabel(l, addr);
                   }
@@ -815,90 +816,74 @@ OperandRegister Register() :
     }
 }
 
-
-OperandMemory Addressing(int size) :
+OperandMemory AddressingBIS(int size) :
 {
-    OperandMemory mem;
-    int base = -1;
-    int base_size = -1;
-    int index = -1;
-    int index_size = -1;
-    int scale = -1;
-    int displacement = -1;
-    long dispLong;
-    Token t;
+    OperandRegister base = null;
+    Token index = null;
+    Token scale = null;
 }
 {
     try {
 
-        /* ACTUAL RULE */
-        ( LOOKAHEAD(2) dispLong = Expression()
-            { displacement = (int)dispLong; }
-        )?
-        ( <LBRACE>
-         (
-                t = <REG_8>
-                {
-                    base = Register.getRegister8( t.image );
-                    base_size = 8;
-                }
-              |
-                t = <REG_16>
-                {
-                    base = Register.getRegister16( t.image );
-                    base_size = 16;
-                }
-              |
-                t = <REG_32>
-                {
-                    base = Register.getRegister32( t.image );
-                    base_size = 32;
-                }
-              |
-                t = <REG_64>
-                {
-                    base = Register.getRegister64( t.image );
-                    base_size = 64;
-                }
-        )
-            ("," (
-                t = <REG_8>
-                {
-                    index = Register.getRegister8( t.image );
-                    index_size = 8;
-                }
-              |
-                t = <REG_16>
-                {
-                    index = Register.getRegister16( t.image );
-                    index_size = 16;
-                }
-              |
-                t = <REG_32>
-                {
-                    index = Register.getRegister32( t.image );
-                    index_size = 32;
-                }
-              |
-                t = <REG_64>
-                {
-                    index = Register.getRegister64( t.image );
-                    index_size = 64;
-                }
-                 )
-             ","
-                t = <INTEGER>
-                { scale = Integer.parseInt( t.image ); }
-            )?
-        <RBRACE> )?
+        <LBRACE>
+            ( 
+              ( 
+                base = Register()
+                ("," index = <REG_64> "," scale = <INTEGER>)?
+              )
+            |
+              ("," index = <REG_64> "," scale = <INTEGER>)
+            )
+        <RBRACE>
 
-        { return new OperandMemory(base, base_size, index, index_size, scale, displacement, size); }
+        { 
+            int bs = (base != null ? base.getRegister() : -1);
+            int base_size = (base != null ? base.getSize() : -1);
+            int idx = (index != null ? Register.getRegister64( index.image ) : -1);
+            int scl = (scale != null ? Integer.parseInt(scale.image) : -1);
+
+            // Displacement is set to -1 because this is actually set by the calling
+            // Addressing() rule
+            return new OperandMemory(bs, base_size, idx, scl, -1, size);
+        }
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
         return null; // otherwise javaCC throws exceptions
     }
 }
+
+OperandMemory Addressing(int size) :
+{
+    OperandMemory mem;
+    long dispLong = 0;
+    Token t;
+}
+{
+    try {
+
+        // A lookahead of 2 is required here because a displacement
+        // can be represented as a mathematical expression which can
+        // use parentheses. They thus clash with the base/index
+        // registers. A higher lookaead is not required as the latter
+        // case will find a ',' or a '%' right after the parenthesis.
+        (   LOOKAHEAD(2)
+            ( dispLong = Expression() mem = AddressingBIS(size) )
+            |
+            ( mem = AddressingBIS(size) )
+        )
+        { 
+            mem.setDisplacement((int)dispLong);
+            return mem; 
+        }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
 
 
 Operand FormatE(int size) :
@@ -975,7 +960,7 @@ OperandMemory FormatM(int size) :
             // This is a memory operand with displacement only (pointing
             // to the label's address. The real address will be placed in memory by
             // relocation, at the end of the program's generation.
-            memOp = new OperandMemory(-1, -1, -1, -1, -1, 0, size);
+            memOp = new OperandMemory(-1, -1, -1, -1, 0, size);
             this.program.addRelocationEntry(this.program.getLocationCounter(), l);
          }
        |

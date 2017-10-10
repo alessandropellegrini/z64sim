@@ -15,17 +15,16 @@ public class OperandMemory extends Operand {
     private int displacement = -1;
 
     // In z64 assembly you can say both (%ax) or (%rax) for example, so we must
-    // account fot the size of the base and index registers as well
+    // account fot the size of the base register as well
+    // On the other hand, the index is always a 64-bit register
     private int base_size = -1;
-    private int index_size = -1;
 
-    public OperandMemory(int base, int base_size, int index, int index_size, int scale, int displacement, int size) {
+    public OperandMemory(int base, int base_size, int index, int scale, int displacement, int size) {
         super(size);
 
         this.base = base;
         this.base_size = base_size;
         this.index = index;
-        this.index_size = index_size;
         this.scale = scale;
         this.displacement = displacement;
     }
@@ -42,10 +41,6 @@ public class OperandMemory extends Operand {
         return index;
     }
 
-    public int getIndexSize() {
-        return index_size;
-    }
-
     public long getBase() {
         return base;
     }
@@ -54,11 +49,15 @@ public class OperandMemory extends Operand {
         return base_size;
     }
 
+    public void setDisplacement(int displacement) {
+        this.displacement = displacement;
+    }
+
     public String toString() {
         String representation = "";
 
         if(this.displacement != -1) {
-            representation = representation.concat(String.format("#08x", this.displacement));
+            representation = representation.concat(String.format("$%x", this.displacement));
         }
 
         if(this.base != -1 || this.index != -1) {
@@ -70,7 +69,7 @@ public class OperandMemory extends Operand {
         }
 
         if(this.index != -1) {
-            representation = representation.concat(", " + Register.getRegisterName(this.index, this.index_size));
+            representation = representation.concat(", " + Register.getRegisterName(this.index, 64));
             representation = representation.concat(", " + this.scale);
         }
 
