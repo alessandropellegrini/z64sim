@@ -25,482 +25,264 @@ public class InstructionClass2 extends Instruction {
         // First byte is the opcode
         byte[] encoding = {0b00100000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        
+        byte ss = 0b00000000;
+        byte sd = 0b00000000;
+        byte di = 0b00000000;
+        byte diImm = 0b00000000;
+        byte mem = 0b00000000;
+        int size = 0;
+        
+        System.out.println(s instanceof OperandRegister);
+        System.out.println(d instanceof OperandRegister); 
+        System.out.println(s instanceof OperandMemory); 
+        System.out.println(d instanceof OperandMemory); 
+        System.out.println(s instanceof OperandImmediate); 
+        System.out.println(d instanceof OperandImmediate);
 
-        // Set the size in memory
-        if (s instanceof OperandImmediate && s.getSize() == 8) {
-            this.setSize(16);
-        } else {
-            this.setSize(8);
+
+        
+        if (s instanceof OperandRegister && d instanceof OperandMemory) {
+            mem = 0b00000001;
+            if (((OperandMemory) d).getDisplacement() != -1) {
+                di = 0b00001000;
+                encoding[4] = (byte)((OperandMemory) d).getDisplacement(); // IPOTIZZANDO CHE IL CAST TRONCHI
+                encoding[5] = (byte)(((OperandMemory) d).getDisplacement() >>8);
+                encoding[6] = (byte)(((OperandMemory) d).getDisplacement() >>16);
+                encoding[7] = (byte)(((OperandMemory) d).getDisplacement() >>24);
+            } else {
+                di = 0b00000000;
+            }
+        } else if (s instanceof OperandMemory && d instanceof OperandRegister) {
+            mem = 0b00000010;
+            if (((OperandMemory) s).getDisplacement() != -1) {
+                di = 0b00001000;
+                encoding[4] = (byte)((OperandMemory) s).getDisplacement(); // IPOTIZZANDO CHE IL CAST TRONCHI
+                encoding[5] = (byte)(((OperandMemory) s).getDisplacement() >> 8);
+                encoding[6] = (byte)(((OperandMemory) s).getDisplacement() >> 16);
+                encoding[7] = (byte)(((OperandMemory) s).getDisplacement() >> 24);
+            } else {
+                di = 0b00000000;
+            }
+        } else if (s instanceof OperandRegister && d instanceof OperandRegister) {
+            mem = 0b00000000;
+            di = 0b00000000;
         }
+
+        if (s instanceof OperandImmediate) {
+            diImm = 0b00000100;
+            OperandImmediate sorg = (OperandImmediate) s;
+            if (sorg.getSize() <= 32 && di != 0b00001000) {
+                //Metti nel displacement da 4 byte
+                encoding[4] = (byte)((OperandImmediate) s).getValue(); // IPOTIZZANDO CHE IL CAST TRONCHI
+                encoding[5] = (byte)((((OperandImmediate) s).getValue()) >> 8);
+                encoding[6] = (byte)((((OperandImmediate) s).getValue()) >> 16);
+                encoding[7] = (byte)((((OperandImmediate) s).getValue()) >> 24);
+                
+            } else {
+                encoding[8] = (byte)((OperandImmediate)s).getValue();
+                encoding[9] = (byte)((((OperandImmediate) s).getValue()) >> 8);
+                encoding[10] = (byte)((((OperandImmediate) s).getValue()) >> 16);
+                encoding[11] = (byte)((((OperandImmediate) s).getValue()) >> 24);
+                encoding[12] = (byte)((((OperandImmediate) s).getValue()) >> 32);
+                encoding[13] = (byte)((((OperandImmediate) s).getValue()) >> 40);
+                encoding[14] = (byte)((((OperandImmediate) s).getValue()) >> 48);
+                encoding[15] = (byte)((((OperandImmediate) s).getValue()) >> 56);      
+            }
+        }
+        if(s!=null){
+            switch (s.getSize()) {
+                case 8:
+                    ss = 0b00000000;
+                    break;
+                case 16:
+                    ss = 0b01000000;
+                    break;
+                case 32:
+                    ss = (byte) 0b10000000;
+                    break;
+                case 64:
+                    ss = (byte) 0b11000000;
+                    break;
+                default:
+                    ss = 0b00000000;
+            }
+        }
+        if(d!=null){
+            switch (d.getSize()) {
+                case 8:
+                    sd = 0b00000000;
+                    break;
+                case 16:
+                    sd = 0b00010000;
+                    break;
+                case 32:
+                    sd = 0b00100000;
+                    break;
+                case 64:
+                    sd = 0b00110000;
+                    break;
+                default:
+                    sd = 0b00000000;
+            }
+        }
+       
+        //MODE
+        encoding[1] = (byte) (ss | sd | diImm | di | mem);
+        
+        //SIB
+        byte Bp = 0b00000000;
+        byte Ip = 0b00000000;
+        byte Scale = 0b00000000;
+        byte reg = 0b00000000;
+        
+        
+        if(s instanceof OperandMemory || d instanceof OperandMemory){
+            Bp = (byte) 0b10000000;
+            Ip = 0b01000000;
+        }
+        if( s instanceof OperandMemory){
+            switch (((OperandMemory) s).getScale()){
+                case 1:
+                    Scale = 0b00000000;
+                    break;
+                case 2:
+                    Scale = 0b00010000;
+                    break;
+                case 4:
+                    Scale = 0b00100000;
+                    break;
+                case 8:
+                    Scale = 0b00110000;
+                    break;
+                default: Scale = 0b00000000;
+            }
+            reg = (byte) ((OperandMemory)s).getIndex();
+        }
+        if( d instanceof OperandMemory){
+            switch (((OperandMemory) d).getScale()){
+                case 1:
+                    Scale = 0b00000000;
+                    break;
+                case 2:
+                    Scale = 0b00010000;
+                    break;
+                case 4:
+                    Scale = 0b00100000;
+                    break;
+                case 8:
+                    Scale = 0b00110000;
+                    break;
+                default: Scale = 0b00000000;
+
+            }
+            reg = (byte) ((OperandMemory)d).getIndex();
+        }
+        
+        encoding[2] = (byte) (Bp | Ip | Scale | reg);
+        
+        //R-M    
+        byte sour = 0b00000000;
+        byte dest = 0b00000000;
+        
+        if(s instanceof OperandMemory) {
+            sour = (byte)(((OperandMemory)s).getBase() << 4);
+        } else if(s instanceof OperandRegister) {
+            sour = (byte) (((OperandRegister)s).getRegister() << 4);
+        }
+        
+        if(d instanceof OperandMemory) {
+            dest = (byte)(((OperandMemory)d).getBase());
+        } else if(d instanceof OperandRegister) {
+            dest = (byte) (((OperandRegister)d).getRegister());
+        }
+       
+        encoding[3] = (byte) (sour | dest);
+        
 
         switch (mnemonic) {
             case "add":
                 this.type = 0x00;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                }
-                if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP1, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP1, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMARm));
-                }
                 break;
             case "sub":
-                encoding[0] = (byte) (encoding[0] | 0x01);
                 this.type = 0x01;
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                } else if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP1));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP2, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB, MicroOperation.TEMP2, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMARm));
-                }
                 break;
             case "adc":
-                encoding[0] = (byte) (encoding[0] | 0x02);
                 this.type = 0x02;
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADC, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                }
-                if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP1, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADC, MicroOperation.TEMP1, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMARm));
-                }
                 break;
-
             case "sbb":
-                encoding[0] = (byte) (encoding[0] | 0x03);
                 this.type = 0x03;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SBB, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                } else if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP1));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP2, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SBB, MicroOperation.TEMP2, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMARm));
-                }
                 break;
             case "cmp":
-                encoding[0] = (byte)(encoding[0] | 0x04);
                 this.type = 0x04;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB, MicroOperation.TEMP3, MicroOperation.SR_UPDATE1));
-                } else if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP1));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP2, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB, MicroOperation.TEMP3, MicroOperation.SR_UPDATE1));
-                }
                 break;
             case "test":
-                encoding[0] = (byte)(encoding[0] | 0x05);
                 this.type = 0x05;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_AND, MicroOperation.TEMP3, MicroOperation.SR_UPDATE1));
-                }
-                if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP1, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_AND, MicroOperation.TEMP3, MicroOperation.SR_UPDATE1));
-                }
                 break;
             case "neg":
-                encoding[0] = (byte)(encoding[0] | 0x06);
                 this.type = 0x06;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_NEG, MicroOperation.EMARm, MicroOperation.SR_UPDATE1));
-                }
                 break;
             case "and":
-                encoding[0] = (byte)(encoding[0] | 0x07);
                 this.type = 0x07;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_AND, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                }
-                if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP1, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.TEMP2));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_AND, MicroOperation.TEMP1, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMARm));
-                }
                 break;
             case "or":
-                encoding[0] = (byte)(encoding[0] | 0x08);
                 this.type = 0x08;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_OR, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                }
-                if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP1, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.TEMP2));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_OR, MicroOperation.TEMP1, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMARm));
-                }
                 break;
             case "xor":
-                encoding[0] = (byte)(encoding[0] | 0x09);
                 this.type = 0x09;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.D, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_XOR, MicroOperation.D, MicroOperation.SR_UPDATE1));
-                }
-                if (destination instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) d;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (source instanceof OperandImmediate) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.TEMP1, MicroOperation.RIP8, MicroOperation.RIP));
-                    }
-                    if (source instanceof OperandRegister) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.S, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.TEMP2));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_XOR, MicroOperation.TEMP1, MicroOperation.SR_UPDATE1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP1, MicroOperation.EMARm));
-                }
                 break;
             case "not":
-                encoding[0] = (byte)(encoding[0] | 0x0a);
                 this.type = 0x0a;
-
-                if (source instanceof OperandMemory) {
-                    OperandMemory o = (OperandMemory) s;
-                    if (o.getIndex() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.I, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.SHIFTER_OUT_SX_T, MicroOperation.TEMP2, MicroOperation.SR_UPDATE0));
-                    }
-                    if (o.getBase() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.B, MicroOperation.TEMP1));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP2));
-                    }
-                    if (o.getDisplacement() != -1) {
-                        this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.TEMP2));
-                        this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD, MicroOperation.TEMP1));
-                    }
-                    this.addMicroOperation(new MicroOperation(MicroOperation.TEMP2, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_NOT, MicroOperation.EMARm, MicroOperation.SR_UPDATE1));
-                }
+                break;
+            case "bt":
+                this.type = 0x0b;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 2 instruction: " + mnemonic);
         }
+        
+        if (s instanceof OperandImmediate && s.getSize() > 32 || (s instanceof OperandMemory &&
+                (byte)((OperandMemory) s).getDisplacement()!=-1) || (d instanceof OperandMemory &&
+                (byte)((OperandMemory) d).getDisplacement()!=-1)) {
+            size = 16;
+        }else {
+            size = 8;
+        }
+        
+        this.setSize(size);
+        encoding[0] = (byte)(encoding[0] | this.type);
+        this.setValue(encoding);
+        
+        System.out.println("encoding[0]: "+encoding[0]);
+        System.out.println("type "+this.type);
+        System.out.println("ss: "+ss);
+        System.out.println("sd: "+sd);
+        System.out.println("di: "+di);
+        System.out.println("diImm: "+diImm);
+        System.out.println("mem: "+mem);
+        System.out.println("bp: "+Bp);
+        System.out.println("ip: "+Ip);
+        System.out.println("scale: "+Scale);
+        System.out.println("Reg: "+reg);
+        System.out.println("source: "+sour); 
+        System.out.println("dest: "+dest);
+        
+        /*System.out.println("encoding[1]: "+encoding[1]);
+        System.out.println("encoding[2]: "+encoding[2]);
+        System.out.println("encoding[3]: "+encoding[3]);*/
+        System.out.println("encoding[4]: "+encoding[4]);
+        System.out.println("encoding[5]: "+encoding[5]);
+        System.out.println("encoding[6]: "+encoding[6]);
+        System.out.println("encoding[7]: "+encoding[7]);
+        System.out.println("encoding[8]: "+encoding[8]);
+        System.out.println("encoding[9]: "+encoding[9]);
+        System.out.println("encoding[10]: "+encoding[10]);
+        System.out.println("encoding[11]: "+encoding[11]);
+        System.out.println("encoding[12]: "+encoding[12]);
+        System.out.println("encoding[13]: "+encoding[13]);
+        System.out.println("encoding[14]: "+encoding[14]);
+        System.out.println("encoding[15]: "+encoding[15]);
+        
     }
 
     @Override
@@ -511,7 +293,7 @@ public class InstructionClass2 extends Instruction {
     @Override
     public String toString() {
         String mnem = this.mnemonic;
-
+        
         if (this.source != null) {
             mnem = mnem.concat(this.source.toString());
         }
@@ -519,7 +301,26 @@ public class InstructionClass2 extends Instruction {
         if (this.destination != null) {
             mnem = mnem.concat(", " + this.destination.toString());
         }
+        
+        if (this.getSize() != -1) {
+            switch (this.getSize()) {
+                case 8:
+                    mnem = mnem.concat("b");
+                    break;
+                case 16:
+                    mnem = mnem.concat("w");
+                    break;
+                case 32:
+                    mnem = mnem.concat("l");
+                    break;
+                case 64:
+                    mnem = mnem.concat("q");
+                    break;
+                default:
+                    throw new RuntimeException("Implicit Size of Class 1 instruction is set, yet to a wrong value");
 
+            }
+        }
         return mnem;
     }
 

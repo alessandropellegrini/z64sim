@@ -20,76 +20,61 @@ public class InstructionClass6 extends Instruction {
     public InstructionClass6(String mnemonic, OperandMemory t) {
         super(mnemonic, 6);
         this.bit = 0; /* depends on the mnemonic */
-
         this.target = t;
+        
+        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // Set the size in memory
         this.setSize(8);
+        byte dest = 0b00000000;
+        byte sour = 0b00000000;
+        dest = (byte)(((OperandMemory)target).getBase());
+        
+        encoding[3] = (byte) (sour | dest);
 
         switch (mnemonic) {
             case "jc":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x00;
                 break;
             case "jp":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_PF_1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x01;
                 break;
             case "jz":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_ZF_1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x02;
                 break;
             case "js":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_SF_1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x03;
                 break;
             case "jo":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_OF_1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x04;
                 break;
             case "jnc":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_0));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x05;
                 break;
             case "jnp":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_PF_0));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x06;
                 break;
             case "jnz":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_ZF_0));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x07;
                 break;
             case "jns":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_SF_0));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-                break;
+                this.type = 0x08;
+                 break;
             case "jno":
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_OF_0));
-                this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                this.type = 0x09;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 6 instruction: " + mnemonic);
         }
+        
+        encoding[0] = (byte)(encoding[0] | this.type);
+        this.setValue(encoding);
+        
+        System.out.println("encoding[4]: "+encoding[4]);
+        System.out.println("encoding[5]: "+encoding[5]);
+        System.out.println("encoding[6]: "+encoding[6]);
+        System.out.println("encoding[7]: "+encoding[7]);
+       
     }
 
     @Override

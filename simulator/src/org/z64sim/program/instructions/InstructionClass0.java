@@ -29,17 +29,14 @@ public class InstructionClass0 extends Instruction {
             case "hlt":
                 encoding[0] = 0x01;
                 this.type = 0x01;
-                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
                 break;
             case "nop":
                 encoding[0] = 0x02;
                 this.type = 0x02;
-                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
                 break;
+            case "int":
+		encoding[0] = 0x03;
+		this.type = 0x03;
             default:
                 throw new RuntimeException("Unknown Class 0 instruction: " + mnemonic);
         }

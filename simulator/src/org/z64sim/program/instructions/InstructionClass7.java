@@ -20,29 +20,40 @@ public class InstructionClass7 extends Instruction {
         this.transfer_size = size;
 
         byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+        
+        byte di = 0b00000000;
+        byte diImm = 0b00000000;
+        byte mem = 0b00000000;
+        byte ss = (byte)transfer_size;
+        byte ds = (byte)transfer_size;
+        
+        encoding[1] = (byte) (ss | ds | diImm | di | mem);
+        
         switch(mnemonic) {
             case "in":
-                encoding[0] |= (byte)0b10000000;
                 this.type = 0x00;
                 break;
             case "out":
-                encoding[0] |= (byte)0b10000001;
                 this.type = 0x01;
                 break;
             case "ins":
-                encoding[0] |= (byte)0b10000010;
                 this.type = 0x02;
                 break;
             case "outs":
-                encoding[0] |= (byte)0b10000011;
                 this.type = 0x03;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 7 instruction: " + mnemonic);
         }
-
+        
+        encoding[0] = (byte)(encoding[0] | this.type);
         this.setValue(encoding);
+        
+        System.out.println("encoding[4]: "+encoding[4]);
+        System.out.println("encoding[5]: "+encoding[5]);
+        System.out.println("encoding[6]: "+encoding[6]);
+        System.out.println("encoding[7]: "+encoding[7]);
+        
     }
 
     @Override
@@ -52,7 +63,24 @@ public class InstructionClass7 extends Instruction {
 
     @Override
     public String toString() {
-        return this.mnemonic;
+        String mnem = this.mnemonic;
+        
+        
+            switch (this.transfer_size) {
+                case 8:
+                    mnem = mnem.concat("b");
+                    break;
+                case 16:
+                    mnem = mnem.concat("w");
+                    break;
+                case 32:
+                    mnem = mnem.concat("l");
+                    break;
+                default:
+                    throw new RuntimeException("Implicit Size of Class 1 instruction is set, yet to a wrong value");
+
+        }
+        return mnem;     
     }
 
 }

@@ -15,7 +15,7 @@ import org.z64sim.program.muops.MicroOperation;
 public class InstructionClass4 extends Instruction {
 
     private final byte bit;
-    private final byte val;
+    private byte val;
 
     public InstructionClass4(String mnemonic) {
         super(mnemonic, 4);
@@ -30,80 +30,74 @@ public class InstructionClass4 extends Instruction {
 
         switch (mnemonic) {
             case "clc":
-                encoding[0] = 0b01000000;
                 this.type = 0x00;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_R));
+                this.val = 0;
                 break;
             case "clp":
-                encoding[0] = 0b01000001;
                 this.type = 0x01;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_PF_R));
+                this.val = 0;
                 break;
-            case "clz":
-                encoding[0] = 0b01000010;
+            case "clz":            
                 this.type = 0x02;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_ZF_R));
+                this.val = 0;
                 break;
             case "cls":
-                encoding[0] = 0b01000011;
                 this.type = 0x03;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_SF_R));
+                this.val = 0;
                 break;
             case "cli":
-                encoding[0] = 0b01000100;
                 this.type = 0x04;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_IF_R));
+                this.val = 0;
                 break;
             case "cld":
-                encoding[0] = 0b01000101;
                 this.type = 0x05;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_DF_R));
+                this.val = 0;
                 break;
             case "clo":
-                encoding[0] = 0b01000110;
                 this.type = 0x06;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_OF_R));
+                this.val = 0;
                 break;
             case "stc":
-                encoding[0] = 0b01000111;
                 this.type = 0x07;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_R));
+                this.val = 1;
                 break;
             case "stp":
-                encoding[0] = 0b01001000;
                 this.type = 0x08;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_PF_S));
+                this.val = 1;
                 break;
             case "stz":
-                encoding[0] = 0b01001001;
                 this.type = 0x09;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_ZF_S));
+                this.val = 1;
                 break;
             case "sts":
-                encoding[0] = 0b01001010;
                 this.type = 0x0a;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_SF_S));
+                this.val = 1;
                 break;
             case "sti":
-                encoding[0] = 0b01001011;
                 this.type = 0x0b;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_IF_S));
+                this.val = 1;
                 break;
             case "std":
-                encoding[0] = 0b01001100;
                 this.type = 0x0c;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_DF_S));
+                this.val = 1;
                 break;
             case "sto":
-                encoding[0] = 0b01001101;
                 this.type = 0x0d;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_OF_S));
+                this.val = 1;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
-
+        
+        encoding[0] = (byte)(encoding[0] | this.type);
         this.setValue(encoding);
+        System.out.println(val);
+        
+        System.out.println("encoding[4]: "+encoding[4]);
+        System.out.println("encoding[5]: "+encoding[5]);
+        System.out.println("encoding[6]: "+encoding[6]);
+        System.out.println("encoding[7]: "+encoding[7]);
+        
     }
 
     @Override

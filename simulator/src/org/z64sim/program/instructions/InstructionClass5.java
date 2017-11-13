@@ -19,63 +19,77 @@ public class InstructionClass5 extends Instruction {
     public InstructionClass5(String mnemonic, Operand t) {
         super(mnemonic, 5);
         this.target = t;
+        
+        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // Set the size in memory
         this.setSize(8);
-
+        
+        byte sour = 0b00000000;
+        byte dest = 0b00000000;
+        byte sd = 0b00000000;
+        
+        if(t!=null){
+            switch (t.getSize()) {
+                case 8:
+                    sd = 0b00000000;
+                    break;
+                case 16:
+                    sd = 0b00010000;
+                    break;
+                case 32:
+                    sd = 0b00100000;
+                    break;
+                case 64:
+                    sd = 0b00110000;
+                    break;
+            }
+        }
+        if(t!=null){
+            if(t instanceof OperandMemory)
+                dest = (byte) (((OperandMemory)t).getBase());
+            else {
+                dest = (byte)(((OperandRegister)t).getRegister());
+            }
+        }
+        encoding[3] = (byte) (sour | dest);
+        
         switch (mnemonic) {
-            case "jmp":
-                if (target instanceof OperandMemory) {
-                    this.addMicroOperation(new MicroOperation(MicroOperation.IR031, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-                } else if (target instanceof OperandRegister) {
-                    this.addMicroOperation(new MicroOperation(MicroOperation.R, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+            case "jmp": 
+                if(t instanceof OperandMemory){
+                    this.type = 0x00;
+                }else{
+                    this.type = 0x01;
                 }
                 break;
             case "call":
-                if (target instanceof OperandMemory) {
-                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB_8, MicroOperation.RSP));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.M, MicroOperation.RIP));
-                } else if (target instanceof OperandRegister) {
-                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_SUB_8, MicroOperation.RSP));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.EMARm));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.R, MicroOperation.EMAR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                    this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
+                if(t instanceof OperandMemory){
+                    this.type = 0x02;
+                }else{
+                    this.type = 0x03;
                 }
-                break;
             case "ret":
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
+                this.type = 0x04;
                 break;
             case "iret":
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.FLAGS));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.RIP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.RSP, MicroOperation.TEMP1));
-                this.addMicroOperation(new MicroOperation(MicroOperation.ALU_OUT_ADD_8, MicroOperation.RSP));
+                this.type = 0x05;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
+        
+        encoding[0] = (byte)(encoding[0] | this.type);
+        this.setValue(encoding);
+        System.out.println("dest:"+dest);
+        System.out.println(t instanceof OperandMemory);
+        System.out.println(t instanceof OperandRegister);
+        System.out.println(t instanceof OperandImmediate);
+        System.out.println(t == null);
+        System.out.println("encoding[4]: "+encoding[4]);
+        System.out.println("encoding[5]: "+encoding[5]);
+        System.out.println("encoding[6]: "+encoding[6]);
+        System.out.println("encoding[7]: "+encoding[7]);
+        
     }
 
     @Override

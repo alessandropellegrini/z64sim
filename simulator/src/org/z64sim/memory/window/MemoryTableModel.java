@@ -66,7 +66,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
         MemoryElement el = Memory.getElementFromAddress(address);
         byte value[] = el.getValue();
         ByteBuffer wrapped = ByteBuffer.wrap(value);
-        wrapped.order(ByteOrder.LITTLE_ENDIAN);
+        //wrapped.order(ByteOrder.LITTLE_ENDIAN);
 
 
         switch(columnIndex) {
