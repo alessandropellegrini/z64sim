@@ -291,8 +291,10 @@ TOKEN:
             | "sar"
             | "shr"
             | "rcl"
+            | "rcr"
             | "rol"
             | "ror")("b"|"w"|"l"|"q")?>
+| <INSN_BT: ("bt")("b"|"w"|"l"|"q")?>
 | <INSN_1_M: ("jc"
             | "jp"
             | "jz"
@@ -658,6 +660,15 @@ Instruction Instruction() :
             insn = new InstructionClass3(stripSuffix(t.image), i, (OperandRegister)op1);
         }
       |
+        t = <INSN_BT> { size = getSuffixSize( t.image ); }
+            i = FormatK() <COMMA> op2 = FormatE(size)
+        {
+            op1 = new OperandImmediate(i);
+            
+            // Shift instructions belong all to class 3
+            insn = new InstructionClass2(stripSuffix(t.image), op1, op2);
+        }
+      |
         t = <INSN_1_M>  { size = getSuffixSize( t.image ); }
         op1 = FormatM(size)
         {
@@ -697,7 +708,7 @@ Instruction Instruction() :
         op1 = FormatE(size) <COMMA> op2 = FormatG()
         {
             sizeExt = getSuffixSize(t.image);
-            mnemonic = stripSuffix(t.image);
+            mnemonic = stripSuffix(stripSuffix(t.image)); // This instruction has two suffixes
 
             // Sanity check
             if(op1.getSize() != size || op2.getSize() != sizeExt)
@@ -706,10 +717,10 @@ Instruction Instruction() :
             if(size >= sizeExt)
                 throw new ParseException("Line " + t.beginLine + ": Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);
 
-            insn = new InstructionClass1(mnemonic, op1, op2, -1);
+            insn = new InstructionClass1(mnemonic+"X", op1, op2, -1);
         }
       |
-        t = <INSN_LEA> { size = getSourceSuffixSize( t.image ); }
+        t = <INSN_LEA> { size = getSuffixSize( t.image ); }
         op1 = FormatE(size) <COMMA> op2 = FormatE(size)
         {
             mnemonic = stripSuffix(t.image);
@@ -723,7 +734,7 @@ Instruction Instruction() :
       |
         t = <INSN_IN> t2 = <REG_16> <COMMA> op1 = Register() /* programmatically check for registers */
         {
-            size = getSourceSuffixSize( t.image );
+            size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
             if(size > 32)
@@ -737,7 +748,7 @@ Instruction Instruction() :
       |
         t = <INSN_OUT> op1 = Register() <COMMA> t2 = <REG_16> /* programmatically check for registers */
         {
-            size = getSourceSuffixSize( t.image );
+            size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
             if(size > 32)
@@ -757,7 +768,7 @@ Instruction Instruction() :
             if(size == -1)
                 throw new ParseException("Wrong size suffix for instruction " + mnemonic);
 
-            insn = new InstructionClass7(t.image, size);
+            insn = new InstructionClass7(mnemonic, size);
         }
     )
     { return insn; }

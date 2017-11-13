@@ -54,6 +54,8 @@ public class InstructionClass7 extends Instruction {
         System.out.println("encoding[6]: "+encoding[6]);
         System.out.println("encoding[7]: "+encoding[7]);
         
+        this.setSize(8);
+        
     }
 
     @Override
