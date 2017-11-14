@@ -6,7 +6,6 @@
 package org.z64sim.program.instructions;
 
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -23,25 +22,25 @@ public class InstructionClass0 extends Instruction {
         // Set the size in memory
         this.setSize(8);
 
-        byte encoding[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte enc[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         switch (mnemonic) {
             case "hlt":
-                encoding[0] = 0x01;
+                enc[0] = 0x01;
                 this.type = 0x01;
                 break;
             case "nop":
-                encoding[0] = 0x02;
+                enc[0] = 0x02;
                 this.type = 0x02;
                 break;
             case "int":
-		encoding[0] = 0x03;
+		enc[0] = 0x03;
 		this.type = 0x03;
             default:
                 throw new RuntimeException("Unknown Class 0 instruction: " + mnemonic);
         }
 
-        this.setValue(encoding);
+        this.setEncoding(enc);
     }
 
     @Override
@@ -49,9 +48,8 @@ public class InstructionClass0 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        return this.mnemonic;
+    public static String disassemble(long encoding) {
+        return "";
     }
 
 }

@@ -5,20 +5,19 @@
  */
 package org.z64sim.program;
 
-import org.z64sim.memory.MemoryElement;
 import java.util.ArrayList;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
-public abstract class Instruction extends MemoryElement {
+public abstract class Instruction {
 
-    private final ArrayList<MicroOperation> microOps = new ArrayList<>();
     protected final String mnemonic;
     protected final byte clas;
     protected byte type;
+    protected int size;
+    protected byte[] encoding;
 
     public Instruction(String mnemonic, int clas) {
         this.mnemonic = mnemonic;
@@ -26,20 +25,26 @@ public abstract class Instruction extends MemoryElement {
     }
 
     // toString() must be explicitly re-implemented
-    public abstract String toString();
-
-    public void addMicroOperation(MicroOperation muop) {
-        this.microOps.add(muop);
-    }
-
-    @Override
-    public void update() {
-        // Allowing to change the content of instructions allows for a sort of mutagen code.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public static String toString();
 
     public byte getClas() {
         return this.clas;
+    }
+    
+    public void setSize(int size) {
+        this.size = size;
+    }
+    
+    public int getSize() {
+        return this.size;
+    }
+
+    public byte[] getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(byte[] encoding) {
+        this.encoding = encoding;
     }
 
     public abstract void run();

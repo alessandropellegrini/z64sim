@@ -6,7 +6,6 @@
 package org.z64sim.program.instructions;
 
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -22,7 +21,7 @@ public class InstructionClass6 extends Instruction {
         this.bit = 0; /* depends on the mnemonic */
         this.target = t;
         
-        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // Set the size in memory
         this.setSize(8);
@@ -30,7 +29,7 @@ public class InstructionClass6 extends Instruction {
         byte sour = 0b00000000;
         dest = (byte)(((OperandMemory)target).getBase());
         
-        encoding[3] = (byte) (sour | dest);
+        enc[3] = (byte) (sour | dest);
 
         switch (mnemonic) {
             case "jc":
@@ -67,8 +66,8 @@ public class InstructionClass6 extends Instruction {
                 throw new RuntimeException("Unknown Class 6 instruction: " + mnemonic);
         }
         
-        encoding[0] = (byte)(encoding[0] | this.type);
-        this.setValue(encoding);
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
         
         System.out.println("encoding[4]: "+encoding[4]);
         System.out.println("encoding[5]: "+encoding[5]);

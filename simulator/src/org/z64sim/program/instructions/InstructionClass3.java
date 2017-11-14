@@ -6,7 +6,6 @@
 package org.z64sim.program.instructions;
 
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -22,12 +21,9 @@ public class InstructionClass3 extends Instruction {
         this.places = p;
         this.reg = r;
 
-        // Set the size in memory
-        int size = 0;
-
         // First byte is the class
-        byte[] encoding = {0b00110000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] enc = {0b00110000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        this.setSize(8);
        
         byte ss = 0b00000000;
         byte sd = 0b00000000;
@@ -51,7 +47,7 @@ public class InstructionClass3 extends Instruction {
         }
         if(places == -1) sd = ss;
         //MODE
-        encoding[1] = (byte) (ss | sd | diImm | di | mem);
+        enc[1] = (byte) (ss | sd | diImm | di | mem);
         
         //SIB
         byte Bp = 0b00000000;
@@ -59,23 +55,14 @@ public class InstructionClass3 extends Instruction {
         byte Scale = 0b00000000;
         byte Reg = 0b00000000;
         
-        encoding[2] = (byte) (Bp | Ip | Scale | Reg);
+        enc[2] = (byte) (Bp | Ip | Scale | Reg);
         
         //R-M
-        
         byte sour = 0b00000000;
         byte dest = 0b00000000;
-        if(places == -1){
-            sour = (byte) (((OperandRegister)reg).getRegister() << 4);
-            dest =  (byte) (((OperandRegister)reg).getRegister());
-            size = 8;
-        }
-        else{
-            sour = (byte) (((byte) places)<<4);
-            dest = (byte) (((OperandRegister)reg).getRegister());
-            size = 16;
-        }
-        encoding[3] = (byte) (sour | dest);
+        sour = (byte) (((OperandRegister)reg).getRegister() << 4);
+        dest =  (byte) (((OperandRegister)reg).getRegister());
+        enc[3] = (byte) (sour | dest);
 
         switch (mnemonic) {
             case "sal":
@@ -130,8 +117,8 @@ public class InstructionClass3 extends Instruction {
                 throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
         }
         this.setSize(size);
-        encoding[0] = (byte)(encoding[0] | this.type);
-        this.setValue(encoding);
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
         System.out.println("\n\nSTAMPA: "+sour +"\n\n");
         System.out.println("\n\nSTAMPA: "+dest+"\n\n");
         System.out.println("\n Stampa size d "+reg.getSize());

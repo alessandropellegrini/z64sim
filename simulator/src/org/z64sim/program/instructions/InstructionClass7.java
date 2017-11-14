@@ -19,7 +19,7 @@ public class InstructionClass7 extends Instruction {
         super(mnemonic, 7);
         this.transfer_size = size;
 
-        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         
         byte di = 0b00000000;
         byte diImm = 0b00000000;
@@ -27,7 +27,7 @@ public class InstructionClass7 extends Instruction {
         byte ss = (byte)transfer_size;
         byte ds = (byte)transfer_size;
         
-        encoding[1] = (byte) (ss | ds | diImm | di | mem);
+        enc[1] = (byte) (ss | ds | diImm | di | mem);
         
         switch(mnemonic) {
             case "in":
@@ -46,8 +46,8 @@ public class InstructionClass7 extends Instruction {
                 throw new RuntimeException("Unknown Class 7 instruction: " + mnemonic);
         }
         
-        encoding[0] = (byte)(encoding[0] | this.type);
-        this.setValue(encoding);
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
         
         System.out.println("encoding[4]: "+encoding[4]);
         System.out.println("encoding[5]: "+encoding[5]);

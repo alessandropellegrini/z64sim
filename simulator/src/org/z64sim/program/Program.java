@@ -6,9 +6,9 @@
 package org.z64sim.program;
 
 import java.nio.ByteBuffer;
-import org.z64sim.memory.MemoryElement;
-import org.z64sim.memory.DataElement;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.openide.util.Exceptions;
@@ -27,35 +27,24 @@ import org.z64sim.program.instructions.OperandMemory;
  */
 public class Program {
 
-    private final ArrayList<MemoryElement> mMap; // This field is needed only to serialize the object to a file for later reload
+    private byte[] IDT = new byte[0x800];
+    private Deque<Byte> text = new ArrayDeque<Byte>();
+    private Deque<Byte> data = new ArrayDeque<Byte>();
+    
     private Map<String, Long> labels = new LinkedHashMap<>();
     private Map<String, Long> equs = new LinkedHashMap<>();
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
     private long locationCounter = 0;
-    private long _start; // This field is necessary only to serialize the object.
+    
+    public long _start = -1;
+    public long _dataStart = -1;
+    public byte[] program;
+    
+    
 
     public final static int STACK_SIZE = 0x800;
 
     public Program() {
-
-        // Only one program at a time can be loaded in memory
-        Memory.wipeMemory();
-
-        // Point to the Memory class
-        this.mMap = Memory.getMemory();
-
-        // Create element in the memory map for the IDT
-        byte[] quadword = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        for (int i = 0; i < 256; i++) {
-            DataElement el = new DataElement(quadword.clone());
-            try {
-                el.setAddress(i * 8);
-                el.setSize(8);
-            } catch (ProgramException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-            this.mMap.add(el);
-        }
     }
 
     public void finalizeProgram() throws ProgramException {
@@ -66,18 +55,7 @@ public class Program {
         }
 
         // Add stack space
-        byte[] quadword = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        for (int i = 0; i < Program.STACK_SIZE / 8; i++) {
-            DataElement el = new DataElement(quadword.clone());
-            try {
-                el.setAddress(this.locationCounter);
-                el.setSize(8);
-                this.locationCounter += 8;
-            } catch (ProgramException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-            this.mMap.add(el);
-        }
+        // TODO: Add stack space!
 
         // This Program does not need anymore intermediate assemblying
         // information, so we remove references. This is particularly useful
@@ -88,6 +66,14 @@ public class Program {
         this.equs = null;
         this.relocations.clear();
         this.relocations = null;
+        this.IDT = null;
+        this.text.clear();
+        this.text = null;
+        this.data.clear();
+        this.data = null;
+        
+        // Register this as the currently assembled program
+        Memory.setProgram(this);
     }
 
     private long findLabelAddress(String name) {
@@ -119,55 +105,63 @@ public class Program {
         }
 
         // Fill memory in between
-        for (long i = this.locationCounter; i < locationCounter; i++) {
-            Memory.addData(i, (byte) 0x00);
+        long fillSize = locationCounter - this.locationCounter;
+        for(int i = 0; i < fillSize; i++) {
+            this.text.add((byte)0);
         }
-
+        
         this.locationCounter = locationCounter;
     }
 
     public void finalizeData() {
+        
+        // Get the initial address of data
+        long initialAddress = this.locationCounter;
 
         // Align instructions to 8 bytes
-        if ((this.locationCounter & 0x07) != 0) {
-            this.locationCounter += 8;
-            this.locationCounter = this.locationCounter & 0xfffffffffffffff8L;
+        if ((initialAddress & 0x07) != 0) {
+            long newAddress = initialAddress;
+            newAddress += 8;
+            newAddress = newAddress & 0xfffffffffffffff8L;
+            
+            // Fill memory in between
+            long fillSize = newAddress - initialAddress;
+            for(int i = 0; i < fillSize; i++) {
+                this.data.add((byte)0);
+            }
+            
         }
-
-        // The next address is the address of the first instruction to be executed
-        this._start = this.locationCounter;
-        Memory.setEntryPoint(this._start);
     }
 
-    public void addInstructionToMemory(Instruction i) throws ProgramException {
+    public void addInstructionToMemory(Instruction insn) throws ProgramException {
+        
+        // Take the first instruction as the entry point
+        if(this._start == -1)
+            this._start = this.locationCounter;
 
         // We must preserve the IDT
         if (this.locationCounter < 0x800) {
             throw new ProgramException("You are trying to put data/instructions over the IDT.");
         }
 
-        try {
-            i.setAddress(this.locationCounter);
-        } catch (Exception e) {
-            throw new ProgramException("Runtime error in the assembler:" + e.getMessage());
+        byte[] bytes = insn.getEncoding();
+        for(int i = 0; i < bytes.length; i++) {
+            this.text.add(bytes[i]);
         }
-
-        // add() can be used only because we prevent instructions to appear before .data section,
-        // so they can be directly pushed at the end of the ArrayList
-        this.mMap.add(i);
-
-        if (i.getSize() == -1) {
-            throw new RuntimeException("Adding an instruction with unspecified size");
-        }
-
-        this.locationCounter += i.getSize();
+        
+        this.locationCounter += bytes.length;
     }
 
     public void newDriver(Integer idn, long address) {
-
-        MemoryElement entry = Memory.getElementFromAddress(idn * 8);
-        byte[] bytes = ByteBuffer.allocate(Long.SIZE / Byte.SIZE).putLong(address).array();
-        entry.setValue(bytes);
+        int offset = idn * 8;
+        this.IDT[offset] = (byte)(address >> 56);
+        this.IDT[offset+2] = (byte)(address >> 48);
+        this.IDT[offset+3] = (byte)(address >> 40);
+        this.IDT[offset+4] = (byte)(address >> 32);
+        this.IDT[offset+5] = (byte)(address >> 24);
+        this.IDT[offset+6] = (byte)(address >> 16);
+        this.IDT[offset+7] = (byte)(address >> 8);
+        this.IDT[offset+8] = (byte)(address);
     }
 
     public void addEqu(String name, Long value) throws ProgramException {
@@ -178,39 +172,49 @@ public class Program {
         this.equs.put(name, value);
     }
 
+    // TODO: missing size of text!!!!!!
     public long addData(byte val) {
-        long address = this.locationCounter;
-        Memory.addData(address, val);
-        this.locationCounter += 1;
-        return address;
+        long addr = this.data.size();
+        this.data.add(val);
+        return addr;
     }
 
     public long addData(short val) {
-        long address = this.locationCounter;
-        Memory.addData(address, val);
-        this.locationCounter += 2;
-        return address;
+        long addr = this.data.size();
+        this.data.add((byte)(val >> 8));
+        this.data.add((byte)val);
+        return addr;
     }
 
     public long addData(int val) {
-        long address = this.locationCounter;
-        Memory.addData(address, val);
-        this.locationCounter += 4;
-        return address;
+        long addr = this.data.size();
+        this.data.add((byte)(val >> 24));
+        this.data.add((byte)(val >> 16));
+        this.data.add((byte)(val >> 8));
+        this.data.add((byte)val);
+        return addr;
     }
 
     public long addData(long val) {
-        long address = this.locationCounter;
-        Memory.addData(address, val);
-        this.locationCounter += 8;
-        return address;
+        long addr = this.data.size();
+        this.data.add((byte)(val >> 56));
+        this.data.add((byte)(val >> 48));
+        this.data.add((byte)(val >> 40));
+        this.data.add((byte)(val >> 32));
+        this.data.add((byte)(val >> 24));
+        this.data.add((byte)(val >> 16));
+        this.data.add((byte)(val >> 8));
+        this.data.add((byte)val);
+        return addr;
     }
 
     public long addData(byte[] val) {
-        long address = this.locationCounter;
-        Memory.addMultiByte(address, val);
-        this.locationCounter += val.length;
-        return address;
+        long addr = this.data.size();
+        // Fill memory in between
+        for(int i = 0; i < val.length; i++) {
+            this.data.add(val[i]);
+        }
+        return addr;
     }
 
     /**
@@ -239,6 +243,9 @@ public class Program {
         }
 
         private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
+            throw new ProgramException("Da implementare!");
+            
+            /*
             // Get target address of the relocation
             long target = findLabelAddress(this.label);
             if (target == -1) {
@@ -249,10 +256,13 @@ public class Program {
             long displacement = target - insn.getAddress() + insn.getSize();
 
             op.relocate(displacement);
+            */
         }
 
         public void relocate() throws ProgramException {
-
+            throw new ProgramException("Da implementare!");
+            
+            /*
             // Get address of the instruction where relocation should be applied
             MemoryElement el = Memory.getElementFromAddress(this.applyTo);
             if (!(el instanceof Instruction)) {
@@ -305,6 +315,7 @@ public class Program {
                 default:
                     throw new ProgramException("Relocating an instruction which does not belong to a relocatable class");
             }
+            */
 
         }
 

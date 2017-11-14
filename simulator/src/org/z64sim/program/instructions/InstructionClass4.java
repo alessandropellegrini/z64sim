@@ -6,7 +6,6 @@
 package org.z64sim.program.instructions;
 
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -26,7 +25,7 @@ public class InstructionClass4 extends Instruction {
         this.setSize(8);
 
         // Will be initialized in the switch case, as well the class
-        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         switch (mnemonic) {
             case "clc":
@@ -89,8 +88,8 @@ public class InstructionClass4 extends Instruction {
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
         
-        encoding[0] = (byte)(encoding[0] | this.type);
-        this.setValue(encoding);
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
         System.out.println(val);
         
         System.out.println("encoding[4]: "+encoding[4]);

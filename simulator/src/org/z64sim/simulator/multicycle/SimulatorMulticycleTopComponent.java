@@ -653,7 +653,7 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
 
     public void checkEnabled() {
         // Check whether there is an assembled file. If not, disable 'run' buttons
-        if (Memory.getEntryPoint() == 0) { // Entry point can never be zero in a real program
+        if (Memory.getProgram() == null || Memory.getProgram()._start == -1) { // Entry point can never be zero in a real program
             this.run.setEnabled(false);
             this.step.setEnabled(false);
             CPU.setRIP(0L);
@@ -662,7 +662,7 @@ public final class SimulatorMulticycleTopComponent extends TopComponent {
             // opened top component when a file is assembled, to reactivate buttons
             this.run.setEnabled(true);
             this.step.setEnabled(true);
-            CPU.setRIP(Memory.getEntryPoint());
+            CPU.setRIP(Memory.getProgram()._start);
         }
     }
 

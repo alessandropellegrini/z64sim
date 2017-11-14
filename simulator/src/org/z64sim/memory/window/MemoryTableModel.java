@@ -14,15 +14,12 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
-import org.z64sim.memory.MemoryElement;
 
 /**
  *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class MemoryTableModel extends AbstractTableModel implements TableModelListener {
-
-    private final ArrayList<MemoryElement> memoryMap = Memory.getMemory();
    
     // These are keys in the bundle file
     private final String[] columnNames = {"MemoryTableModel.address",
@@ -32,10 +29,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
 
     @Override
     public int getRowCount() {
-        if(memoryMap == null)
-            return 0;
-
-        return memoryMap.size();
+        return Memory.getProgram().program.length / 8;
     }
 
     @Override
@@ -50,8 +44,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
 
     @Override
     public boolean isCellEditable(int row, int col) {
-        // Cannot edit an instruction at all, so check if at that address there is one
-        if(Memory.getElementFromAddress(row * 8) instanceof Instruction)
+        if(row < Memory.getProgram()._dataStart)
             return false;
 
         // Only the address and the mnemonic cannot be edited
@@ -61,6 +54,9 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         Object ret;
+        return null;
+        
+        /*
 
         long address = rowIndex * 8; // address is managed at a quadword basis
         MemoryElement el = Memory.getElementFromAddress(address);
@@ -90,6 +86,7 @@ public class MemoryTableModel extends AbstractTableModel implements TableModelLi
                 ret = 0;
         }
         return ret;
+*/
     }
 
     @Override

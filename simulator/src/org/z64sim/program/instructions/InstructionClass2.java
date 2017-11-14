@@ -6,7 +6,6 @@
 package org.z64sim.program.instructions;
 
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -21,17 +20,14 @@ public class InstructionClass2 extends Instruction {
         super(mnemonic, 2);
         this.source = s;
         this.destination = d;
-
-        // First byte is the opcode
-        byte[] encoding = {0b00100000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        
+       
         byte ss = 0b00000000;
         byte sd = 0b00000000;
         byte di = 0b00000000;
         byte diImm = 0b00000000;
         byte mem = 0b00000000;
-        int size = 0;
+        
+        byte[] enc;
         
         System.out.println(s instanceof OperandRegister);
         System.out.println(d instanceof OperandRegister); 
@@ -40,16 +36,25 @@ public class InstructionClass2 extends Instruction {
         System.out.println(s instanceof OperandImmediate); 
         System.out.println(d instanceof OperandImmediate);
 
-
+        if (s instanceof OperandImmediate && s.getSize() == 64 || (s instanceof OperandMemory &&
+                (byte)((OperandMemory) s).getDisplacement()!=-1) || (d instanceof OperandMemory &&
+                (byte)((OperandMemory) d).getDisplacement()!=-1)) {
+            this.setSize(16);
+            enc = new byte[16];
+        } else {
+            this.setSize(8);
+            enc = new byte[8];
+        }
+        enc[0] = 0b00100000; // Class code
         
         if (s instanceof OperandRegister && d instanceof OperandMemory) {
             mem = 0b00000001;
             if (((OperandMemory) d).getDisplacement() != -1) {
                 di = 0b00001000;
-                encoding[4] = (byte)((OperandMemory) d).getDisplacement(); // IPOTIZZANDO CHE IL CAST TRONCHI
-                encoding[5] = (byte)(((OperandMemory) d).getDisplacement() >>8);
-                encoding[6] = (byte)(((OperandMemory) d).getDisplacement() >>16);
-                encoding[7] = (byte)(((OperandMemory) d).getDisplacement() >>24);
+                enc[4] = (byte)((OperandMemory) d).getDisplacement(); // IPOTIZZANDO CHE IL CAST TRONCHI
+                enc[5] = (byte)(((OperandMemory) d).getDisplacement() >>8);
+                enc[6] = (byte)(((OperandMemory) d).getDisplacement() >>16);
+                enc[7] = (byte)(((OperandMemory) d).getDisplacement() >>24);
             } else {
                 di = 0b00000000;
             }
@@ -57,10 +62,10 @@ public class InstructionClass2 extends Instruction {
             mem = 0b00000010;
             if (((OperandMemory) s).getDisplacement() != -1) {
                 di = 0b00001000;
-                encoding[4] = (byte)((OperandMemory) s).getDisplacement(); // IPOTIZZANDO CHE IL CAST TRONCHI
-                encoding[5] = (byte)(((OperandMemory) s).getDisplacement() >> 8);
-                encoding[6] = (byte)(((OperandMemory) s).getDisplacement() >> 16);
-                encoding[7] = (byte)(((OperandMemory) s).getDisplacement() >> 24);
+                enc[4] = (byte)((OperandMemory) s).getDisplacement(); // IPOTIZZANDO CHE IL CAST TRONCHI
+                enc[5] = (byte)(((OperandMemory) s).getDisplacement() >> 8);
+                enc[6] = (byte)(((OperandMemory) s).getDisplacement() >> 16);
+                enc[7] = (byte)(((OperandMemory) s).getDisplacement() >> 24);
             } else {
                 di = 0b00000000;
             }
@@ -74,20 +79,20 @@ public class InstructionClass2 extends Instruction {
             OperandImmediate sorg = (OperandImmediate) s;
             if (sorg.getSize() <= 32 && di != 0b00001000) {
                 //Metti nel displacement da 4 byte
-                encoding[4] = (byte)((OperandImmediate) s).getValue(); // IPOTIZZANDO CHE IL CAST TRONCHI
-                encoding[5] = (byte)((((OperandImmediate) s).getValue()) >> 8);
-                encoding[6] = (byte)((((OperandImmediate) s).getValue()) >> 16);
-                encoding[7] = (byte)((((OperandImmediate) s).getValue()) >> 24);
+                enc[4] = (byte)((OperandImmediate) s).getValue(); // IPOTIZZANDO CHE IL CAST TRONCHI
+                enc[5] = (byte)((((OperandImmediate) s).getValue()) >> 8);
+                enc[6] = (byte)((((OperandImmediate) s).getValue()) >> 16);
+                enc[7] = (byte)((((OperandImmediate) s).getValue()) >> 24);
                 
             } else {
-                encoding[8] = (byte)((OperandImmediate)s).getValue();
-                encoding[9] = (byte)((((OperandImmediate) s).getValue()) >> 8);
-                encoding[10] = (byte)((((OperandImmediate) s).getValue()) >> 16);
-                encoding[11] = (byte)((((OperandImmediate) s).getValue()) >> 24);
-                encoding[12] = (byte)((((OperandImmediate) s).getValue()) >> 32);
-                encoding[13] = (byte)((((OperandImmediate) s).getValue()) >> 40);
-                encoding[14] = (byte)((((OperandImmediate) s).getValue()) >> 48);
-                encoding[15] = (byte)((((OperandImmediate) s).getValue()) >> 56);      
+                enc[8] = (byte)((OperandImmediate)s).getValue();
+                enc[9] = (byte)((((OperandImmediate) s).getValue()) >> 8);
+                enc[10] = (byte)((((OperandImmediate) s).getValue()) >> 16);
+                enc[11] = (byte)((((OperandImmediate) s).getValue()) >> 24);
+                enc[12] = (byte)((((OperandImmediate) s).getValue()) >> 32);
+                enc[13] = (byte)((((OperandImmediate) s).getValue()) >> 40);
+                enc[14] = (byte)((((OperandImmediate) s).getValue()) >> 48);
+                enc[15] = (byte)((((OperandImmediate) s).getValue()) >> 56);      
             }
         }
         if(s!=null){
@@ -128,7 +133,7 @@ public class InstructionClass2 extends Instruction {
         }
        
         //MODE
-        encoding[1] = (byte) (ss | sd | diImm | di | mem);
+        enc[1] = (byte) (ss | sd | diImm | di | mem);
         
         //SIB
         byte Bp = 0b00000000;
@@ -179,7 +184,7 @@ public class InstructionClass2 extends Instruction {
             reg = (byte) ((OperandMemory)d).getIndex();
         }
         
-        encoding[2] = (byte) (Bp | Ip | Scale | reg);
+        enc[2] = (byte) (Bp | Ip | Scale | reg);
         
         //R-M    
         byte sour = 0b00000000;
@@ -197,7 +202,7 @@ public class InstructionClass2 extends Instruction {
             dest = (byte) (((OperandRegister)d).getRegister());
         }
        
-        encoding[3] = (byte) (sour | dest);
+        enc[3] = (byte) (sour | dest);
         
 
         switch (mnemonic) {
@@ -241,17 +246,8 @@ public class InstructionClass2 extends Instruction {
                 throw new RuntimeException("Unknown Class 2 instruction: " + mnemonic);
         }
         
-        if (s instanceof OperandImmediate && s.getSize() > 32 || (s instanceof OperandMemory &&
-                (byte)((OperandMemory) s).getDisplacement()!=-1) || (d instanceof OperandMemory &&
-                (byte)((OperandMemory) d).getDisplacement()!=-1)) {
-            size = 16;
-        }else {
-            size = 8;
-        }
-        
-        this.setSize(size);
-        encoding[0] = (byte)(encoding[0] | this.type);
-        this.setValue(encoding);
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
         
         System.out.println("encoding[0]: "+encoding[0]);
         System.out.println("type "+this.type);

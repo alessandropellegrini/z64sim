@@ -6,7 +6,6 @@
 package org.z64sim.program.instructions;
 
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -20,7 +19,7 @@ public class InstructionClass5 extends Instruction {
         super(mnemonic, 5);
         this.target = t;
         
-        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         // Set the size in memory
         this.setSize(8);
@@ -52,7 +51,7 @@ public class InstructionClass5 extends Instruction {
                 dest = (byte)(((OperandRegister)t).getRegister());
             }
         }
-        encoding[3] = (byte) (sour | dest);
+        enc[3] = (byte) (sour | dest);
         
         switch (mnemonic) {
             case "jmp": 
@@ -78,8 +77,8 @@ public class InstructionClass5 extends Instruction {
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
         
-        encoding[0] = (byte)(encoding[0] | this.type);
-        this.setValue(encoding);
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
         System.out.println("dest:"+dest);
         System.out.println(t instanceof OperandMemory);
         System.out.println(t instanceof OperandRegister);
