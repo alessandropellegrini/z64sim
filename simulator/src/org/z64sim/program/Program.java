@@ -5,19 +5,12 @@
  */
 package org.z64sim.program;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.openide.util.Exceptions;
 import org.z64sim.memory.Memory;
-import org.z64sim.program.instructions.InstructionClass1;
-import org.z64sim.program.instructions.InstructionClass2;
-import org.z64sim.program.instructions.InstructionClass5;
-import org.z64sim.program.instructions.InstructionClass6;
-import org.z64sim.program.instructions.Operand;
 import org.z64sim.program.instructions.OperandImmediate;
 import org.z64sim.program.instructions.OperandMemory;
 
@@ -27,7 +20,7 @@ import org.z64sim.program.instructions.OperandMemory;
  */
 public class Program {
 
-    private byte[] IDT = new byte[0x800];
+    private Byte[] IDT = new Byte[0x800];
     private Deque<Byte> text = new ArrayDeque<Byte>();
     private Deque<Byte> data = new ArrayDeque<Byte>();
     
@@ -38,25 +31,42 @@ public class Program {
     
     public long _start = -1;
     public long _dataStart = -1;
-    public byte[] program;
+    public Byte[] program = null;
     
     
-
     public final static int STACK_SIZE = 0x800;
 
     public Program() {
+        for(int i = 0; i < 0x800; i++) {
+            this.IDT[i] = 0;
+        }
     }
-
+    
     public void finalizeProgram() throws ProgramException {
 
         // Perform relocation of label values
         for (RelocationEntry rel : this.relocations) {
             rel.relocate();
         }
+        
+        int TextS=this.text.size();
+        int DataS=this.data.size();
 
-        // Add stack space
-        // TODO: Add stack space!
-
+        this.program = new Byte[TextS + DataS + Program.STACK_SIZE];
+        
+        Byte[] text = this.text.toArray(new Byte[this.text.size()]);
+        Byte[] data = this.data.toArray(new Byte[this.data.size()]);
+        
+        System.arraycopy(text, 0, this.program, 0, TextS);
+        System.arraycopy(this.IDT, 0, this.program, 0, this.IDT.length);
+        System.arraycopy(data, 0, this.program, TextS, DataS);
+        
+        this._dataStart = TextS;
+        
+        for(int i = 0; i < Program.STACK_SIZE; i++) {
+            this.program[TextS + DataS + i] = 0;
+        }
+        
         // This Program does not need anymore intermediate assemblying
         // information, so we remove references. This is particularly useful
         // when this object is serialized to save an executable.
@@ -145,10 +155,20 @@ public class Program {
         }
 
         byte[] bytes = insn.getEncoding();
-        for(int i = 0; i < bytes.length; i++) {
-            this.text.add(bytes[i]);
-        }
         
+        for(int i = 0; i < 8; i++) {
+           /* if(i>=bytes.length)
+            {
+                this.text.add(bytes[i]);
+            }*/
+           //if(i <= bytes.length){
+               this.text.add(bytes[i]);
+           /*}
+           else{
+                this.text.add((byte)0x00);
+            }*/
+            
+        }
         this.locationCounter += bytes.length;
     }
 

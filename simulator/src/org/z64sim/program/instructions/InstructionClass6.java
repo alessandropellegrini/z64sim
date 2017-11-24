@@ -5,7 +5,9 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
+import org.z64sim.simulator.Register;
 
 /**
  *
@@ -22,12 +24,14 @@ public class InstructionClass6 extends Instruction {
         this.target = t;
         
         byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+        enc[0] = 0b01100000;
         // Set the size in memory
         this.setSize(8);
         byte dest = 0b00000000;
         byte sour = 0b00000000;
-        dest = (byte)(((OperandMemory)target).getBase());
+        if(t instanceof OperandMemory){
+            dest = (byte)(((OperandMemory)target).getBase());
+        }
         
         enc[3] = (byte) (sour | dest);
 
@@ -69,11 +73,6 @@ public class InstructionClass6 extends Instruction {
         enc[0] = (byte)(enc[0] | this.type);
         this.setEncoding(enc);
         
-        System.out.println("encoding[4]: "+encoding[4]);
-        System.out.println("encoding[5]: "+encoding[5]);
-        System.out.println("encoding[6]: "+encoding[6]);
-        System.out.println("encoding[7]: "+encoding[7]);
-       
     }
 
     @Override
@@ -81,15 +80,78 @@ public class InstructionClass6 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        String mnem = this.mnemonic;
-        mnem = mnem.concat(this.target.toString());
-        return mnem;
+   
+    public static String disassemble(int address) {
+        byte b[] = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            b[i] = Memory.getProgram().program[address + i];
+        }
+        String instr="";
+        switch (b[0]){
+            case 0x60:
+                instr+="jc";
+                break;
+            case 0x61:
+                instr+="jp";
+                break;
+            case 0x62:
+                instr+="jz";
+                break;
+            case 0x63:
+                instr+="js";
+                break;
+            case 0x64:
+                instr+="jo";
+                break;
+            case 0x65:
+                instr+="jnc";
+                break;
+            case 0x66:
+                instr+="jnp";
+                break;
+            case 0x67:
+                instr+="jnz";
+                break;
+            case 0x68:
+                instr+="jns";
+                break;
+            case 0x69:
+                instr+="jno";
+                break;
+            default:
+                throw new RuntimeException("Unkown instruction type");
+        }
+        
+        int sizeInt = 0;
+        
+        switch(byteToBits(b[1],5,4)){
+            case 0:
+                sizeInt = 8;
+                break;
+            case 1:
+                sizeInt = 16;
+                break;
+            case 2:
+                sizeInt = 32;
+                break;
+            case 3:
+                sizeInt = 64;
+                break;
+            default:
+                throw new RuntimeException("Wrong value size");
+        }
+       
+        int destRegister = byteToBits(b[3],3,0);
+        String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
+        instr+=" "+dest_Reg;
+
+
+        return instr;
+        
     }
 
     public Operand getTarget() {
         return this.target;
     }
-
+    
 }

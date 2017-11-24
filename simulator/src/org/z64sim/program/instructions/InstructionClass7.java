@@ -5,6 +5,7 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
 
 /**
@@ -20,7 +21,7 @@ public class InstructionClass7 extends Instruction {
         this.transfer_size = size;
 
         byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        
+        enc[0] = 0b01110000;
         byte di = 0b00000000;
         byte diImm = 0b00000000;
         byte mem = 0b00000000;
@@ -48,12 +49,7 @@ public class InstructionClass7 extends Instruction {
         
         enc[0] = (byte)(enc[0] | this.type);
         this.setEncoding(enc);
-        
-        System.out.println("encoding[4]: "+encoding[4]);
-        System.out.println("encoding[5]: "+encoding[5]);
-        System.out.println("encoding[6]: "+encoding[6]);
-        System.out.println("encoding[7]: "+encoding[7]);
-        
+       
         this.setSize(8);
         
     }
@@ -63,26 +59,45 @@ public class InstructionClass7 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        String mnem = this.mnemonic;
-        
-        
-            switch (this.transfer_size) {
-                case 8:
-                    mnem = mnem.concat("b");
-                    break;
-                case 16:
-                    mnem = mnem.concat("w");
-                    break;
-                case 32:
-                    mnem = mnem.concat("l");
-                    break;
-                default:
-                    throw new RuntimeException("Implicit Size of Class 1 instruction is set, yet to a wrong value");
-
+    
+    public static String disassemble(int address) {
+        byte b[] = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            b[i] = Memory.getProgram().program[address + i];
         }
-        return mnem;     
+        String instr="";
+        
+        switch (b[0]){
+            case 0x70:
+                instr+="in";
+                break;
+            case 0x71:
+                instr+="out";
+                break;
+            case 0x72:
+                instr+="ins";
+                break;
+            case 0x73:
+                instr+="outs";
+                break;
+            default:
+                throw new RuntimeException("Unknown instruction type");
+        }
+        switch(b[1]){
+            case 0x00:
+                instr = instr.concat("b");
+                break;
+            case 0x50:
+                instr = instr.concat("w");
+                break;
+            case (byte)0xa0:
+                instr = instr.concat("l");
+                break;
+            default:
+                throw new RuntimeException("Wrong value size");
+                
+        }  
+        return instr;
     }
 
 }

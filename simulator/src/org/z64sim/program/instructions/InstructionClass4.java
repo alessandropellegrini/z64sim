@@ -5,6 +5,7 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
 
 /**
@@ -26,7 +27,8 @@ public class InstructionClass4 extends Instruction {
 
         // Will be initialized in the switch case, as well the class
         byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+        enc[0] = 0b01000000;
+        
         switch (mnemonic) {
             case "clc":
                 this.type = 0x00;
@@ -90,12 +92,7 @@ public class InstructionClass4 extends Instruction {
         
         enc[0] = (byte)(enc[0] | this.type);
         this.setEncoding(enc);
-        System.out.println(val);
         
-        System.out.println("encoding[4]: "+encoding[4]);
-        System.out.println("encoding[5]: "+encoding[5]);
-        System.out.println("encoding[6]: "+encoding[6]);
-        System.out.println("encoding[7]: "+encoding[7]);
         
     }
 
@@ -104,9 +101,62 @@ public class InstructionClass4 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        return this.mnemonic;
+    
+    public static String disassemble(int address) {
+        byte b[] = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            b[i] = Memory.getProgram().program[address + i];
+        }
+        
+        String instr = "";
+        switch (b[0]){
+            case 0x40:
+                instr+= "clc";
+                break;  
+            case 0x41:
+                instr+= "clp";
+                break;
+            case 0x42:
+                instr+= "clz";
+                break;
+            case 0x43:
+                instr+= "cls";
+                break;
+            case 0x44:
+                instr+= "cli";
+                break;
+            case 0x45:
+                instr+= "cld";
+                break;
+            case 0x46:
+                instr+= "clo";
+                break;
+            case 0x47:
+                instr+= "stc";
+                break;
+            case 0x48:
+                instr+= "stp";
+                break;
+            case 0x49:
+                instr+= "stz";
+                break;
+            case 0x4a:
+                instr+= "sts";
+                break; 
+            case 0x4b:
+                instr+= "sti";
+                break;
+            case 0x4c:
+                instr+= "std";
+                break;
+            case 0x4d:
+                instr+= "sto"; //GHALI
+                break;
+            default:
+                throw new RuntimeException("Unkown instruction type");
+                
+        }
+        return instr; 
     }
 
 }

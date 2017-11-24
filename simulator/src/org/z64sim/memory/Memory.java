@@ -23,7 +23,8 @@ import org.z64sim.program.ProgramException;
 public class Memory {
 
     private static MemoryTopComponent window = null;
-    private static Program program = null;
+    //private static Program program = null;
+    private static Program program = new Program(); // aggiunto per evitare nullPointerException
 
     // This class cannot be instantiated
     private Memory() {
@@ -46,8 +47,6 @@ public class Memory {
     }
 
     public static void redrawMemory() {
-        return;
-        /*
         if (Memory.window != null) {
             Memory.window.memoryTable.setModel(new MemoryTableModel());
             int _startRow = (int) (Memory.program._start / 8);
@@ -61,7 +60,7 @@ public class Memory {
             // Show the panel
             Memory.window.requestVisible();
         }
-        */
+        
     }
 
 }
