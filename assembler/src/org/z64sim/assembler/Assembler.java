@@ -712,6 +712,15 @@ error_recover(ex, NEWLINE);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case LABEL:{
         label = Label();
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+        case NEWLINE:{
+          jj_consume_token(NEWLINE);
+          break;
+          }
+        default:
+          jj_la1[26] = jj_gen;
+          ;
+        }
         i = Instruction();
 this.program.newLabel(label, this.program.getLocationCounter());
         break;
@@ -740,7 +749,7 @@ this.program.newLabel(label, this.program.getLocationCounter());
         break;
         }
       default:
-        jj_la1[26] = jj_gen;
+        jj_la1[27] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -756,7 +765,7 @@ this.program.newLabel(label, this.program.getLocationCounter());
           break;
           }
         default:
-          jj_la1[27] = jj_gen;
+          jj_la1[28] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -767,7 +776,7 @@ this.program.newLabel(label, this.program.getLocationCounter());
           break;
           }
         default:
-          jj_la1[28] = jj_gen;
+          jj_la1[29] = jj_gen;
           break label_13;
         }
       }
@@ -800,13 +809,13 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[29] = jj_gen;
+          jj_la1[30] = jj_gen;
           ;
         }
         break;
         }
       default:
-        jj_la1[30] = jj_gen;
+        jj_la1[31] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -832,7 +841,7 @@ error_recover(ex, NEWLINE);
     }
 }
 
-  final public Instruction Instruction() throws ParseException {Token t, t2;
+  final public Instruction Instruction() throws ParseException {Token t, t2, l;
     int size;
     int sizeExt;
     String mnemonic;
@@ -902,7 +911,7 @@ mnemonic = stripSuffix(t.image);
           break;
           }
         default:
-          jj_la1[31] = jj_gen;
+          jj_la1[32] = jj_gen;
           ;
         }
         op1 = FormatG();
@@ -925,8 +934,14 @@ op1 = new OperandImmediate(i);
       case INSN_1_M:{
         t = jj_consume_token(INSN_1_M);
 size = getSuffixSize( t.image );
-        op1 = FormatM(size);
-// They all belong to class 6
+        l = jj_consume_token(LABEL_NAME);
+// This is a memory operand with displacement only (pointing
+            // to the label's address. The real address will be placed in memory by
+            // relocation, at the end of the program's generation.
+            op1 = new OperandMemory(-1, -1, -1, -1, 0, size);
+            this.program.addRelocationEntry(this.program.getLocationCounter(), l.image);
+
+            // They all belong to class 6
             insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         break;
         }
@@ -943,13 +958,12 @@ size = getSuffixSize( t.image );
         case INTEGER:
         case MINUS:
         case LBRACE:
-        case LABEL:
         case LABEL_NAME:{
           op1 = FormatM(size);
           break;
           }
         default:
-          jj_la1[32] = jj_gen;
+          jj_la1[33] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -1061,7 +1075,7 @@ size = getSuffixSize( t.image );
         break;
         }
       default:
-        jj_la1[33] = jj_gen;
+        jj_la1[34] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1115,7 +1129,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[34] = jj_gen;
+        jj_la1[35] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1147,7 +1161,7 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[35] = jj_gen;
+          jj_la1[36] = jj_gen;
           ;
         }
         break;
@@ -1160,7 +1174,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[36] = jj_gen;
+        jj_la1[37] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1195,7 +1209,7 @@ error_recover(ex, NEWLINE);
           break;
           }
         default:
-          jj_la1[37] = jj_gen;
+          jj_la1[38] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -1230,7 +1244,7 @@ error_recover(ex, NEWLINE);
         break;
         }
       default:
-        jj_la1[38] = jj_gen;
+        jj_la1[39] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1272,31 +1286,9 @@ error_recover(ex, NEWLINE);
 /* Both label and direct address */
   final public OperandMemory FormatM(int size) throws ParseException {OperandMemory memOp;
     long address;
-    String l;
+    Token l;
     try {
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case LABEL:{
-        l = Label();
-// This is a memory operand with displacement only (pointing
-            // to the label's address. The real address will be placed in memory by
-            // relocation, at the end of the program's generation.
-            memOp = new OperandMemory(-1, -1, -1, -1, 0, size);
-            this.program.addRelocationEntry(this.program.getLocationCounter(), l);
-        break;
-        }
-      case LOCATION_COUNTER:
-      case INTEGER:
-      case MINUS:
-      case LBRACE:
-      case LABEL_NAME:{
-        memOp = Addressing(size);
-        break;
-        }
-      default:
-        jj_la1[39] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
+      memOp = Addressing(size);
 {if ("" != null) return memOp;}
     } catch (ParseException ex) {
 error_recover(ex, NEWLINE);
@@ -1331,7 +1323,6 @@ imm.setSize(size); // The size of an immediate depends on the instruction suffix
       case INTEGER:
       case MINUS:
       case LBRACE:
-      case LABEL:
       case LABEL_NAME:{
         mem = FormatM(size);
 {if ("" != null) return mem;}
@@ -1508,6 +1499,18 @@ error_recover(ex, NEWLINE);
     finally { jj_save(0, xla); }
   }
 
+  private boolean jj_3R_24()
+ {
+    if (jj_scan_token(INTEGER)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_17()
+ {
+    if (jj_scan_token(LBRACE)) return true;
+    return false;
+  }
+
   private boolean jj_3R_18()
  {
     if (jj_3R_20()) return true;
@@ -1539,13 +1542,6 @@ error_recover(ex, NEWLINE);
     return false;
   }
 
-  private boolean jj_3_1()
- {
-    if (jj_3R_16()) return true;
-    if (jj_3R_17()) return true;
-    return false;
-  }
-
   private boolean jj_3R_16()
  {
     if (jj_3R_18()) return true;
@@ -1561,12 +1557,6 @@ error_recover(ex, NEWLINE);
  {
     if (jj_scan_token(MINUS)) return true;
     if (jj_3R_20()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_17()
- {
-    if (jj_scan_token(LBRACE)) return true;
     return false;
   }
 
@@ -1623,6 +1613,13 @@ error_recover(ex, NEWLINE);
     return false;
   }
 
+  private boolean jj_3_1()
+ {
+    if (jj_3R_16()) return true;
+    if (jj_3R_17()) return true;
+    return false;
+  }
+
   private boolean jj_3R_26()
  {
     if (jj_scan_token(LABEL_NAME)) return true;
@@ -1632,12 +1629,6 @@ error_recover(ex, NEWLINE);
   private boolean jj_3R_25()
  {
     if (jj_scan_token(LOCATION_COUNTER)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_24()
- {
-    if (jj_scan_token(INTEGER)) return true;
     return false;
   }
 
@@ -1660,10 +1651,10 @@ error_recover(ex, NEWLINE);
 	   jj_la1_init_1();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0xc,0xc,0xc,0xc,0x40000,0x140,0xc,0x7800,0x0,0x0,0x0,0x1f800,0x2043c,0x2043c,0x140,0xc,0xc,0x30,0x80,0x100000,0xc,0xc,0x30,0xc,0xc,0x40000,0x30,0xc,0xc,0x0,0x30,0x80000,0x58100010,0x0,0x0,0x0,0x0,0x40000000,0x48100010,0x48100010,0x48180010,0xc000000,0xc000000,0x30000000,0x30000000,0x48100010,};
+	   jj_la1_0 = new int[] {0xc,0xc,0xc,0xc,0x40000,0x140,0xc,0x7800,0x0,0x0,0x0,0x1f800,0x2043c,0x2043c,0x140,0xc,0xc,0x30,0x80,0x100000,0xc,0xc,0x30,0xc,0xc,0x40000,0x4,0x30,0xc,0xc,0x0,0x30,0x80000,0x58100010,0x0,0x0,0x0,0x0,0x40000000,0x48100010,0x48180010,0xc000000,0xc000000,0x30000000,0x30000000,0x48100010,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x1,0x0,0x600000,0x600000,0x0,0x0,0x0,0x2fffe0,0x0,0x400000,0x0,0x0,0x2fffe0,0x0,0x0,0x0,0x2fffe0,0x0,0x0,0x1,0x0,0x0,0x600000,0xfffe0,0x1e,0x1,0x1f,0x0,0x40001e,0x600000,0x60001e,0x0,0x0,0x0,0x0,0x400000,};
+	   jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x1,0x0,0x600000,0x600000,0x0,0x0,0x0,0x2fffe0,0x0,0x400000,0x0,0x0,0x2fffe0,0x0,0x0,0x0,0x0,0x2fffe0,0x0,0x0,0x1,0x0,0x0,0x400000,0xfffe0,0x1e,0x1,0x1f,0x0,0x40001e,0x40001e,0x0,0x0,0x0,0x0,0x400000,};
 	}
   final private JJCalls[] jj_2_rtns = new JJCalls[1];
   private boolean jj_rescan = false;

@@ -544,7 +544,7 @@ Instruction Statement() :
 {
     try {
         (
-            label = Label() i = Instruction()
+            label = Label() (<NEWLINE>)? i = Instruction()
             {this.program.newLabel(label, this.program.getLocationCounter());}
           | LocationCounter()
           | i = Instruction()
@@ -595,7 +595,7 @@ void LocationCounter() :
 
 Instruction Instruction() :
 {
-    Token t, t2;
+    Token t, t2, l;
     int size;
     int sizeExt;
     String mnemonic;
@@ -670,8 +670,14 @@ Instruction Instruction() :
         }
       |
         t = <INSN_1_M>  { size = getSuffixSize( t.image ); }
-        op1 = FormatM(size)
+        l = <LABEL_NAME>
         {
+            // This is a memory operand with displacement only (pointing
+            // to the label's address. The real address will be placed in memory by
+            // relocation, at the end of the program's generation.
+            op1 = new OperandMemory(-1, -1, -1, -1, 0, size);
+            this.program.addRelocationEntry(this.program.getLocationCounter(), l.image);
+        
             // They all belong to class 6
             insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         }
@@ -960,24 +966,12 @@ OperandMemory FormatM(int size) :
 {
     OperandMemory memOp;
     long address;
-    String l;
+    Token l;
 }
 {
     try {
-
-        (
-         l = Label()
-         {
-            // This is a memory operand with displacement only (pointing
-            // to the label's address. The real address will be placed in memory by
-            // relocation, at the end of the program's generation.
-            memOp = new OperandMemory(-1, -1, -1, -1, 0, size);
-            this.program.addRelocationEntry(this.program.getLocationCounter(), l);
-         }
-       |
-          memOp = Addressing(size)
-         )
-         {return memOp;}
+        memOp = Addressing(size)
+        {return memOp;}
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);

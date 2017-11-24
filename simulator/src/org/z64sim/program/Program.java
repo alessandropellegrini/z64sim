@@ -263,7 +263,9 @@ public class Program {
         }
 
         private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
-            throw new ProgramException("Da implementare!");
+               // TODO: da implementare
+
+            //throw new ProgramException("Da implementare!");
             
             /*
             // Get target address of the relocation
@@ -280,7 +282,7 @@ public class Program {
         }
 
         public void relocate() throws ProgramException {
-            throw new ProgramException("Da implementare!");
+            //throw new ProgramException("Da implementare!");
             
             /*
             // Get address of the instruction where relocation should be applied
