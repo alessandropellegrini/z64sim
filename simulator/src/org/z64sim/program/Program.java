@@ -156,7 +156,9 @@ public class Program {
 
         byte[] bytes = insn.getEncoding();
         
-        for(int i = 0; i < 8; i++) {
+        System.out.println("Trovata istruzinone da " + bytes.length + " byte");
+        
+        for(int i = 0; i < bytes.length; i++) {
            /* if(i>=bytes.length)
             {
                 this.text.add(bytes[i]);

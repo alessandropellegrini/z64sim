@@ -82,12 +82,14 @@ public class InstructionClass4 extends Instruction {
                 this.type = 0x0c;
                 this.val = 1;
                 break;
-            case "sto":
+           
+            case "sto":     //GHALI
                 this.type = 0x0d;
                 this.val = 1;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
+        
         }
         
         enc[0] = (byte)(enc[0] | this.type);
