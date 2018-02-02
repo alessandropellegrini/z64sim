@@ -5,8 +5,8 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -15,7 +15,7 @@ import org.z64sim.program.muops.MicroOperation;
 public class InstructionClass4 extends Instruction {
 
     private final byte bit;
-    private final byte val;
+    private byte val;
 
     public InstructionClass4(String mnemonic) {
         super(mnemonic, 4);
@@ -26,84 +26,76 @@ public class InstructionClass4 extends Instruction {
         this.setSize(8);
 
         // Will be initialized in the switch case, as well the class
-        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        enc[0] = 0b01000000;
+        
         switch (mnemonic) {
             case "clc":
-                encoding[0] = 0b01000000;
                 this.type = 0x00;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_R));
+                this.val = 0;
                 break;
             case "clp":
-                encoding[0] = 0b01000001;
                 this.type = 0x01;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_PF_R));
+                this.val = 0;
                 break;
-            case "clz":
-                encoding[0] = 0b01000010;
+            case "clz":            
                 this.type = 0x02;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_ZF_R));
+                this.val = 0;
                 break;
             case "cls":
-                encoding[0] = 0b01000011;
                 this.type = 0x03;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_SF_R));
+                this.val = 0;
                 break;
             case "cli":
-                encoding[0] = 0b01000100;
                 this.type = 0x04;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_IF_R));
+                this.val = 0;
                 break;
             case "cld":
-                encoding[0] = 0b01000101;
                 this.type = 0x05;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_DF_R));
+                this.val = 0;
                 break;
             case "clo":
-                encoding[0] = 0b01000110;
                 this.type = 0x06;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_OF_R));
+                this.val = 0;
                 break;
             case "stc":
-                encoding[0] = 0b01000111;
                 this.type = 0x07;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_CF_R));
+                this.val = 1;
                 break;
             case "stp":
-                encoding[0] = 0b01001000;
                 this.type = 0x08;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_PF_S));
+                this.val = 1;
                 break;
             case "stz":
-                encoding[0] = 0b01001001;
                 this.type = 0x09;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_ZF_S));
+                this.val = 1;
                 break;
             case "sts":
-                encoding[0] = 0b01001010;
                 this.type = 0x0a;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_SF_S));
+                this.val = 1;
                 break;
             case "sti":
-                encoding[0] = 0b01001011;
                 this.type = 0x0b;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_IF_S));
+                this.val = 1;
                 break;
             case "std":
-                encoding[0] = 0b01001100;
                 this.type = 0x0c;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_DF_S));
+                this.val = 1;
                 break;
-            case "sto":
-                encoding[0] = 0b01001101;
+           
+            case "sto":     //GHALI
                 this.type = 0x0d;
-                this.addMicroOperation(new MicroOperation(MicroOperation.FLAGS_OF_S));
+                this.val = 1;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
+        
         }
-
-        this.setValue(encoding);
+        
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
+        
+        
     }
 
     @Override
@@ -111,9 +103,62 @@ public class InstructionClass4 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        return this.mnemonic;
+    
+    public static String disassemble(int address) {
+        byte b[] = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            b[i] = Memory.getProgram().program[address + i];
+        }
+        
+        String instr = "";
+        switch (b[0]){
+            case 0x40:
+                instr+= "clc";
+                break;  
+            case 0x41:
+                instr+= "clp";
+                break;
+            case 0x42:
+                instr+= "clz";
+                break;
+            case 0x43:
+                instr+= "cls";
+                break;
+            case 0x44:
+                instr+= "cli";
+                break;
+            case 0x45:
+                instr+= "cld";
+                break;
+            case 0x46:
+                instr+= "clo";
+                break;
+            case 0x47:
+                instr+= "stc";
+                break;
+            case 0x48:
+                instr+= "stp";
+                break;
+            case 0x49:
+                instr+= "stz";
+                break;
+            case 0x4a:
+                instr+= "sts";
+                break; 
+            case 0x4b:
+                instr+= "sti";
+                break;
+            case 0x4c:
+                instr+= "std";
+                break;
+            case 0x4d:
+                instr+= "sto"; //GHALI
+                break;
+            default:
+                throw new RuntimeException("Unkown instruction type");
+                
+        }
+        return instr; 
     }
 
 }

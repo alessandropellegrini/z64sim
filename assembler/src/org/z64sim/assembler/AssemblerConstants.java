@@ -97,29 +97,31 @@ public interface AssemblerConstants {
   /** RegularExpression Id. */
   int INSN_SHIFT = 43;
   /** RegularExpression Id. */
-  int INSN_1_M = 44;
+  int INSN_BT = 44;
   /** RegularExpression Id. */
-  int INSN_JC = 45;
+  int INSN_1_M = 45;
   /** RegularExpression Id. */
-  int INSN_B_E = 46;
+  int INSN_JC = 46;
   /** RegularExpression Id. */
-  int INSN_EXT = 47;
+  int INSN_B_E = 47;
   /** RegularExpression Id. */
-  int INSN_IN = 48;
+  int INSN_EXT = 48;
   /** RegularExpression Id. */
-  int INSN_OUT = 49;
+  int INSN_IN = 49;
   /** RegularExpression Id. */
-  int INSN_IO_S = 50;
+  int INSN_OUT = 50;
   /** RegularExpression Id. */
-  int IRET = 51;
+  int INSN_IO_S = 51;
   /** RegularExpression Id. */
-  int LABEL = 52;
+  int IRET = 52;
   /** RegularExpression Id. */
-  int LABEL_NAME = 53;
+  int LABEL = 53;
   /** RegularExpression Id. */
-  int STRING_LITERAL = 54;
+  int LABEL_NAME = 54;
   /** RegularExpression Id. */
-  int ERROR = 55;
+  int STRING_LITERAL = 55;
+  /** RegularExpression Id. */
+  int ERROR = 56;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -170,6 +172,7 @@ public interface AssemblerConstants {
     "<INSN_LEA>",
     "<INSN_1_E>",
     "<INSN_SHIFT>",
+    "<INSN_BT>",
     "<INSN_1_M>",
     "<INSN_JC>",
     "<INSN_B_E>",

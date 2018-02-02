@@ -5,8 +5,9 @@
  */
 package org.z64sim.program.instructions;
 
+import javax.swing.JOptionPane;
+import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
-import org.z64sim.program.muops.MicroOperation;
 
 /**
  *
@@ -23,28 +24,25 @@ public class InstructionClass0 extends Instruction {
         // Set the size in memory
         this.setSize(8);
 
-        byte encoding[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte enc[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         switch (mnemonic) {
             case "hlt":
-                encoding[0] = 0x01;
+                enc[0] = 0x01;
                 this.type = 0x01;
-                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
                 break;
             case "nop":
-                encoding[0] = 0x02;
+                enc[0] = 0x02;
                 this.type = 0x02;
-                this.addMicroOperation(new MicroOperation(MicroOperation.RIP, MicroOperation.EMAR));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMARm, MicroOperation.EMDR, MicroOperation.RIP8, MicroOperation.RIP));
-                this.addMicroOperation(new MicroOperation(MicroOperation.EMDR, MicroOperation.IR));
                 break;
+            case "int":
+		enc[0] = 0x03;
+		this.type = 0x03;
             default:
                 throw new RuntimeException("Unknown Class 0 instruction: " + mnemonic);
         }
 
-        this.setValue(encoding);
+        this.setEncoding(enc);
     }
 
     @Override
@@ -52,9 +50,33 @@ public class InstructionClass0 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        return this.mnemonic;
+    public static String disassemble(int address) {
+        byte b[] = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            b[i] = Memory.getProgram().program[address + i];
+        }
+        
+      //  JOptionPane.showMessageDialog(null, "" + address + " - " + b[0] + " " + b[1]);
+        
+        String instr = "";
+        switch (b[0]){
+            case 0x00:
+                instr+= "";
+                break;
+            case 0x01:
+                instr+= "hlt";
+                break;
+            case 0x02:
+                instr+= "nop";
+                break;
+            case 0x03:
+                instr+= "int";
+                break;
+            default:
+                throw new RuntimeException("Unkown instruction type");
+                
+        }
+        return instr;
     }
-
+    
 }

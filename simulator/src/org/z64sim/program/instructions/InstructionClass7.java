@@ -5,6 +5,7 @@
  */
 package org.z64sim.program.instructions;
 
+import org.z64sim.memory.Memory;
 import org.z64sim.program.Instruction;
 
 /**
@@ -19,30 +20,38 @@ public class InstructionClass7 extends Instruction {
         super(mnemonic, 7);
         this.transfer_size = size;
 
-        byte[] encoding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        enc[0] = 0b01110000;
+        byte di = 0b00000000;
+        byte diImm = 0b00000000;
+        byte mem = 0b00000000;
+        byte ss = (byte)transfer_size;
+        byte ds = (byte)transfer_size;
+        
+        enc[1] = (byte) (ss | ds | diImm | di | mem);
+        
         switch(mnemonic) {
             case "in":
-                encoding[0] |= (byte)0b10000000;
                 this.type = 0x00;
                 break;
             case "out":
-                encoding[0] |= (byte)0b10000001;
                 this.type = 0x01;
                 break;
             case "ins":
-                encoding[0] |= (byte)0b10000010;
                 this.type = 0x02;
                 break;
             case "outs":
-                encoding[0] |= (byte)0b10000011;
                 this.type = 0x03;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 7 instruction: " + mnemonic);
         }
-
-        this.setValue(encoding);
+        
+        enc[0] = (byte)(enc[0] | this.type);
+        this.setEncoding(enc);
+       
+        this.setSize(8);
+        
     }
 
     @Override
@@ -50,9 +59,45 @@ public class InstructionClass7 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public String toString() {
-        return this.mnemonic;
+    
+    public static String disassemble(int address) {
+        byte b[] = new byte[8];
+        for(int i = 0; i < 8; i++) {
+            b[i] = Memory.getProgram().program[address + i];
+        }
+        String instr="";
+        
+        switch (b[0]){
+            case 0x70:
+                instr+="in";
+                break;
+            case 0x71:
+                instr+="out";
+                break;
+            case 0x72:
+                instr+="ins";
+                break;
+            case 0x73:
+                instr+="outs";
+                break;
+            default:
+                throw new RuntimeException("Unknown instruction type");
+        }
+        switch(b[1]){
+            case 0x00:
+                instr = instr.concat("b");
+                break;
+            case 0x50:
+                instr = instr.concat("w");
+                break;
+            case (byte)0xa0:
+                instr = instr.concat("l");
+                break;
+            default:
+                throw new RuntimeException("Wrong value size");
+                
+        }  
+        return instr;
     }
 
 }
