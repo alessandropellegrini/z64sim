@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: z64sim
+Upstream-Contact: Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+Source: https://github.com/alessandropellegrini/z64sim
+
+Files: src/main/resources/images/* artwork/*
+Copyright: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+License: CC-BY-SA-4.0
+
+Files: AUTHORS CODEOWNERS README.md src/main/resources/* src/test/resources/*
+Copyright: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+License: CC0-1.0
