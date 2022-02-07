@@ -42,6 +42,7 @@ public class AssemblerTest {
 
     @Test
     @DisplayName("Lexer test")
+    @Disabled
     public void testLexer() {
         InputStream is = getClass().getResourceAsStream("/test.asm");
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
@@ -56,8 +57,8 @@ public class AssemblerTest {
     }
 
     @Test
-    @Disabled
     @DisplayName("Parser test")
+    @Disabled
     public void testParser() throws ParseException {
         InputStream is = getClass().getResourceAsStream("/test.asm");
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
