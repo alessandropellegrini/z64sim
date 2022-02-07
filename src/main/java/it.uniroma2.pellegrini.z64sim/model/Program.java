@@ -7,9 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass1;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.controller.ProgramException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -17,6 +20,7 @@ import it.uniroma2.pellegrini.z64sim.controller.ProgramException;
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class Program {
+    private static final Logger log = LoggerFactory.getLogger(Program.class);
 
     private Byte[] IDT = new Byte[0x800];
     private Deque<Byte> text = new ArrayDeque<Byte>();
@@ -154,7 +158,7 @@ public class Program {
 
         byte[] bytes = insn.getEncoding();
 
-        System.out.println("Trovata istruzinone da " + bytes.length + " byte");
+        log.trace("Found a {}-byte instruction", bytes.length);
 
         for(int i = 0; i < bytes.length; i++) {
            /* if(i>=bytes.length)

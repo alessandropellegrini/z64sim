@@ -1,20 +1,23 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
+import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
+import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
-import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
-import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass1 extends Instruction {
+    private static final Logger log = LoggerFactory.getLogger(InstructionClass1.class);
 
     /*static boolean disassemble(long l) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -266,33 +269,20 @@ public class InstructionClass1 extends Instruction {
 
         enc[0] = (byte)((byte)0b00010000 | this.type);
         this.setEncoding(enc);
-        System.out.println(enc[0]);
-        System.out.println("ss è: "+ss);
-        System.out.println("ds è: "+sd);
-        System.out.println("di è: "+di);
-        System.out.println("mem è :"+mem);
-        System.out.println("Bp è: "+Bp);
-        System.out.println("Ip è: "+Ip);
-        System.out.println("Scale è: "+Scale);
-        System.out.println("IndexRegister è: "+Index_Register);
-        System.out.println("sourReg è: "+sour_Register);
-        System.out.println("destReg è: "+dest_Register);
-        System.out.println("enc[4] è: "+enc[4]);
-        System.out.println("enc[5] è: "+enc[5]);
-        System.out.println("enc[6] è: "+enc[6]);
-        System.out.println("enc[7[ è: "+enc[7]);
-        if(enc.length > 8){
-            System.out.println(enc[8]);
-            System.out.println(enc[9]);
-            System.out.println(enc[10]);
-            System.out.println(enc[11]);
-            System.out.println(enc[12]);
-            System.out.println(enc[13]);
-            System.out.println(enc[14]);
-            System.out.println(enc[15]);}
-
-
+        log.trace("Assembled INS1: {} SS: {} DS: {} DI: {} MEM: {} Bp: {} Ip: {} Scale: {} IDX: {} srcReg: {} dstReg: {}",
+                enc[0],
+                ss,
+                sd,
+                di,
+                mem,
+                Bp,
+                Ip,
+                Scale,
+                Index_Register,
+                sour_Register,
+                dest_Register);
     }
+
 
     @Override
     public void run() {
@@ -416,7 +406,7 @@ public class InstructionClass1 extends Instruction {
             ByteBuffer wrapped = ByteBuffer.wrap(b3);
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
             immed = wrapped.getInt();
-            System.out.println(String.format("%016x", immed));
+            log.trace("immed: {}", String.format("%016x", immed));
             if (immed < 0) immed += Math.pow(2, 64);
             instr+="$"+immed+",";
         }

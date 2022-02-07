@@ -1,8 +1,10 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
-import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -10,6 +12,7 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass3 extends Instruction {
+    private static final Logger log = LoggerFactory.getLogger(InstructionClass1.class);
 
     private final int places;
     private final OperandRegister reg;
@@ -207,14 +210,8 @@ public class InstructionClass3 extends Instruction {
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
         instr+=dest_Reg;
 
-        System.out.println(b[0]);
-        System.out.println(b[1]);
-        System.out.println(b[2]);
-        System.out.println(b[3]);
-        System.out.println(b[4]);
-        System.out.println(b[5]);
-        System.out.println(b[6]);
-        System.out.println(b[7]);
+        log.trace("disassembled: {} {} {} {} {} {} {} {}",
+                b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
         return instr;
 
     }
