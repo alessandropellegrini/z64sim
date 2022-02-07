@@ -1,0 +1,1113 @@
+options {
+    JAVA_UNICODE_ESCAPE = true;
+    ERROR_REPORTING = true;
+    STATIC = false;
+    JDK_VERSION = "1.8";
+    BUILD_PARSER = true;
+    IGNORE_CASE = true;
+}
+
+
+PARSER_BEGIN(Assembler)
+package it.uniroma2.pellegrini.z64sim.assembler;
+
+import it.uniroma2.pellegrini.z64sim.isa.operands.*;
+import it.uniroma2.pellegrini.z64sim.isa.registers.*;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.*;
+import it.uniroma2.pellegrini.z64sim.model.*;
+import it.uniroma2.pellegrini.z64sim.controller.*;
+
+import java.io.StringReader;
+import java.io.Reader;
+import java.util.List;
+import java.util.ArrayList;
+
+
+public class Assembler {
+
+    // The actual Program we are assembling
+    private Program program = new Program();
+
+    /** To support error recovery */
+    private List<ParseException> syntaxErrors = new ArrayList<ParseException>();
+
+    /**
+     * A String-based constructor for ease of use
+     *
+     * @param s The program to be assembled
+     */
+    public Assembler(String s) {
+        this((Reader)(new StringReader(s)));
+    }
+
+    /**
+     * Return the assembled program, e.g. for displaying or simulation
+     * @return the assembled program
+     */
+    public Program getProgram() {
+        return this.program;
+    }
+
+    /**
+     * Return found errors, e.g. to show them in the editor
+     * @return list of ParseExceptions
+     */
+    public List<ParseException> getSyntaxErrors() {
+        return this.syntaxErrors;
+    }
+
+    /**
+     * Error recovery function
+     *
+     * @param ex The exception keeping the parse error
+     * @param kind The token to be reached so as to continue parsing
+     */
+    private void error_recover(ParseException ex, int kind) {
+        syntaxErrors.add(ex);
+        Token t;
+        do {
+            t = getNextToken();
+        } while (t.kind != kind && t.kind != EOF);
+    }
+
+    private int getSourceSuffixSize(String mnemonic) throws ParseException {
+        String suffix = mnemonic.substring(mnemonic.length() - 2, mnemonic.length() - 1);
+
+        if(suffix.equals("b"))
+            return 8;
+        else if(suffix.equals("w"))
+            return 16;
+        else if(suffix.equals("l"))
+            return 32;
+        throw new ParseException("Zero/Sign extension with wrong source prefix");
+    }
+
+    private int getSuffixSize(String mnemonic) {
+        String suffix = mnemonic.substring(mnemonic.length() - 1);
+
+        // Some instructions would allow no suffix, but they end with a char which
+        // could be interpreted as a suffix by this function. These cases are
+        // handled here, before checking the suffix.
+        switch(mnemonic) {
+            case "call":
+                return 64;
+        }
+
+        if(suffix.equals("b"))
+            return 8;
+        else if(suffix.equals("w"))
+            return 16;
+        else if(suffix.equals("l"))
+            return 32;
+        else if(suffix.equals("q"))
+            return 64;
+        return -1; // No suffix given, depends on the operands
+    }
+
+    private String stripSuffix(String mnemonic) {
+        // Some instructions would allow no suffix, but they end with a char which
+        // could be interpreted as a suffix by this function. These cases are
+        // handled here, before checking the suffix.
+        switch(mnemonic) {
+            case "call":
+                return mnemonic;
+        }
+
+        if(getSuffixSize(mnemonic) != -1)
+            return mnemonic.substring(0, mnemonic.length() - 1);
+        return mnemonic;
+    }
+
+    private long stringToLong(String s) throws ParseException {
+
+        if(s.length() >= 2) {
+            if(s.substring(0,2).equals("0e"))
+                throw new ParseException("FLONUMS are still not supported"); // TODO
+
+            if(s.substring(0,2).equals("0b"))
+                return Long.parseLong(s.substring(2, s.length()), 2);
+        }
+
+        return Long.decode(s);
+    }
+
+    // Converts a long to a byte[] vector, representing elements as little endians
+    private byte[] dataToByte(int elementSize, long value) throws ParseException {
+        byte[] data = new byte[elementSize];
+
+        switch(elementSize) {
+            case 1:
+                data[0] = (byte)(value);
+                break;
+            case 2:
+                data[1] = (byte)(value >> 8);
+                data[0] = (byte)(value);
+                break;
+            case 4:
+                data[3] = (byte)(value >> 24);
+                data[2] = (byte)(value >> 16);
+                data[1] = (byte)(value >> 8);
+                data[0] = (byte)(value);
+                break;
+            case 8:
+                data[7] = (byte)(value >> 56);
+                data[6] = (byte)(value >> 48);
+                data[5] = (byte)(value >> 40);
+                data[4] = (byte)(value >> 32);
+                data[3] = (byte)(value >> 24);
+                data[2] = (byte)(value >> 16);
+                data[1] = (byte)(value >> 8);
+                data[0] = (byte)(value);
+                break;
+            default:
+                throw new ParseException("Runtime error in the assembler");
+        }
+
+        return data;
+    }
+
+    private byte[] getFilledMemoryArea(int size, byte value) {
+        byte[] fill = new byte[size];
+        for(int i = 0; i < size; i++) {
+            fill[i] = value;
+        }
+        return fill;
+    }
+}
+PARSER_END(Assembler)
+
+
+/*********
+ * LEXER *
+ *********/
+
+
+/* No SKIP charachters: they are hidden to the Lexer interface, and
+ * are rather needed for syntax highlighting. Might have an effect on performance
+ * nevertheless...
+ */
+SPECIAL_TOKEN :
+{ <WHITESPACE:
+  " "
+| "\t"
+| "\f">
+}
+
+TOKEN :
+{
+<NEWLINE:
+("\n"
+| "\r"
+| ";")+ >
+}
+
+TOKEN :
+{
+  <COMMENT: ( "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n") ) >
+}
+
+
+/**
+ * Regular tokens start here
+ */
+
+
+
+/** Keywords */
+TOKEN:
+{ <LOCATION_COUNTER: ".">
+| <ORG: ".org">
+| <DATA_SECTION: ".data">
+| <CODE_SECTION: ".text">
+| <BSS_SECTION: ".bss">
+| <PROGRAM_END: ".end"> // This is a dead token, to remove
+| <EQU_ASSIGN: ".equ">
+| <BYTE_ASSIGN: ".byte">
+| <WORD_ASSIGN: ".word">
+| <LONG_ASSIGN: ".long">
+| <QUAD_ASSIGN: ".quad">
+| <ASCII_ASSIGN: ".ascii">
+| <FILL_ASSIGN: ".fill">
+| <COMM_ASSIGN: ".comm">
+| <DRIVER: (".driver" | ".handler")>
+}
+
+/** Numeric/Arithmetic/Separator stuff */
+TOKEN:
+{ <CONSTANT: "$">
+| <INTEGER: <DEC> | <HEX> | <BIN> | <FLONUM>>
+|   <#DEC: (["0"-"9"])+>
+|   <#HEX: "0x"(["0"-"9","a"-"f"])+>
+|   <#BIN: "0b"(["0","1"])+>
+| <FLONUM: "0e"("+"|"-")? (["0"-"9"])* ("." (["0"-"9"])+ )? ( "e" ("+"|"-")? (["0"-"9"])+ )? >
+| <ASSIGN: "=">
+| <PLUS: "+">
+| <MINUS: "-">
+| <TIMES: "*">
+| <DIVIDE: "/">
+| <LBRACE: "(">
+| <RBRACE: ")">
+| <COMMA: ",">
+}
+
+/** Registers */
+TOKEN:
+{ <REG_8: "%al" | "%cl" | "%dl" | "%bl" | "%spl" | "%bpl" | "%sil" | "%dil" | "%r8b" | "%r9b" | "%r10b" | "%r11b" | "%r12b" | "%r13b" | "%r14b" | "%r15b" >
+| <REG_16: "%ax" | "%bx" | "%cx" | "%dx" | "%sp" | "%bp" | "%si" | "%di" | "%r8w" | "%r9w" | "%r10w" | "%r11w" | "%r12w" | "%r13w" | "%r14w" | "%r15w" >
+| <REG_32: "%eax" | "%ebx" | "%ecx" | "%edx" | "%esp" | "%ebp" | "%esi" | "%edi" | "%r8d" | "%r9d" | "%r10d" | "%r11d" | "%r12d" | "%r13d" | "%r14d" | "%r15d" >
+| <REG_64: "%rax" | "%rbx" | "%rcx" | "%rdx" | "%rsp" | "%rbp" | "%rsi" | "%rdi" | "%r8" | "%r9" | "%r10" | "%r11" | "%r12" | "%r13" | "%r14" | "%r15" >
+}
+
+/** Instructions */
+TOKEN:
+{ <INSN_0: ( "movs"
+           | "stos" )("b"|"w"|"l"|"q")?>
+| <INSN_0_WQ: ("pushf"
+             | "popf" )("w"|"l"|"q")?>
+| <INSN_0_NOSUFF:  "ret"
+                 | "clc"
+                 | "clp"
+                 | "clz"
+                 | "cls"
+                 | "cli"
+                 | "cld"
+                 | "clo"
+                 | "stc"
+                 | "stp"
+                 | "stz"
+                 | "sts"
+                 | "sti"
+                 | "std"
+                 | "sto"
+                 | "hlt"
+                 | "nop">
+| <INSN_1_S: "int">
+| <INSN_LEA: "lea"("b"|"w"|"l"|"q")?>
+| <INSN_1_E: ("push"
+           | "pop"
+           | "neg"
+           | "not")("b"|"w"|"l"|"q")?>
+| <INSN_SHIFT: ("sal"
+            | "shl"
+            | "sar"
+            | "shr"
+            | "rcl"
+            | "rcr"
+            | "rol"
+            | "ror")("b"|"w"|"l"|"q")?>
+| <INSN_BT: ("bt")("b"|"w"|"l"|"q")?>
+| <INSN_1_M: ("jc"
+            | "jp"
+            | "jz"
+            | "js"
+            | "jo"
+            | "jnc"
+            | "jnp"
+            | "jnz"
+            | "jns"
+            | "jno")>
+| <INSN_JC: ("jmp"
+           | "call")("b"|"w"|"l"|"q")?>
+| <INSN_B_E: ("mov"
+            | "add"
+            | "sub"
+            | "adc"
+            | "sbb"
+            | "cmp"
+            | "test"
+            | "and"
+            | "or"
+            | "xor")("b"|"w"|"l"|"q")?>
+| <INSN_EXT: ("movs" | "movz")("bw"|"bl"|"bq"|"wl"|"wq"|"lq")>
+| <INSN_IN: "in"("b"|"w"|"l"|"q")?>
+| <INSN_OUT: "out"("b"|"w"|"l"|"q")?>
+| <INSN_IO_S :("ins"
+           | "outs")("b"|"w"|"l")>
+| <IRET: "iret">
+}
+
+/** Label/Text/Ascii stuff */
+TOKEN:
+{ <LABEL: <LABEL_NAME> ":">
+| <LABEL_NAME: ([".","_","-","a"-"z","0"-"9"])+ >
+| <STRING_LITERAL: "\"" ( ~["\"","\\","\n","\r"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] | ( ["\n","\r"] | "\r\n")))* "\"">
+}
+
+
+TOKEN:
+{
+    /* Anything else is considered to be and error character.
+     * Only one character must be matched because the (~[])+
+     * would be the longest match so it would be always
+     * preferred. The ERROR clause must be the last
+     * in the grammar specification so that other one-char
+     * clauses are matched preferably.
+     * This is REQUIRED for correct online syntax highlighting,
+     * but makes actual parsing a bit more difficult.
+     */
+    <ERROR: ~[] >
+}
+
+
+
+
+
+
+/****************
+ * PARSER RULES *
+ ****************/
+
+
+/**
+ * This is the Axiom of the parser
+ *
+ * @throws it.z64sim.assembler.ParseException
+ */
+void Program() :
+{}
+{
+    try {
+        (<COMMENT> | <NEWLINE>)*
+        LocationCounter() (<COMMENT> | <NEWLINE>)+
+        Data()
+        Code()
+        (Drivers())?
+        <EOF>
+
+        {   // Finalize the program
+            try {
+                this.program.finalizeProgram();
+            } catch(ProgramException e) {
+                throw new ParseException(e.getMessage());
+            }
+
+            // All this was memory intensive: reclaim if possible!
+             System.gc();
+        }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+
+void Data() :
+{
+    Token t1, t2;
+    long value = -1;
+    long repeat, size = -1; // Used for fill assignments
+    long addr;
+    int elementSize;
+    byte[] data;
+    String l;
+}
+{
+    try {
+        (   (<DATA_SECTION> | <BSS_SECTION>)
+            (
+                  (<COMMENT> | <NEWLINE>)
+                |  LocationCounter()
+                | <EQU_ASSIGN> t1 = <LABEL_NAME> "," value = Expression()
+                  {
+                    try {
+                        this.program.addEqu(t1.image, value);
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
+                  }
+                | t1 = <LABEL_NAME> <ASSIGN> value = Expression()
+                  {
+                    try {
+                        this.program.addEqu(t1.image, value);
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
+                  }
+                | t1 = <LABEL>
+                  (
+                       ( <BYTE_ASSIGN> {elementSize = 1;}
+                       | <WORD_ASSIGN> {elementSize = 2;}
+                       | <LONG_ASSIGN> {elementSize = 4;}
+                       | <QUAD_ASSIGN> {elementSize = 8;} )
+                          value = Expression()
+                          { data = dataToByte(elementSize, value); }
+                       ("," value = Expression()
+                          {
+                            byte additionalData[] = dataToByte(elementSize, value);
+                            byte updatedData[] = new byte[ data.length + additionalData.length ];
+                            System.arraycopy(data, 0, updatedData, 0, data.length);
+                            System.arraycopy(additionalData, 0, updatedData, data.length, additionalData.length);
+                            data = updatedData;
+                          }
+                       )*
+                       {
+                        // Put data in memory
+                        addr = this.program.addData(data);
+
+                         // Add the label, remove trailing ':'
+                         l = t1.image.substring(0, t1.image.length()-1);
+                         this.program.newLabel(l, addr);
+                       }
+                     | <ASCII_ASSIGN> t2 = <STRING_LITERAL>
+                       {
+                         // Put data in memory
+                         byte[] str = t2.image.substring(1, t2.image.length() - 1).getBytes();
+                         addr = this.program.addData(str);
+
+                        // Add the label
+                        l = t1.image.substring(0, t1.image.length()-1);
+                        this.program.newLabel(l, addr);
+                       }
+                     | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
+                       {
+                          // Value is the third optional parameter
+                          if(value == -1)
+                              value = 0;
+
+                          // Size is the second optional parameter
+                          if(size == -1)
+                              size = 1;
+
+                          // Create 'repeat' DataElements set to value
+                          addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
+
+                          // Add the label
+                          l = t1.image.substring(0, t1.image.length()-1);
+                          this.program.newLabel(l, addr);
+                       }
+                  )
+                | <COMM_ASSIGN> t1 = <LABEL_NAME> "," size = Expression()
+                  {
+                    // .comm assigns to zero
+                    addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
+                    l = t1.image.substring(0, t1.image.length()-1);
+                    this.program.newLabel(l, addr);
+                  }
+            )+
+        )+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+    {this.program.finalizeData();}
+}
+
+void Code() :
+{
+    Instruction i;
+}
+{
+    try {
+        (
+            <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
+            (
+                i = Statement()
+                {if(i != null) {
+                    try {
+                        // The size of the MemoryElement is added by the Instruction classes
+                        this.program.addInstructionToMemory(i);
+                    } catch(ProgramException e) {
+                        throw new ParseException(e.getMessage());
+                    }
+                }
+}
+            )*
+        )+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+Instruction Drivers() :
+{
+    Token t;
+}
+{
+    try {
+        (
+            <DRIVER> (<INTEGER> | <LABEL_NAME>) (<COMMENT> | <NEWLINE>)*
+            ( Statement() )+
+            t = <IRET> (<COMMENT> | <NEWLINE>)*
+            {
+                return new InstructionClass5(t.image, null);
+            }
+        )+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+Instruction Statement() :
+{
+    String label;
+    Instruction i = null;
+}
+{
+    try {
+        (
+            label = Label() (<NEWLINE>)? i = Instruction()
+            {this.program.newLabel(label, this.program.getLocationCounter());}
+          | LocationCounter()
+          | i = Instruction()
+        )
+        (<COMMENT> | <NEWLINE>)+
+        { return i; }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+void LocationCounter() :
+{
+    Token t, t2 = null;
+    long newLocationCounter;
+}
+{
+    try {
+        (   <LOCATION_COUNTER> <ASSIGN> t = <INTEGER>
+          | <ORG> t = <INTEGER> ("," t2 = <INTEGER> )?
+        )
+        {
+            newLocationCounter = stringToLong( t.image );
+
+            // if t2 != null, we have a fill assignment
+            if(t2 != null) {
+                byte value = (byte)stringToLong( t2.image );
+                long size = newLocationCounter - this.program.getLocationCounter();
+                this.program.addData(getFilledMemoryArea((int)size, value));
+
+            } else {
+                try {
+                    // It's in the else branch as the addMemoryElement above already
+                    // increases the location counter's value by size
+                    program.setLocationCounter( newLocationCounter );
+                } catch (ProgramException ex) {
+                    throw new ParseException("Line " + t.beginLine + ": " + ex.getMessage());
+                }
+            }
+        }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+    }
+}
+
+
+Instruction Instruction() :
+{
+    Token t, t2, l;
+    int size;
+    int sizeExt;
+    String mnemonic;
+    Operand op1, op2;
+    int i = -1;
+    Instruction insn = null;
+}
+{
+    try {
+    (
+        t = <INSN_0>
+        {
+            size = getSuffixSize( t.image );
+            insn = new InstructionClass1(stripSuffix(t.image), null, null, size);
+        }
+      |
+        t = <INSN_0_WQ>
+        {
+            size = getSuffixSize( t.image );
+            insn = new InstructionClass1(stripSuffix(t.image), null, null, size);
+        }
+      |
+        t = <INSN_0_NOSUFF>
+        {
+            // ret is class 5, with no actual operand
+            if(t.image.equals("ret"))
+                insn = new InstructionClass5(t.image, null);
+
+            // hlt, nop are class 0
+            else if(t.image.equals("hlt") || t.image.equals("nop"))
+                insn = new InstructionClass0(t.image, -1); // -1 is for the idn in a non-int instruction
+
+            // others are all class 4
+            else
+                insn = new InstructionClass4(t.image);
+        }
+      |
+        t = <INSN_1_S> t2 = <INTEGER>
+        { insn = new InstructionClass0(t.image, Integer.parseInt(t2.image)); }
+      |
+        t = <INSN_1_E>  { size = getSuffixSize(t.image); }
+        op1 = FormatE(size)
+        {
+            mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size)
+                throw new ParseException("Line " + t.beginLine + ": operand size and instruction suffix mismatch");
+
+            // push and pop are class 1
+            if(mnemonic.equals("push") || mnemonic.equals("pop"))
+                insn = new InstructionClass1(mnemonic, op1, null, -1);
+
+            // neg and not are class 2
+            else
+                insn = new InstructionClass2(mnemonic, op1, null);
+        }
+      |
+        t = <INSN_SHIFT> ( i = FormatK() <COMMA> )? op1 = FormatG()
+        {
+            // Shift instructions belong all to class 3
+            insn = new InstructionClass3(stripSuffix(t.image), i, (OperandRegister)op1);
+        }
+      |
+        t = <INSN_BT> { size = getSuffixSize( t.image ); }
+            i = FormatK() <COMMA> op2 = FormatE(size)
+        {
+            op1 = new OperandImmediate(i);
+            
+            // Shift instructions belong all to class 3
+            insn = new InstructionClass2(stripSuffix(t.image), op1, op2);
+        }
+      |
+        t = <INSN_1_M>  { size = getSuffixSize( t.image ); }
+        l = <LABEL_NAME>
+        {
+            // This is a memory operand with displacement only (pointing
+            // to the label's address. The real address will be placed in memory by
+            // relocation, at the end of the program's generation.
+            op1 = new OperandMemory(-1, -1, -1, -1, 0, size);
+            this.program.addRelocationEntry(this.program.getLocationCounter(), l.image);
+        
+            // They all belong to class 6
+            insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
+        }
+      |
+        t = <INSN_JC> { size = getSuffixSize( t.image ); }
+        ( ( <TIMES> op1 = FormatG() ) | op1 = FormatM(size) )
+        {
+            // Sanity check
+            if(op1.getSize() != size)
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
+
+            // They all belong to class 5
+            insn = new InstructionClass5( stripSuffix(t.image), null);
+        }
+      |
+        t = <INSN_B_E>  { size = getSuffixSize( t.image ); }
+        op1 = FormatB(size) <COMMA> op2 = FormatE(size)
+        {
+            mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size || op2.getSize() != size)
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
+
+            // mov is class 1
+            if(mnemonic.equals("mov"))
+                insn = new InstructionClass1(mnemonic, op1, op2, -1);
+            // others are all class 2
+            else
+                insn = new InstructionClass2(mnemonic, op1, op2);
+        }
+      |
+        t = <INSN_EXT>  { size = getSourceSuffixSize( t.image ); }
+        op1 = FormatE(size) <COMMA> op2 = FormatG()
+        {
+            sizeExt = getSuffixSize(t.image);
+            mnemonic = stripSuffix(stripSuffix(t.image)); // This instruction has two suffixes
+
+            // Sanity check
+            if(op1.getSize() != size || op2.getSize() != sizeExt)
+                throw new ParseException("Line " + t.beginLine + ": Operand size mismatch.");
+
+            if(size >= sizeExt)
+                throw new ParseException("Line " + t.beginLine + ": Wrong suffices for extension: cannot extend from" + size + " to " + sizeExt);
+
+            insn = new InstructionClass1(mnemonic+"X", op1, op2, -1);
+        }
+      |
+        t = <INSN_LEA> { size = getSuffixSize( t.image ); }
+        op1 = FormatE(size) <COMMA> op2 = FormatE(size)
+        {
+            mnemonic = stripSuffix(t.image);
+
+            // Sanity check
+            if(op1.getSize() != size || op2.getSize() != size)
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
+
+            insn = new InstructionClass1(mnemonic, op1, op2, -1);
+        }
+      |
+        t = <INSN_IN> t2 = <REG_16> <COMMA> op1 = Register() /* programmatically check for registers */
+        {
+            size = getSuffixSize( t.image );
+            mnemonic = stripSuffix(t.image);
+
+            if(size > 32)
+                throw new ParseException("Wrong size suffix for in instruction");
+
+            if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
+                throw new ParseException("Wrong operands for instruction " + t.image + ".");
+
+            insn = new InstructionClass7(mnemonic, size);
+        }
+      |
+        t = <INSN_OUT> op1 = Register() <COMMA> t2 = <REG_16> /* programmatically check for registers */
+        {
+            size = getSuffixSize( t.image );
+            mnemonic = stripSuffix(t.image);
+
+            if(size > 32)
+                throw new ParseException("Wrong size suffix for out instruction");
+
+            if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
+                throw new ParseException("Wrong operands for instruction " + t.image + ".");
+
+            insn = new InstructionClass7(mnemonic, size);
+        }
+      |
+        t = <INSN_IO_S>
+        {
+            size = getSuffixSize( t.image );
+            mnemonic = stripSuffix(t.image);
+
+            if(size == -1)
+                throw new ParseException("Wrong size suffix for instruction " + mnemonic);
+
+            insn = new InstructionClass7(mnemonic, size);
+        }
+    )
+    { return insn; }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+
+
+String Label() :
+{
+    Token t;
+}
+{
+    try {
+        t = <LABEL>
+        {
+          // Remove trailing ':'
+          return t.image.substring(0, t.image.length()-1);
+        }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return "";  // otherwise javaCC throws exceptions. An empty string is
+                    // returned because the string is accessed by callers.
+                    // Nevertheless we're in an error condition, so our only goal
+                    // is to reach the end of the file to show as many errors as
+                    // possible
+    }
+}
+
+
+
+OperandRegister Register() :
+{
+    Token t;
+}
+{
+    try {
+        t = <REG_8>
+        { return new OperandRegister( Register.getRegister8( t.image ) , 8 ); }
+      |
+        t = <REG_16>
+        { return new OperandRegister( Register.getRegister16( t.image ) , 16 ); }
+      |
+        t = <REG_32>
+        { return new OperandRegister( Register.getRegister32( t.image ) , 32 ); }
+      |
+        t = <REG_64>
+        { return new OperandRegister( Register.getRegister64( t.image ) , 64 ); }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+OperandMemory AddressingBIS(int size) :
+{
+    OperandRegister base = null;
+    Token index = null;
+    Token scale = null;
+}
+{
+    try {
+
+        <LBRACE>
+            ( 
+              ( 
+                base = Register()
+                ("," index = <REG_64> "," scale = <INTEGER>)?
+              )
+            |
+              ("," index = <REG_64> "," scale = <INTEGER>)
+            )
+        <RBRACE>
+
+        { 
+            int bs = (base != null ? base.getRegister() : -1);
+            int base_size = (base != null ? base.getSize() : -1);
+            int idx = (index != null ? Register.getRegister64( index.image ) : -1);
+            int scl = (scale != null ? Integer.parseInt(scale.image) : -1);
+
+            // Displacement is set to -1 because this is actually set by the calling
+            // Addressing() rule
+            return new OperandMemory(bs, base_size, idx, scl, -1, size);
+        }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+OperandMemory Addressing(int size) :
+{
+    OperandMemory mem;
+    long dispLong = 0;
+    Token t;
+}
+{
+    try {
+
+        // A lookahead of 2 is required here because a displacement
+        // can be represented as a mathematical expression which can
+        // use parentheses. They thus clash with the base/index
+        // registers. A higher lookaead is not required as the latter
+        // case will find a ',' or a '%' right after the parenthesis.
+        (   LOOKAHEAD(2)
+            ( dispLong = Expression() mem = AddressingBIS(size) )
+            |
+            ( mem = AddressingBIS(size) )
+        )
+        { 
+            mem.setDisplacement((int)dispLong);
+            return mem; 
+        }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+
+
+Operand FormatE(int size) :
+{
+    OperandMemory mem = null;
+    OperandRegister reg = null;
+}
+{
+    try {
+      (
+        reg = Register()
+      |
+        mem = Addressing(size)
+      )
+      {
+        if(reg != null)
+            return reg;
+        return mem;
+      }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+
+int FormatK() :
+{
+    OperandImmediate imm;
+}
+{
+    try {
+        imm = ConstantExpression()
+        { return (int)imm.getValue(); }
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return -1; // otherwise javaCC throws exceptions
+    }
+}
+
+
+
+OperandRegister FormatG() :
+{
+    OperandRegister reg;
+}
+{
+    try {
+        reg = Register()
+        { return reg; }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+/* Both label and direct address */
+OperandMemory FormatM(int size) :
+{
+    OperandMemory memOp;
+    long address;
+    Token l;
+}
+{
+    try {
+        memOp = Addressing(size)
+        {return memOp;}
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+
+Operand FormatB(int size) :
+{
+    OperandImmediate imm;
+    OperandMemory mem;
+    OperandRegister reg;
+    Token t;
+}
+{
+    try {
+
+        /* ACTUAL RULE */
+          imm = ConstantExpression()
+          {
+            imm.setSize(size); // The size of an immediate depends on the instruction suffix
+            return imm;
+          }
+        |
+          reg = FormatG()
+          { return reg; }
+        |
+          mem = FormatM(size)
+          { return mem; }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+/***************************************************/
+/* Rules to handle simple expressions in constants */
+/***************************************************/
+
+OperandImmediate ConstantExpression() :
+{
+    long value;
+}
+{
+    try {
+
+        /* ACTUAL RULE */
+        <CONSTANT>
+        value = Expression()
+        { return new OperandImmediate(value); }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return null; // otherwise javaCC throws exceptions
+    }
+}
+
+
+long Expression() :
+{
+    long value;
+    long i;
+}
+{
+    try {
+
+        /* ACTUAL RULE */
+        value = Term()
+        (
+            <PLUS> i = Term()
+            { value += i; }
+        |
+            <MINUS> i = Term()
+            { value -= i; }
+        )*
+        { return value; }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return -1;
+    }
+}
+
+long Term() :
+{
+    long value;
+    long i;
+}
+{
+    try {
+
+        value = Primary()
+        (
+            <TIMES> i = Primary()
+            { value *= i ; }
+        |   <DIVIDE> i = Primary()
+            { value /= i; }
+        )*
+        { return value; }
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return -1;
+    }
+}
+
+long Primary() :
+{
+    Token t;
+    long i;
+}
+{
+    try {
+
+        t = <INTEGER>
+        { return stringToLong( t.image ); }
+      | <LOCATION_COUNTER>
+        { return this.program.getLocationCounter(); }
+      | t = <LABEL_NAME>
+        {
+            this.program.addRelocationEntry(this.program.getLocationCounter(), t.image);
+            return 0; // This will be resolved later
+        }
+      | <LBRACE> i = Expression() <RBRACE>
+        { return i; }
+      | <MINUS> i = Primary()
+        { return -i; }
+
+
+    } catch (ParseException ex) {
+        error_recover(ex, NEWLINE);
+        return -1;
+    }
+}

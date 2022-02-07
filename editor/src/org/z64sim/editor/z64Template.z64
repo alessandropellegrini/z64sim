@@ -1,5 +1,0 @@
-.org 0x800
-.data
-
-.text
-    hlt

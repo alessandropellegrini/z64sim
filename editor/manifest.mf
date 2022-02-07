@@ -1,8 +1,0 @@
-Manifest-Version: 1.0
-AutoUpdate-Show-In-Client: true
-OpenIDE-Module: org.z86sim.editor
-OpenIDE-Module-Layer: org/z64sim/editor/layer.xml
-OpenIDE-Module-Localizing-Bundle: org/z64sim/editor/Bundle.properties
-OpenIDE-Module-Requires: org.openide.windows.WindowManager
-OpenIDE-Module-Specification-Version: 1.0
-
