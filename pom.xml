@@ -6,7 +6,7 @@
 
     <groupId>it.uniroma2.pellegrini.z64sim</groupId>
     <artifactId>z64sim</artifactId>
-    <name>z64sim</name>
+    <name>z64 Simulator</name>
     <version>1.0</version>
 
     <properties>
@@ -32,6 +32,18 @@
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.0-alpha6</version>
         </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>forms_rt</artifactId>
+            <version>7.0.3</version>
+        </dependency>
+
+
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -99,7 +111,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>it.uniroma2.pellegrini.z64sim.z64sim</mainClass>
@@ -109,7 +120,13 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

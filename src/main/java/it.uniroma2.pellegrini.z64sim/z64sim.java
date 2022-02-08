@@ -5,11 +5,12 @@
  */
 package it.uniroma2.pellegrini.z64sim;
 
-import it.uniroma2.pellegrini.z64sim.controller.MainController;
+import com.formdev.flatlaf.FlatDarkLaf;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 
 public class z64sim {
     public static void main(String[] args) {
-        MainWindow.getInstance(MainController.getInstance()).show();
+        FlatDarkLaf.setup();
+        MainWindow.getInstance().show();
     }
 }
