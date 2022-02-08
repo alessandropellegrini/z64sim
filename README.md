@@ -5,6 +5,4 @@
 [![GitHub issues](https://img.shields.io/github/issues/alessandropellegrini/z64sim)](https://github.com/alessandropellegrini/z64sim/issues)
 [![GitHub license](https://img.shields.io/github/license/alessandropellegrini/z64sim)](https://github.com/alessandropellegrini/z64sim)
 
--------------------------
-
-
+---

@@ -6,7 +6,6 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import it.uniroma2.pellegrini.z64sim.assembler.*;
-import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass1;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
