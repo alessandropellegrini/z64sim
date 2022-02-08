@@ -16,8 +16,8 @@ import it.uniroma2.pellegrini.z64sim.queue.Events;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
+import java.util.ResourceBundle;
 
 public class MainWindow extends EventDispatchable {
     private static MainWindow instance = null;
@@ -30,32 +30,26 @@ public class MainWindow extends EventDispatchable {
     private JButton darkButton;
 
     private MainWindow() {
-
         $$$setupUI$$$();
-        quitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                Dispatcher.dispatch(Events.QUIT);
-            }
-        });
-        helloButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                JOptionPane.showMessageDialog(null, "Hello World");
-            }
-        });
-        lightButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                Dispatcher.dispatch(Events.SET_THEME_LIGHT);
-            }
-        });
-        darkButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                Dispatcher.dispatch(Events.SET_THEME_DARK);
-            }
-        });
+        quitButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.QUIT));
+        helloButton.addActionListener(actionEvent -> JOptionPane.showMessageDialog(null, "Hello World"));
+        lightButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.SET_THEME_LIGHT));
+        darkButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.SET_THEME_DARK));
+    }
+
+    public static MainWindow getInstance() {
+        if (instance == null)
+            instance = new MainWindow();
+
+        return instance;
+    }
+
+    public void show() {
+        this.mainFrame = new JFrame(PropertyBroker.getPropertyValue("z64sim.name"));
+        this.mainFrame.setContentPane(this.mainPanel);
+        this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.mainFrame.pack();
+        this.mainFrame.setVisible(true);
     }
 
     @Override
@@ -69,22 +63,6 @@ public class MainWindow extends EventDispatchable {
                 break;
         }
         return true;
-    }
-
-    public static MainWindow getInstance() {
-        if (instance == null)
-            instance = new MainWindow();
-
-        return instance;
-    }
-
-
-    public void show() {
-        this.mainFrame = new JFrame(PropertyBroker.getPropertyValue("z64sim.name"));
-        this.mainFrame.setContentPane(this.mainPanel);
-        this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.mainFrame.pack();
-        this.mainFrame.setVisible(true);
     }
 
     private void setTheme(LookAndFeel theme) {
@@ -109,17 +87,61 @@ public class MainWindow extends EventDispatchable {
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
         helloButton = new JButton();
-        helloButton.setText("Hello!");
+        this.$$$loadButtonText$$$(helloButton, this.$$$getMessageFromBundle$$$("i18n", "mainWindow.button.hello"));
         mainPanel.add(helloButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         quitButton = new JButton();
-        quitButton.setText("Quit");
+        this.$$$loadButtonText$$$(quitButton, this.$$$getMessageFromBundle$$$("i18n", "mainWindow.button.darkTheme"));
         mainPanel.add(quitButton, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         lightButton = new JButton();
-        lightButton.setText("Light");
+        this.$$$loadButtonText$$$(lightButton, this.$$$getMessageFromBundle$$$("i18n", "mainWindow.button.lightTheme"));
         mainPanel.add(lightButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         darkButton = new JButton();
-        darkButton.setText("Dark");
+        this.$$$loadButtonText$$$(darkButton, this.$$$getMessageFromBundle$$$("i18n", "mainWindow.button.dark"));
         mainPanel.add(darkButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    }
+
+    private static Method $$$cachedGetBundleMethod$$$ = null;
+
+    private String $$$getMessageFromBundle$$$(String path, String key) {
+        ResourceBundle bundle;
+        try {
+            Class<?> thisClass = this.getClass();
+            if ($$$cachedGetBundleMethod$$$ == null) {
+                Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
+                $$$cachedGetBundleMethod$$$ = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
+            }
+            bundle = (ResourceBundle) $$$cachedGetBundleMethod$$$.invoke(null, path, thisClass);
+        } catch (Exception e) {
+            bundle = ResourceBundle.getBundle(path);
+        }
+        return bundle.getString(key);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private void $$$loadButtonText$$$(AbstractButton component, String text) {
+        StringBuffer result = new StringBuffer();
+        boolean haveMnemonic = false;
+        char mnemonic = '\0';
+        int mnemonicIndex = -1;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&') {
+                i++;
+                if (i == text.length()) break;
+                if (!haveMnemonic && text.charAt(i) != '&') {
+                    haveMnemonic = true;
+                    mnemonic = text.charAt(i);
+                    mnemonicIndex = result.length();
+                }
+            }
+            result.append(text.charAt(i));
+        }
+        component.setText(result.toString());
+        if (haveMnemonic) {
+            component.setMnemonic(mnemonic);
+            component.setDisplayedMnemonicIndex(mnemonicIndex);
+        }
     }
 
     /**
