@@ -12,10 +12,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
-import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass1;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
-import it.uniroma2.pellegrini.z64sim.controller.ProgramException;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

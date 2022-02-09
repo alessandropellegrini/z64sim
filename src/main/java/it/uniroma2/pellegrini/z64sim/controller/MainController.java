@@ -6,33 +6,35 @@
 package it.uniroma2.pellegrini.z64sim.controller;
 
 import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass5;
+import it.uniroma2.pellegrini.z64sim.queue.EventDispatchable;
+import it.uniroma2.pellegrini.z64sim.queue.Events;
+import it.uniroma2.pellegrini.z64sim.view.SettingsWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainController {
+public class MainController extends Controller {
     private static final Logger log = LoggerFactory.getLogger(InstructionClass5.class);
 
     private static MainController instance = null;
 
     private MainController() {}
 
-    public enum command {
-      QUIT,
-    };
-
-    public void dispatch(command command) {
-        switch(command) {
-            case QUIT:
-                break;
-            default:
-                log.error("Ignoring unexpected event: {}", command);
-        }
+    @Override
+    public boolean dispatch(Events command) {
+        return false;
     }
 
-    public static MainController getInstance() {
+    private static MainController getInstance() {
         if(instance != null)
             instance = new MainController();
 
         return instance;
     }
+
+    private void foo() {
+        SettingsWindow dialog = new SettingsWindow();
+        dialog.pack();
+        dialog.setVisible(true);
+    }
+
 }
