@@ -6,9 +6,9 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import it.uniroma2.pellegrini.z64sim.assembler.*;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import org.junit.jupiter.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,7 +21,6 @@ import java.util.Objects;
  */
 
 public class AssemblerTest {
-    private static final Logger log = LoggerFactory.getLogger(AssemblerTest.class);
 
     @BeforeAll
     public static void setUpClass() {
@@ -50,7 +49,6 @@ public class AssemblerTest {
         Token token = manager.getNextToken();
 
         while (token != null && token.kind != AssemblerConstants.EOF) {
-            log.debug("Next token: {} [{}]", token, token.kind);
             token = manager.getNextToken();
         }
     }

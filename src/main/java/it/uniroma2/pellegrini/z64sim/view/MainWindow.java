@@ -10,7 +10,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
-import it.uniroma2.pellegrini.z64sim.queue.Events;
+import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +44,7 @@ public class MainWindow extends View {
         this.mainFrame.setContentPane(this.mainPanel);
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.mainFrame.setJMenuBar(new MainWindowMenu());
-        this.mainFrame.setMinimumSize(new Dimension(Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.mainWindow.minSizeX")), Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.mainWindow.minSizeY"))));
+        this.mainFrame.setMinimumSize(new Dimension(Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX")), Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"))));
         this.mainFrame.pack();
         this.mainFrame.setVisible(true);
     }

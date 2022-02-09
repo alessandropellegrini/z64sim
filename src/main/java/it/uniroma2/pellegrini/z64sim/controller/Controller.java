@@ -5,7 +5,7 @@
  */
 package it.uniroma2.pellegrini.z64sim.controller;
 
-import it.uniroma2.pellegrini.z64sim.queue.EventDispatchable;
+import it.uniroma2.pellegrini.z64sim.util.queue.EventDispatchable;
 
 public abstract class Controller extends EventDispatchable {
 }

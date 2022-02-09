@@ -15,8 +15,8 @@ import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 
 /**
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class Program {
-    private static final Logger log = LoggerFactory.getLogger(Program.class);
+    private static final Logger log = LoggerFactory.getLogger();
 
     private Byte[] IDT = new Byte[0x800];
     private Deque<Byte> text = new ArrayDeque<Byte>();

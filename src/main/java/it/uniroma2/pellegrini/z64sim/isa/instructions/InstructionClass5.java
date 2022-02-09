@@ -10,15 +10,15 @@ import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 /**
  *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass5 extends Instruction {
-    private static final Logger log = LoggerFactory.getLogger(InstructionClass5.class);
+    private static final Logger log = LoggerFactory.getLogger();
 
     private final Operand target;
 

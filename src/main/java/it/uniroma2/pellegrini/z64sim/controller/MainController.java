@@ -6,14 +6,13 @@
 package it.uniroma2.pellegrini.z64sim.controller;
 
 import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass5;
-import it.uniroma2.pellegrini.z64sim.queue.EventDispatchable;
-import it.uniroma2.pellegrini.z64sim.queue.Events;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.SettingsWindow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MainController extends Controller {
-    private static final Logger log = LoggerFactory.getLogger(InstructionClass5.class);
+    private static final Logger log = LoggerFactory.getLogger();
 
     private static MainController instance = null;
 
@@ -24,11 +23,9 @@ public class MainController extends Controller {
         return false;
     }
 
-    private static MainController getInstance() {
-        if(instance != null)
-            instance = new MainController();
-
-        return instance;
+    public static void init() {
+        log.trace("Initializing Main Controller");
+        instance = new MainController();
     }
 
     private void foo() {

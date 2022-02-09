@@ -3,16 +3,16 @@
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
-package it.uniroma2.pellegrini.z64sim.queue;
+package it.uniroma2.pellegrini.z64sim.util.queue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Dispatcher {
-    private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
+    private static final Logger log = LoggerFactory.getLogger();
     private static final Dispatcher instance = null;
 
     private static final List<EventDispatchable> destinations = new ArrayList<>();

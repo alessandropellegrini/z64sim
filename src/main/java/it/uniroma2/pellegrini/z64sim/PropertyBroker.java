@@ -6,10 +6,9 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
@@ -17,7 +16,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class PropertyBroker {
-    private static final Logger log = LoggerFactory.getLogger(PropertyBroker.class);
+    private static final Logger log = LoggerFactory.getLogger();
     private static PropertyBroker instance = null;
 
     private final Properties z64simProperties = new Properties();

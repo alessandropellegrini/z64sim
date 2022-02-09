@@ -8,8 +8,8 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 
 /**
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass3 extends Instruction {
-    private static final Logger log = LoggerFactory.getLogger(InstructionClass1.class);
+    private static final Logger log = LoggerFactory.getLogger();
 
     private final int places;
     private final OperandRegister reg;

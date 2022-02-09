@@ -6,14 +6,24 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import it.uniroma2.pellegrini.z64sim.controller.MainController;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 
 public class z64sim {
 
     public static void main(String[] args) {
         SettingsController.init();
-        FlatDarkLaf.setup();
+        Logger.init(); // Must come after settings initialization
+        MainController.init();
+
+        if(SettingsController.getTheme().equals("light"))
+            FlatLightLaf.setup();
+        else
+            FlatDarkLaf.setup();
+
         MainWindow.getInstance().show();
     }
 }
