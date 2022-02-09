@@ -8,5 +8,6 @@ package it.uniroma2.pellegrini.z64sim.util.queue;
 public enum Events {
     QUIT,
     SET_THEME_LIGHT,
-    SET_THEME_DARK
+    SET_THEME_DARK,
+    SHOW_SETTINGS_DIALOG
 }

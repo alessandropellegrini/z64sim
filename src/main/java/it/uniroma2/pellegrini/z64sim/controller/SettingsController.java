@@ -12,6 +12,7 @@ import it.uniroma2.pellegrini.z64sim.controller.exceptions.SettingsException;
 import it.uniroma2.pellegrini.z64sim.util.log.LogLevel;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 
 import java.io.File;
@@ -26,12 +27,13 @@ import java.util.List;
 import java.util.Locale;
 
 public class SettingsController extends Controller {
-    private static final Logger log = LoggerFactory.getLogger();;
+    private static final Logger log = LoggerFactory.getLogger();
     private static SettingsController instance = null;
 
-    // To validate configuration file
+    // To validate configuration file and to match JComboBoxes in SettingsWindow
+    // WARNING: The model in the JComboBox *must* match the order in these arrays!
     private static final String[] locales = {"en", "es", "fr", "it"};
-    private static final String[] themes = {"dark", "light"};
+    private static final String[] themes = {"light", "dark"};
     private static final String[] logLevels = {"trace", "debug", "info", "warn", "error"};
 
     // Actual members of the singleton
@@ -63,6 +65,7 @@ public class SettingsController extends Controller {
 
         // Update locale
         instance.locale = new Locale(instance.settings.getUiLang());
+        Locale.setDefault(instance.locale);
     }
 
     private static void validateConfig() {
@@ -91,6 +94,14 @@ public class SettingsController extends Controller {
         return instance;
     }
 
+    public static void persist() {
+        try {
+            getInstance().settings.persist();
+        } catch(SettingsException e) {
+            log.error(PropertyBroker.getMessageFromBundle("unable.to.store.configuration.file.0", e.getMessage()));
+        }
+    }
+
     public static Locale getLocale() {
         return getInstance().locale;
     }
@@ -99,20 +110,58 @@ public class SettingsController extends Controller {
         return LogLevel.stringToLevel(getInstance().settings.getLogLevel());
     }
 
+    public static int getLogLevelIdx() {
+        return Arrays.asList(logLevels).indexOf(getLogLevel().toString().toLowerCase());
+    }
+
+    public static void setLogLevelIdx(int idx) {
+        getInstance().settings.setLogLevel(logLevels[idx]);
+        // TODO: dispatch log level
+    }
+
     public static boolean getLogShowDateTime() {
         return getInstance().settings.getLogShowDateTime();
+    }
+
+    public static void setLogShowDateTime(boolean show) {
+        getInstance().settings.setLogShowDateTime(show);
     }
 
     public static String getLogFile() {
         return getInstance().settings.getLogOutFile();
     }
 
+    public static void setLogFile(String path) {
+        getInstance().settings.setLogOutFile(path);
+        // TODO: dispatch log file
+    }
+
     public static String getUiLang() {
         return getInstance().settings.getUiLang();
     }
 
+    public static int getUiLangIdx() {
+        return Arrays.asList(locales).indexOf(getUiLang());
+    }
+
+    public static void setUiLangIdx(int idx) {
+        getInstance().settings.setUiLang(locales[idx]);
+    }
+
     public static String getTheme() {
         return getInstance().settings.getTheme();
+    }
+
+    public static int getThemeIdx() {
+        return Arrays.asList(themes).indexOf(getTheme());
+    }
+
+    public static void setThemeIdx(int idx) {
+        getInstance().settings.setTheme(themes[idx]);
+        if(idx == 0)
+            Dispatcher.dispatch(Events.SET_THEME_LIGHT);
+        else
+            Dispatcher.dispatch(Events.SET_THEME_DARK);
     }
 
     private static class Settings {

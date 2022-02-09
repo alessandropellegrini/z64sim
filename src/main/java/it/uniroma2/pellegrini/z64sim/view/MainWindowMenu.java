@@ -5,32 +5,35 @@
  */
 package it.uniroma2.pellegrini.z64sim.view;
 
+import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
+import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import javax.swing.*;
 
 public class MainWindowMenu extends JMenuBar {
-    private JMenu menu, smenu;
-    private JMenuItem e1, e2, e3, e4, e5, e6;
 
     public MainWindowMenu() {
 
-        menu = new JMenu("Menu");
-        smenu = new JMenu("Sub menu");
+        /* FILE */
+        JMenu menuFile = new JMenu(PropertyBroker.getMessageFromBundle("menu.file"));
 
-        e1 = new JMenuItem("Item 1");
-        e2 = new JMenuItem("Item 2");
-        e3 = new JMenuItem("Item 3");
-        e4 = new JMenuItem("Item 4");
-        e5 = new JMenuItem("Item 5");
-        e6 = new JMenuItem("Item 6");
+        JMenuItem settingsMenu = new JMenuItem(PropertyBroker.getMessageFromBundle("menu.file.settings"));
+        settingsMenu.addActionListener(e -> Dispatcher.dispatch(Events.SHOW_SETTINGS_DIALOG));
+        menuFile.add(settingsMenu);
 
-        menu.add(e1);
-        menu.add(e2);
-        menu.add(e3);
-        smenu.add(e4);
-        smenu.add(e5);
-        smenu.add(e6);
-        menu.add(smenu);
+        JMenuItem quitMenu = new JMenuItem(PropertyBroker.getMessageFromBundle("menu.file.quit"));
+        quitMenu.addActionListener(e -> Dispatcher.dispatch(Events.QUIT));
+        menuFile.add(quitMenu);
 
-        this.add(menu);
+        this.add(menuFile);
+
+        /* EDIT */
+        JMenu menu2 = new JMenu("Edit");
+        JMenu smenu = new JMenu("Sub menu");
+        JMenuItem e2 = new JMenuItem("Settings");
+        smenu.add(e2);
+
+        this.add(menu2);
     }
 }

@@ -33,7 +33,7 @@ public class MainWindow extends View {
     }
 
     public static MainWindow getInstance() {
-        if (instance == null)
+        if(instance == null)
             instance = new MainWindow();
 
         return instance;
@@ -45,13 +45,14 @@ public class MainWindow extends View {
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.mainFrame.setJMenuBar(new MainWindowMenu());
         this.mainFrame.setMinimumSize(new Dimension(Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX")), Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"))));
+        this.mainFrame.setIconImage(new ImageIcon(getClass().getResource("/images/frame48.gif")).getImage());
         this.mainFrame.pack();
         this.mainFrame.setVisible(true);
     }
 
     @Override
     public boolean dispatch(Events command) {
-        switch (command) {
+        switch(command) {
             case SET_THEME_LIGHT:
                 this.setTheme(new FlatLightLaf());
                 break;
@@ -67,7 +68,7 @@ public class MainWindow extends View {
             UIManager.setLookAndFeel(theme);
             SwingUtilities.updateComponentTreeUI(this.mainFrame);
             this.mainFrame.pack();
-        } catch (UnsupportedLookAndFeelException e) {
+        } catch(UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
     }
@@ -107,11 +108,15 @@ public class MainWindow extends View {
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         tabbedPane1.addTab(this.$$$getMessageFromBundle$$$("i18n", "untitled"), panel1);
+        final JScrollPane scrollPane1 = new JScrollPane();
+        panel1.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         editor = new JEditorPane();
-        panel1.add(editor, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        scrollPane1.setViewportView(editor);
+        final JScrollPane scrollPane2 = new JScrollPane();
+        splitPane1.setRightComponent(scrollPane2);
         compilerOutput = new JTextArea();
         compilerOutput.setEditable(false);
-        splitPane1.setRightComponent(compilerOutput);
+        scrollPane2.setViewportView(compilerOutput);
     }
 
     private static Method $$$cachedGetBundleMethod$$$ = null;
@@ -120,12 +125,12 @@ public class MainWindow extends View {
         ResourceBundle bundle;
         try {
             Class<?> thisClass = this.getClass();
-            if ($$$cachedGetBundleMethod$$$ == null) {
+            if($$$cachedGetBundleMethod$$$ == null) {
                 Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
                 $$$cachedGetBundleMethod$$$ = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
             }
             bundle = (ResourceBundle) $$$cachedGetBundleMethod$$$.invoke(null, path, thisClass);
-        } catch (Exception e) {
+        } catch(Exception e) {
             bundle = ResourceBundle.getBundle(path);
         }
         return bundle.getString(key);

@@ -43,9 +43,18 @@ public class Splash {
         g.fillRect(0, this.height - PROGRESS_BAR_HEIGHT, (int)((double)this.currentStep / this.totalSteps * this.width), PROGRESS_BAR_HEIGHT);
 
         splash.update();
+
+        // I'm too efficient, the splash screen is almost unseen! :-)
+        try {
+            Thread.sleep(100);
+        } catch(InterruptedException ignored) {}
     }
 
     public void close() {
+        // Really too much efficient! :-)
+        try {
+            Thread.sleep(200);
+        } catch(InterruptedException ignored) {}
         splash.close();
     }
 }

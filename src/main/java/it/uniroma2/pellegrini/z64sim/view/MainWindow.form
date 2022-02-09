@@ -75,28 +75,40 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="14747" class="javax.swing.JEditorPane" binding="editor">
+                      <scrollpane id="622a2">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <preferred-size width="150" height="50"/>
-                          </grid>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties/>
-                      </component>
+                        <border type="none"/>
+                        <children>
+                          <component id="14747" class="javax.swing.JEditorPane" binding="editor">
+                            <constraints/>
+                            <properties/>
+                          </component>
+                        </children>
+                      </scrollpane>
                     </children>
                   </grid>
                 </children>
               </tabbedpane>
             </children>
           </splitpane>
-          <component id="a2e80" class="javax.swing.JTextArea" binding="compilerOutput">
+          <scrollpane id="2f25d">
             <constraints>
               <splitpane position="right"/>
             </constraints>
-            <properties>
-              <editable value="false"/>
-            </properties>
-          </component>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="a2e80" class="javax.swing.JTextArea" binding="compilerOutput">
+                <constraints/>
+                <properties>
+                  <editable value="false"/>
+                </properties>
+              </component>
+            </children>
+          </scrollpane>
         </children>
       </splitpane>
     </children>
