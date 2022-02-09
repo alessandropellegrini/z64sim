@@ -89,6 +89,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Main-Class>it.uniroma2.pellegrini.z64sim.z64sim</Main-Class>
+                                        <SplashScreen-Image>images/splash.gif</SplashScreen-Image>
                                         <Specification-Title>${project.artifactId}</Specification-Title>
                                         <Specification-Version>${project.version}</Specification-Version>
                                         <Implementation-Title>${project.artifactId}</Implementation-Title>

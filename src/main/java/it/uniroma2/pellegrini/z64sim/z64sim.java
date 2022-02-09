@@ -11,18 +11,28 @@ import it.uniroma2.pellegrini.z64sim.controller.MainController;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
+import it.uniroma2.pellegrini.z64sim.view.Splash;
 
 public class z64sim {
 
     public static void main(String[] args) {
+        Splash splashScreen = new Splash(4);
+
+        splashScreen.step("Loading settings");
         SettingsController.init();
+        splashScreen.step("Initializing logger");
         Logger.init(); // Must come after settings initialization
+
+        splashScreen.step("Initializing controllers");
         MainController.init();
 
+        splashScreen.step("Initializing UI");
         if(SettingsController.getTheme().equals("light"))
             FlatLightLaf.setup();
         else
             FlatDarkLaf.setup();
+
+        splashScreen.close();
 
         MainWindow.getInstance().show();
     }
