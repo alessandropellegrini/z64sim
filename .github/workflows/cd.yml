@@ -22,11 +22,14 @@ jobs:
           java-version: 11
       - name: Build
         run: mvn -B package --file pom.xml
+      - name: Prepare files
+        run: |
+          mv LICENSES/GPL-3.0-only.txt LICENSE.txt
+          mv target/z64sim-${{ steps.get_version.outputs.VERSION }}.jar .
       - name: Package
         uses: papeloto/action-zip@v1
         with:
-          files: AUTHORS LICENSES/GPL-3.0-only.txt README.md target/z64sim-${{ steps.get_version.outputs.VERSION }}.jar
-          recursive: false
+          files: AUTHORS LICENSE.txt README.md z64sim-${{ steps.get_version.outputs.VERSION }}.jar
           dest: z64sim-${{ steps.get_version.outputs.VERSION }}.zip
       - name: Release
         uses: softprops/action-gh-release@v1
