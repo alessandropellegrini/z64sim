@@ -16,6 +16,7 @@ options {
 PARSER_BEGIN(Assembler)
 package it.uniroma2.pellegrini.z64sim.assembler;
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.*;
 import it.uniroma2.pellegrini.z64sim.isa.registers.*;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.*;

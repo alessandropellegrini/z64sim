@@ -6,3 +6,5 @@
 [![GitHub license](https://img.shields.io/github/license/alessandropellegrini/z64sim)](https://github.com/alessandropellegrini/z64sim)
 
 ---
+
+JRE on macos 8u321

@@ -5,7 +5,9 @@
     <constraints>
       <xy x="20" y="20" width="1137" height="792"/>
     </constraints>
-    <properties/>
+    <properties>
+      <font swing-font="Panel.font"/>
+    </properties>
     <border type="none"/>
     <children>
       <toolbar id="7a450">
@@ -14,12 +16,15 @@
             <preferred-size width="-1" height="20"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <font swing-font="ToolBar.font"/>
+        </properties>
         <border type="none"/>
         <children>
           <component id="6162c" class="javax.swing.JButton" binding="button1" default-binding="true">
             <constraints/>
             <properties>
+              <font swing-font="Button.font"/>
               <icon value="images/assemble_icon.png"/>
               <text value=""/>
             </properties>
@@ -27,6 +32,7 @@
           <component id="20b7e" class="javax.swing.JButton" binding="button2" default-binding="true">
             <constraints/>
             <properties>
+              <font swing-font="Button.font"/>
               <icon value="com/sun/java/swing/plaf/windows/icons/HardDrive.gif"/>
               <text value=""/>
             </properties>
@@ -41,6 +47,7 @@
         </constraints>
         <properties>
           <dividerSize value="5"/>
+          <font swing-font="Panel.font"/>
           <orientation value="0"/>
         </properties>
         <border type="none"/>
@@ -51,6 +58,7 @@
             </constraints>
             <properties>
               <dividerSize value="5"/>
+              <font swing-font="Panel.font"/>
             </properties>
             <border type="none"/>
             <children>
@@ -58,13 +66,17 @@
                 <constraints>
                   <splitpane position="right"/>
                 </constraints>
-                <properties/>
+                <properties>
+                  <font swing-font="Table.font"/>
+                </properties>
               </component>
               <tabbedpane id="7e21e" default-binding="true">
                 <constraints>
                   <splitpane position="left"/>
                 </constraints>
-                <properties/>
+                <properties>
+                  <font swing-font="Panel.font"/>
+                </properties>
                 <border type="none"/>
                 <children>
                   <grid id="4155b" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -72,19 +84,25 @@
                     <constraints>
                       <tabbedpane title-resource-bundle="i18n" title-key="untitled"/>
                     </constraints>
-                    <properties/>
+                    <properties>
+                      <font swing-font="TabbedPane.smallFont"/>
+                    </properties>
                     <border type="none"/>
                     <children>
                       <scrollpane id="622a2">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                         </constraints>
-                        <properties/>
+                        <properties>
+                          <font swing-font="Panel.font"/>
+                        </properties>
                         <border type="none"/>
                         <children>
                           <component id="14747" class="javax.swing.JEditorPane" binding="editor">
                             <constraints/>
-                            <properties/>
+                            <properties>
+                              <font swing-font="EditorPane.font"/>
+                            </properties>
                           </component>
                         </children>
                       </scrollpane>
@@ -98,13 +116,16 @@
             <constraints>
               <splitpane position="right"/>
             </constraints>
-            <properties/>
+            <properties>
+              <font swing-font="Panel.font"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="a2e80" class="javax.swing.JTextArea" binding="compilerOutput">
                 <constraints/>
                 <properties>
                   <editable value="false"/>
+                  <font swing-font="TextArea.font"/>
                 </properties>
               </component>
             </children>
