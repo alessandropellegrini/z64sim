@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2022 Free Software Foundation Europe e.V. <https://fsfe.org>
+# SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
 # SPDX-License-Identifier: CC0-1.0
-name: CI/CD
+name: Test
 
 on:
   push:
@@ -19,5 +19,3 @@ jobs:
           java-version: 11
       - name: Test
         run: mvn -B test --file pom.xml
-      - name: Package
-        run: mvn -B package -Dmaven.test.skip --file pom.xml
