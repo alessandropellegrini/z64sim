@@ -10,14 +10,18 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class MainWindow extends View {
+    private static final Logger log = LoggerFactory.getLogger();
     private static MainWindow instance = null;
 
     private JFrame mainFrame;
@@ -35,7 +39,6 @@ public class MainWindow extends View {
     public static MainWindow getInstance() {
         if(instance == null)
             instance = new MainWindow();
-
         return instance;
     }
 
@@ -45,10 +48,30 @@ public class MainWindow extends View {
         this.mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.mainFrame.setJMenuBar(new MainWindowMenu());
         this.mainFrame.setMinimumSize(new Dimension(Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX")), Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"))));
-        this.mainFrame.setIconImage(new ImageIcon(getClass().getResource("/images/frame48.gif")).getImage());
+        this.setApplicationIcon();
         this.mainFrame.pack();
         this.mainFrame.setVisible(true);
     }
+
+    private void setApplicationIcon() {
+        // Get the icon
+        final Image image = new ImageIcon(Objects.requireNonNull(getClass().getResource("/images/frame48.gif"))).getImage();
+
+        // Set the minimized icon for the jar (works out of the box on Windows and Linux)
+        this.mainFrame.setIconImage(image);
+
+        // Now the macOS shit to set the icon in the docker. This is the only place that requires us to
+        // run on Java >8, otherwise it'd be ugly and nasty to check if com.apple.eawt.Application is accessible.
+        final Taskbar taskbar = Taskbar.getTaskbar();
+
+        try {
+            taskbar.setIconImage(image);
+        } catch(final UnsupportedOperationException ignored) {
+        } catch(final SecurityException e) {
+            log.error("Security exception while trying to set the icon.");
+        }
+    }
+
 
     @Override
     public boolean dispatch(Events command) {
@@ -99,7 +122,7 @@ public class MainWindow extends View {
         button2 = new JButton();
         Font button2Font = UIManager.getFont("Button.font");
         if(button2Font != null) button2.setFont(button2Font);
-        button2.setIcon(new ImageIcon(getClass().getResource("/com/sun/java/swing/plaf/windows/icons/HardDrive.gif")));
+        button2.setIcon(new ImageIcon(getClass().getResource("/images/assemble_icon24.png")));
         button2.setText("");
         toolBar1.add(button2);
         final JSplitPane splitPane1 = new JSplitPane();

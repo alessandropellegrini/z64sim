@@ -7,4 +7,4 @@
 
 ---
 
-JRE on macos 8u321
+Java 11 minimum version

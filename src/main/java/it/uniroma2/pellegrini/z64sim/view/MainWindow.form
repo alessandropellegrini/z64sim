@@ -33,7 +33,7 @@
             <constraints/>
             <properties>
               <font swing-font="Button.font"/>
-              <icon value="com/sun/java/swing/plaf/windows/icons/HardDrive.gif"/>
+              <icon value="images/assemble_icon24.png"/>
               <text value=""/>
             </properties>
           </component>

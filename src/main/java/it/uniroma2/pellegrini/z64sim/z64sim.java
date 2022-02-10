@@ -21,7 +21,7 @@ public class z64sim {
         splashScreen.step("Loading settings");
         SettingsController.init();
         splashScreen.step("Initializing logger");
-        Logger.init(); // Must come after settings initialization
+        Logger.init(); // *Must* come after settings initialization
 
         splashScreen.step("Initializing controllers");
         MainController.init();
@@ -32,8 +32,9 @@ public class z64sim {
         else
             FlatDarkLaf.setup();
 
-        splashScreen.close();
+        MainWindow mainWindow = MainWindow.getInstance();
 
-        MainWindow.getInstance().show();
+        splashScreen.close();
+        mainWindow.show();
     }
 }

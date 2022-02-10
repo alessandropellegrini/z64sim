@@ -34,6 +34,12 @@ public class Logger {
             try {
                 fos = new FileOutputStream(SettingsController.getLogFile(), true);
                 logFile = new PrintStream(fos);
+                // The purpose of logging to a file is to allow prospective students to send
+                // bug reports when something will definitely go wrong.
+                // Inetrnal logging might be not enough, so it's better to capture
+                // everything that's commonly sent to the console.
+                System.setOut(logFile);
+                System.setErr(logFile);
             } catch(FileNotFoundException e) {
                 logFile = System.out;
                 logFile.println(MessageFormat.format("{0} Unable to open log file {1}, reverting to stdout.", "[ERROR]", SettingsController.getLogFile()));
