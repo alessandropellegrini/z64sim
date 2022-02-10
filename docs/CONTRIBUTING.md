@@ -9,10 +9,10 @@ consistent with the code base and easy to maintain by people which will come aft
 
 If you want to contribute to z64sim, these are the essential steps:
 
-* Fork a new branch named `hotfix-*` from `master` if you want to provide a bugfix for a bug in production, or named _
-  whatever_ from `develop` if you want to provide a new feature.
-* Implement your changes, trying to adhere to coding styles as much as possible. Use `doxygen` syntax to document _
-  functions_, _variables_, _structures_, _enums_, _global variables_, everything!
+* Fork a new branch named `hotfix-*` from `master` if you want to provide a bugfix for a bug in production, or named
+  _whatever_ from `develop` if you want to provide a new feature.
+* Implement your changes, trying to adhere to coding styles as much as possible. Use `doxygen` syntax to document
+  _functions_, _variables_, _structures_, _enums_, _global variables_, everything!
 * Update `ChangeLog` in the `[Unreleased]` section.
 * Update the wiki (if necessary).
 * Update manpages (if necessary).
@@ -23,7 +23,6 @@ If you want to contribute to z64sim, these are the essential steps:
 
 Thanks a lot for your help!
 
-
 Branching Model
 ---------------
 
@@ -31,7 +30,7 @@ We use a strict branching model to drive the z64sim development, which is here d
 mergeability likelihood is high, and that the patches that you produce can be integrated seamlessy and quickly. The
 adopted branching model can be summarized as follows:
 
-![Branching Model](img/branching-model.png  "Branching Model")
+![Branching Model](img/branching-model.png "Branching Model")
 
 The development model adopted by z64sim is essentially no more than a set of procedures that every team member has to
 follow in order to come to a managed software development process.
@@ -42,7 +41,7 @@ The repository setup that we use and that works well with this branching model, 
 Note that this repo is only considered to be the central one (since Git is a DVCS, there is no such thing as a central
 repo at a technical level). We will refer to this repo as origin, since this name is familiar to all Git users.
 
-![Branching Model Decentralised](img/branching-model-decentralised.png  "Branching Model Decentralised")
+![Branching Model Decentralised](img/branching-model-decentralised.png "Branching Model Decentralised")
 
 Each developer pulls and pushes to origin. But besides the centralized push-pull relationships, each developer may also
 pull changes from other peers to form sub teams. For example, this might be useful to work together with two or more
@@ -54,7 +53,7 @@ and vice versa.
 
 ### The main branches
 
-![Main Branches](img/branching-model-main-branches.png  "Main Branches")
+![Main Branches](img/branching-model-main-branches.png "Main Branches")
 
 The central repo holds two main branches with an infinite lifetime:
 
@@ -109,13 +108,13 @@ The semantics behind these branches are described below.
 
 ### Feature Branches
 
-![Feature Branches](img/branching-model-feature.png  "Feature Branches")
+![Feature Branches](img/branching-model-feature.png "Feature Branches")
 
-|                  Rule | Description                                                     |
-|----------------------:|-----------------------------------------------------------------|
-|      May branch from: | `develop`                                                       |
-| Must merge back into: | `develop`                                                       |
-|    Naming convention: | anything except `master`, `develop`, `release-*`, or `hotfix-*` |
+|                  Rule | Description                                                    |
+|----------------------:|----------------------------------------------------------------|
+|      May branch from: | `develop`                                                      |
+| Must merge back into: | `develop`                                                      |
+|    Naming convention: | anything except`master`, `develop`, `release-*`, or `hotfix-*` |
 
 Feature branches (or sometimes called topic branches) are used to develop new features for the upcoming or a distant
 future release. When starting development of a feature, the target release in which this feature will be incorporated
@@ -168,7 +167,7 @@ The `--no-ff` flag causes the merge to always create a new commit object, even i
 fast-forward. This avoids losing information about the historical existence of a feature branch and groups together all
 commits that together added the feature. Compare:
 
-![Merging Feature Branches](img/branching-model-feature-merge.png  "Merging Feature Branches")
+![Merging Feature Branches](img/branching-model-feature-merge.png "Merging Feature Branches")
 
 In the latter case, it is impossible to see from Git history which of the commit objects together have implemented a
 feature (you would have to manually read all the logger messages). Reverting a whole feature (i.e. a group of commits),
@@ -322,7 +321,7 @@ Deleted branch release-1.2 (was ff452fe).
 
 ### Hotfix Branches
 
-![Hotfix Branches](img/branching-model-hotfix.png  "Hotfix Branches")
+![Hotfix Branches](img/branching-model-hotfix.png "Hotfix Branches")
 
 |                  Rule | Description            |
 |----------------------:|------------------------|
@@ -502,7 +501,6 @@ If, for any reason, you have pushed commits with non-meaningful descriptions (du
 these should never end up in the `master` branch. Here, interactively rebasing you local branch (and issuing a force
 push if possible) is a good practice.
 
-
 Versioning
 ----------
 
@@ -526,7 +524,6 @@ The `MAJOR` part is incremented in two different cases:
 * Some incompatibility is introduced. This incompatibility will be described in the release notes for the version. In
   this way, the user will know that transitioning from 1.x.x to 2.0.0 will require some intervention. This includes, for
   example, if version 2.0.0 still offers the same functionalities of 1.x.x, yet the default configuration is different.
-
 * A large batch of updates to the software have been introduced. In any case, an increment in the `MAJOR` number is
   tolerated whenever we want to emphasize that, even if still behaving as in the previous release, the codebase has been
   significantly enlarged with new functionalities.
