@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="1137" height="792"/>
+      <xy x="20" y="20" width="480" height="419"/>
     </constraints>
     <properties>
       <font swing-font="Panel.font"/>
@@ -29,14 +29,6 @@
               <text value=""/>
             </properties>
           </component>
-          <component id="20b7e" class="javax.swing.JButton" binding="button2" default-binding="true">
-            <constraints/>
-            <properties>
-              <font swing-font="Button.font"/>
-              <icon value="images/assemble_icon24.png"/>
-              <text value=""/>
-            </properties>
-          </component>
         </children>
       </toolbar>
       <splitpane id="abeb1">
@@ -49,6 +41,7 @@
           <dividerSize value="5"/>
           <font swing-font="Panel.font"/>
           <orientation value="0"/>
+          <resizeWeight value="0.9"/>
         </properties>
         <border type="none"/>
         <children>
@@ -59,17 +52,10 @@
             <properties>
               <dividerSize value="5"/>
               <font swing-font="Panel.font"/>
+              <resizeWeight value="1.0"/>
             </properties>
             <border type="none"/>
             <children>
-              <component id="e423f" class="javax.swing.JTable" binding="memoryView">
-                <constraints>
-                  <splitpane position="right"/>
-                </constraints>
-                <properties>
-                  <font swing-font="Table.font"/>
-                </properties>
-              </component>
               <tabbedpane id="7e21e" default-binding="true">
                 <constraints>
                   <splitpane position="left"/>
@@ -82,7 +68,7 @@
                   <grid id="4155b" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
-                      <tabbedpane title-resource-bundle="i18n" title-key="untitled"/>
+                      <tabbedpane title-resource-bundle="i18n" title-key="file.tab.untitled"/>
                     </constraints>
                     <properties>
                       <font swing-font="TabbedPane.smallFont"/>
@@ -110,6 +96,21 @@
                   </grid>
                 </children>
               </tabbedpane>
+              <scrollpane id="a1854">
+                <constraints>
+                  <splitpane position="right"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="a823a" class="javax.swing.JTable" binding="memoryView">
+                    <constraints/>
+                    <properties>
+                      <fillsViewportHeight value="true"/>
+                    </properties>
+                  </component>
+                </children>
+              </scrollpane>
             </children>
           </splitpane>
           <scrollpane id="2f25d">
@@ -125,7 +126,8 @@
                 <constraints/>
                 <properties>
                   <editable value="false"/>
-                  <font swing-font="TextArea.font"/>
+                  <rows value="5"/>
+                  <text value="a&#10;b&#10;c&#10;d&#10;e&#10;f&#10;g&#10;h&#10;i"/>
                 </properties>
               </component>
             </children>

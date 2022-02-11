@@ -15,6 +15,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -164,6 +165,16 @@ public class SettingsController extends Controller {
             Dispatcher.dispatch(Events.SET_THEME_DARK);
     }
 
+    public static Dimension getWindowSize() {
+        return new Dimension(getInstance().settings.getWindowSizeX(), getInstance().settings.getWindowSizeY());
+    }
+
+    public static void setWindowSize(Dimension dimension) {
+        getInstance().settings.setWindowSizeX(dimension.width);
+        getInstance().settings.setWindowSizeY(dimension.height);
+    }
+
+
     private static class Settings {
         static final String configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim" ;
         static final String configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
@@ -176,6 +187,8 @@ public class SettingsController extends Controller {
         private boolean logShowDateTime;
         private String logOutFile;
         private List<String> openFiles;
+        private int windowSizeX;
+        private int windowSizeY;
 
         private Settings() {
             // Configuration defaults
@@ -185,17 +198,19 @@ public class SettingsController extends Controller {
             this.logShowDateTime = Boolean.parseBoolean(PropertyBroker.getPropertyValue("z64sim.log.showDateTime"));
             this.logOutFile = null;
             this.openFiles = new ArrayList<>();
+            this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
+            this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
             Settings settings;
-            
+
             try {
                 Files.createDirectories(Paths.get(configurationDirectoryPath));
             } catch (IOException e) {
                 throw new SettingsException("Unable to create configuration file path: " + configurationDirectoryPath);
             }
-            
+
             try {
                 File configFile = new File(configurationFilePath);
                 settings = objectMapper.readValue(configFile, Settings.class);
@@ -271,6 +286,22 @@ public class SettingsController extends Controller {
 
         public void setLogOutFile(String logOutFile) {
             this.logOutFile = logOutFile;
+        }
+
+        public int getWindowSizeX() {
+            return windowSizeX;
+        }
+
+        public void setWindowSizeX(int windowSizeX) {
+            this.windowSizeX = windowSizeX;
+        }
+
+        public int getWindowSizeY() {
+            return windowSizeY;
+        }
+
+        public void setWindowSizeY(int windowSizeY) {
+            this.windowSizeY = windowSizeY;
         }
     }
 }

@@ -5,9 +5,12 @@
  */
 package it.uniroma2.pellegrini.z64sim.util.queue;
 
+import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
+import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +24,8 @@ public class Dispatcher {
 
     public static void dispatch(Events command) {
         if (command == Events.QUIT) {
+            // TODO: move to main controller
+            SettingsController.persist();
             System.exit(0);
         }
 
