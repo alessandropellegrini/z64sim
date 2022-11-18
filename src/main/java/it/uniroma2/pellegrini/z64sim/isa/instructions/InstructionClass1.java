@@ -274,7 +274,7 @@ public class InstructionClass1 extends Instruction {
 
         enc[0] = (byte)((byte)0b00010000 | this.type);
         this.setEncoding(enc);
-        log.trace("Assembled INS1: {} SS: {} DS: {} DI: {} MEM: {} Bp: {} Ip: {} Scale: {} IDX: {} srcReg: {} dstReg: {}",
+        log.trace("Assembled INS1: {0} SS: {0} DS: {0} DI: {0} MEM: {0} Bp: {0} Ip: {0} Scale: {0} IDX: {0} srcReg: {0} dstReg: {0}",
                 enc[0],
                 ss,
                 sd,
@@ -299,8 +299,7 @@ public class InstructionClass1 extends Instruction {
         return mnem;
     }
 
-    private static String opcodes[] = {"mov", "movs", "movz","lea", "push", "pop","pushf","popf",
-            "movs","stos"};
+    private static String opcodes[] = {"mov", "movs", "movz","lea", "push", "pop","pushf","popf","movs","stos"};
 
     public static String disassemble(int address) {
 

@@ -157,12 +157,12 @@ public class Program {
 
         // We must preserve the IDT
         if (this.locationCounter < 0x800) {
-            throw new ProgramException("You are trying to put data/instructions over the IDT.");
+            throw new ProgramException("You are trying to put data/instructions over the IVT.");
         }
 
         byte[] bytes = insn.getEncoding();
 
-        log.trace("Found a {}-byte instruction", bytes.length);
+        log.trace("Found a {0}-byte instruction", bytes.length);
 
         for(int i = 0; i < bytes.length; i++) {
            /* if(i>=bytes.length)
@@ -274,7 +274,7 @@ public class Program {
             // TODO: da implementare
 
             //throw new ProgramException("Da implementare!");
-            
+
             /*
             // Get target address of the relocation
             long target = findLabelAddress(this.label);
@@ -291,7 +291,7 @@ public class Program {
 
         public void relocate() throws ProgramException {
             //throw new ProgramException("Da implementare!");
-            
+
             /*
             // Get address of the instruction where relocation should be applied
             MemoryElement el = Memory.getElementFromAddress(this.applyTo);

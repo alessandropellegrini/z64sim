@@ -35,7 +35,7 @@ public class Assembler {
     private Program program = new Program();
 
     /** To support error recovery */
-    private List<ParseException> syntaxErrors = new ArrayList<ParseException>();
+    private List<ParseException> syntaxErrors = new ArrayList<>();
 
     /**
      * A String-based constructor for ease of use
@@ -79,12 +79,14 @@ public class Assembler {
     private int getSourceSuffixSize(String mnemonic) throws ParseException {
         String suffix = mnemonic.substring(mnemonic.length() - 2, mnemonic.length() - 1);
 
-        if(suffix.equals("b"))
-            return 8;
-        else if(suffix.equals("w"))
-            return 16;
-        else if(suffix.equals("l"))
-            return 32;
+        switch(suffix) {
+            case "b":
+                return 8;
+            case "w":
+                return 16;
+            case "l":
+                return 32;
+        }
         throw new ParseException("Zero/Sign extension with wrong source prefix");
     }
 
@@ -386,9 +388,6 @@ void Program() :
             } catch(ProgramException e) {
                 throw new ParseException(e.getMessage());
             }
-
-            // All this was memory intensive: reclaim if possible!
-             System.gc();
         }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
@@ -502,21 +501,19 @@ void Code() :
 }
 {
     try {
+        <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
         (
-            <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
-            (
-                i = Statement()
-                {if(i != null) {
-                    try {
-                        // The size of the MemoryElement is added by the Instruction classes
-                        this.program.addInstructionToMemory(i);
-                    } catch(ProgramException e) {
-                        throw new ParseException(e.getMessage());
-                    }
+            i = Statement()
+            {if(i != null) {
+                try {
+                    // The size of the MemoryElement is added by the Instruction classes
+                    this.program.addInstructionToMemory(i);
+                } catch(ProgramException e) {
+                    throw new ParseException(e.getMessage());
                 }
+            }
 }
-            )*
-        )+
+        )*
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
@@ -671,7 +668,7 @@ Instruction Instruction() :
             i = FormatK() <COMMA> op2 = FormatE(size)
         {
             op1 = new OperandImmediate(i);
-            
+
             // Shift instructions belong all to class 3
             insn = new InstructionClass2(stripSuffix(t.image), op1, op2);
         }
@@ -684,7 +681,7 @@ Instruction Instruction() :
             // relocation, at the end of the program's generation.
             op1 = new OperandMemory(-1, -1, -1, -1, 0, size);
             this.program.addRelocationEntry(this.program.getLocationCounter(), l.image);
-        
+
             // They all belong to class 6
             insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         }
@@ -840,76 +837,6 @@ OperandRegister Register() :
     }
 }
 
-OperandMemory AddressingBIS(int size) :
-{
-    OperandRegister base = null;
-    Token index = null;
-    Token scale = null;
-}
-{
-    try {
-
-        <LBRACE>
-            ( 
-              ( 
-                base = Register()
-                ("," index = <REG_64> "," scale = <INTEGER>)?
-              )
-            |
-              ("," index = <REG_64> "," scale = <INTEGER>)
-            )
-        <RBRACE>
-
-        { 
-            int bs = (base != null ? base.getRegister() : -1);
-            int base_size = (base != null ? base.getSize() : -1);
-            int idx = (index != null ? Register.getRegister64( index.image ) : -1);
-            int scl = (scale != null ? Integer.parseInt(scale.image) : -1);
-
-            // Displacement is set to -1 because this is actually set by the calling
-            // Addressing() rule
-            return new OperandMemory(bs, base_size, idx, scl, -1, size);
-        }
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-        return null; // otherwise javaCC throws exceptions
-    }
-}
-
-OperandMemory Addressing(int size) :
-{
-    OperandMemory mem;
-    long dispLong = 0;
-    Token t;
-}
-{
-    try {
-
-        // A lookahead of 2 is required here because a displacement
-        // can be represented as a mathematical expression which can
-        // use parentheses. They thus clash with the base/index
-        // registers. A higher lookaead is not required as the latter
-        // case will find a ',' or a '%' right after the parenthesis.
-        (   LOOKAHEAD(2)
-            ( dispLong = Expression() mem = AddressingBIS(size) )
-            |
-            ( mem = AddressingBIS(size) )
-        )
-        { 
-            mem.setDisplacement((int)dispLong);
-            return mem; 
-        }
-
-    } catch (ParseException ex) {
-        error_recover(ex, NEWLINE);
-        return null; // otherwise javaCC throws exceptions
-    }
-}
-
-
-
-
 Operand FormatE(int size) :
 {
     OperandMemory mem = null;
@@ -918,9 +845,11 @@ Operand FormatE(int size) :
 {
     try {
       (
-        reg = Register()
+        reg = FormatG()
+        { return reg; }
       |
-        mem = Addressing(size)
+        mem = FormatM(size)
+        { return mem; }
       )
       {
         if(reg != null)
@@ -967,18 +896,50 @@ OperandRegister FormatG() :
     }
 }
 
-
 /* Both label and direct address */
 OperandMemory FormatM(int size) :
 {
-    OperandMemory memOp;
-    long address;
-    Token l;
+    long displacement = 0;
+    OperandRegister base = null;
+    Token index = null;
+    Token scale = null;
 }
 {
     try {
-        memOp = Addressing(size)
-        {return memOp;}
+        (
+        LOOKAHEAD(2)
+        (displacement = Expression())
+        (<LBRACE>
+            (
+              (
+                base = Register()
+                ("," index = <REG_64> "," scale = <INTEGER>)?
+              )
+            |
+              ("," index = <REG_64> "," scale = <INTEGER>)
+            )
+        <RBRACE>)?
+        |
+        <LBRACE>
+            (
+              (
+                base = Register()
+                ("," index = <REG_64> "," scale = <INTEGER>)?
+              )
+            |
+              ("," index = <REG_64> "," scale = <INTEGER>)
+            )
+        <RBRACE>
+        )
+
+        {
+             int bs = (base != null ? base.getRegister() : -1);
+             int base_size = (base != null ? base.getSize() : -1);
+             int idx = (index != null ? Register.getRegister64( index.image ) : -1);
+             int scl = (scale != null ? Integer.parseInt(scale.image) : -1);
+
+             return new OperandMemory(bs, base_size, idx, scl, (int)displacement, size);
+        }
 
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);

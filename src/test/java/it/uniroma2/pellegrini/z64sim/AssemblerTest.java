@@ -6,12 +6,13 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import it.uniroma2.pellegrini.z64sim.assembler.*;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
+import it.uniroma2.pellegrini.z64sim.model.Program;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import org.junit.jupiter.api.*;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Objects;
 
 
@@ -21,41 +22,27 @@ import java.util.Objects;
  */
 
 public class AssemblerTest {
-
-    @BeforeAll
-    public static void setUpClass() {
-    }
-
-    @AfterAll
-    public static void tearDownClass() {
-    }
-
-    @BeforeEach
-    public void setUpMethod() {
-    }
-
-    @AfterEach
-    public void tearDownMethod() {
-    }
-
     @Test
     @DisplayName("Lexer test")
-    @Disabled
-    public void testLexer() {
-        InputStream is = getClass().getResourceAsStream("/test.asm");
-        InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
+    public void testLexer() throws IOException {
+        File f = new File(this.getClass().getResource("/test.asm").getFile());
+        InputStreamReader isr = new FileReader(Objects.requireNonNull(f));
         JavaCharStream stream = new JavaCharStream(isr);
         AssemblerTokenManager manager = new AssemblerTokenManager(stream);
         Token token = manager.getNextToken();
 
+        int i = 1;
         while (token != null && token.kind != AssemblerConstants.EOF) {
             token = manager.getNextToken();
+            i++;
         }
+
+        System.out.println("tokens: " + i);
+        assert(i == 145);
     }
 
     @Test
     @DisplayName("Parser test")
-    @Disabled
     public void testParser() throws ParseException {
         InputStream is = getClass().getResourceAsStream("/test.asm");
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
