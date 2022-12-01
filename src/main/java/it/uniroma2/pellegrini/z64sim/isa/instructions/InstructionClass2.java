@@ -8,9 +8,12 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
-import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
+import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
+import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
+
+import java.nio.ByteBuffer;
 
 
 /**
@@ -286,23 +289,17 @@ public class InstructionClass2 extends Instruction {
     private static String opcodes[] = {"add","sub","adc","sbb","cmp","test","neg","and","or","xor","not","bt"};
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
-
-        byte[] b = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
-
         byte[] b2 = new byte[8];
 
-        String instr="";
-        int index = byteToBits(b[0],3,0);
+        String instr = "";
+        int index = byteToBits(encoding[0], 3, 0);
         instr+=opcodes[index];
 
         int sizeIntDs=0;
         String sizeDest="";
-        switch(byteToBits(b[1],5,4)){
+        switch(byteToBits(encoding[1], 5, 4)) {
             case 0:
-                sizeDest="b ";
+                sizeDest = "b ";
                 sizeIntDs = 8;
                 break;
             case 1:
@@ -310,7 +307,7 @@ public class InstructionClass2 extends Instruction {
                 sizeIntDs = 16;
                 break;
             case 2:
-                sizeDest="l ";
+                sizeDest = "l ";
                 sizeIntDs = 32;
                 break;
             case 3:
@@ -322,106 +319,100 @@ public class InstructionClass2 extends Instruction {
         }
         int sizeIntSs=0;
         String sizeSorg="";
-        switch(byteToBits(b[1],7,6)){
+        switch(byteToBits(encoding[1], 7, 6)) {
             case 0:
-                sizeSorg ="b";
+                sizeSorg = "b";
                 sizeIntSs = 8;
                 break;
             case 1:
-                sizeSorg ="w";
+                sizeSorg = "w";
                 sizeIntSs = 16;
                 break;
             case 2:
-                sizeSorg="l";
+                sizeSorg = "l";
                 sizeIntSs = 32;
                 break;
             case 3:
-                sizeSorg="q";
+                sizeSorg = "q";
                 sizeIntSs = 64;
                 break;
             default:
                 throw new DisassembleException("Wrong value size");
         }
 
-        int destRegister = byteToBits(b[3],3,0);
-        int sourRegister = byteToBits(b[3],7,4);
+        int destRegister = byteToBits(encoding[3], 3, 0);
+        int sourRegister = byteToBits(encoding[3], 7, 4);
         String sour_Reg = Register.getRegisterName(sourRegister, sizeIntSs);
         String dest_Reg = Register.getRegisterName(destRegister, sizeIntDs);
 
-        if(index == 1 || index == 2){
-            instr += sizeSorg+sizeDest;
-        }
-        else if(index == 6 || index == 9){
-            instr+=sizeSorg+" "+sour_Reg;
+        if(index == 1 || index == 2) {
+            instr += sizeSorg + sizeDest;
+        } else if(index == 6 || index == 9) {
+            instr += sizeSorg + " " + sour_Reg;
             return instr;
-        }
-        else{
-            instr+=sizeDest;
+        } else {
+            instr += sizeDest;
         }
 
-        boolean hasImm  = byteToBits(b[1],2,2) == 1;
-        boolean hasDisp = byteToBits(b[1],3,3) == 1;
+        boolean hasImm = byteToBits(encoding[1], 2, 2) == 1;
+        boolean hasDisp = byteToBits(encoding[1], 3, 3) == 1;
 
 
         // Additional Fetch
-         long displ = 0;
+        long displ = 0;
         long immed = 0;
 
         if(hasImm && hasDisp || hasImm && sizeIntSs == 64) {
             for(int i = 0; i < 8; i++) {
-                b2[7-i] = Memory.getProgram().program[address +8  + i];
+                b2[7 - i] = encoding[8 + i];
             }
             ByteBuffer wrapped = ByteBuffer.wrap(b2);
             //wrapped.order(ByteOrder.LITTLE_ENDIAN);
             immed = wrapped.getLong();
             if (immed < 0) immed += Math.pow(2, 64);
             instr+="$"+immed;
-
-            Instruction.skip = true;
-
         } else if(hasImm && !hasDisp) {
-            b2[4] = b[4];
-            b2[5] = b[5];
-            b2[6] = b[6];
-            b2[7] = b[7];
+            b2[4] = encoding[4];
+            b2[5] = encoding[5];
+            b2[6] = encoding[6];
+            b2[7] = encoding[7];
 
 
             ByteBuffer wrapped = ByteBuffer.wrap(b2);
             //wrapped.order(ByteOrder.LITTLE_ENDIAN);
             immed = wrapped.getLong();
-            System.out.println(String.format("%016x", immed));
-            if (immed < 0) immed += Math.pow(2, 64);
-            instr+="$"+immed;
+            System.out.printf("%016x%n", immed);
+            if(immed < 0) immed += Math.pow(2, 64);
+            instr += "$" + immed;
         }
 
         if(hasDisp) {
-            b2[4] = b[4];
-            b2[5] = b[5];
-            b2[6] = b[6];
-            b2[7] = b[7];
+            b2[4] = encoding[4];
+            b2[5] = encoding[5];
+            b2[6] = encoding[6];
+            b2[7] = encoding[7];
 
             ByteBuffer wrapped = ByteBuffer.wrap(b2);
             //wrapped.order(ByteOrder.LITTLE_ENDIAN);
             displ = wrapped.getLong();
-            if (displ < 0) displ += Math.pow(2, 32);
-            instr+="0x"+displ;
+            if(displ < 0) displ += Math.pow(2, 32);
+            instr += "0x" + displ;
         }
 
-        boolean isBp = byteToBits(b[2],7,7) == 1;
-        boolean isIp = byteToBits(b[2],6,6) == 1;
-        boolean isMemorySource = byteToBits(b[1],1,1) == 1;
-        boolean isMemoryDest = byteToBits(b[1],0,0) == 1;
+        boolean isBp = byteToBits(encoding[2], 7, 7) == 1;
+        boolean isIp = byteToBits(encoding[2], 6, 6) == 1;
+        boolean isMemorySource = byteToBits(encoding[1], 1, 1) == 1;
+        boolean isMemoryDest = byteToBits(encoding[1], 0, 0) == 1;
 
-        if(isMemorySource){
-            if(isBp){
-                instr+="("+sour_Reg;
-            }
-            else{
-                instr+="(,";
+        if(isMemorySource) {
+            if(isBp) {
+                instr += "(" + sour_Reg;
+            } else {
+                instr += "(,";
             }
 
-            if(isIp){
-                int indexRegister = byteToBits(b[2],3,0);
+            if(isIp) {
+                int indexRegister = byteToBits(encoding[2], 3, 0);
                 String index_Reg = Register.getRegisterName(indexRegister, sizeIntSs);
                 instr += ", "+index_Reg;
             }
@@ -429,15 +420,15 @@ public class InstructionClass2 extends Instruction {
                 instr += ", ";
             }
 
-            switch(byteToBits(b[2],5,4)){
+            switch(byteToBits(encoding[2], 5, 4)) {
                 case 0b00:
-                    instr+=", 1), ";
+                    instr += ", 1), ";
                     break;
                 case 0b01:
-                    instr+=", 2), ";
+                    instr += ", 2), ";
                     break;
                 case 0b10:
-                    instr+=", 4), ";
+                    instr += ", 4), ";
                     break;
                 case 0b11:
                     instr+=", 8), ";
@@ -456,7 +447,7 @@ public class InstructionClass2 extends Instruction {
             }
 
             if(isIp){
-                int indexRegister = byteToBits(b[2],3,0);
+                int indexRegister = byteToBits(encoding[2], 3, 0);
                 String index_Reg = Register.getRegisterName(indexRegister, sizeIntDs);
                 instr+=", "+index_Reg;
             }
@@ -464,15 +455,15 @@ public class InstructionClass2 extends Instruction {
                 instr+=", ";
             }
 
-            switch(byteToBits(b[2],5,4)){
+            switch(byteToBits(encoding[2], 5, 4)) {
                 case 0b00:
-                    instr+=", 1)";
+                    instr += ", 1)";
                     break;
                 case 0b01:
-                    instr+=", 2)";
+                    instr += ", 2)";
                     break;
                 case 0b10:
-                    instr+=", 4)";
+                    instr += ", 4)";
                     break;
                 case 0b11:
                     instr+=", 8)";

@@ -6,10 +6,9 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
-import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
+import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
@@ -99,14 +98,9 @@ public class InstructionClass5 extends Instruction {
 
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
-        byte b[] = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
-
         String instr = "";
 
-        switch(b[0]) {
+        switch(encoding[0]) {
             case 0x50:
                 instr += "jmp *";
                 break;
@@ -128,9 +122,9 @@ public class InstructionClass5 extends Instruction {
                 return instr;
 
         }
-        int sizeInt = 0;
+        int sizeInt;
 
-        switch(byteToBits(b[1], 7, 6)) {
+        switch(byteToBits(encoding[1], 7, 6)) {
             case 0:
                 sizeInt = 8;
                 break;
@@ -147,12 +141,12 @@ public class InstructionClass5 extends Instruction {
                 throw new DisassembleException("Wrong value size");
         }
 
-        int destRegister = byteToBits(b[3], 3, 0);
+        int destRegister = byteToBits(encoding[3], 3, 0);
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
         instr += dest_Reg;
 
         log.trace("disassembled: {0} {0} {0} {0} {0} {0} {0} {0}",
-            b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+            encoding[0], encoding[1], encoding[2], encoding[3], encoding[4], encoding[5], encoding[6], encoding[7]);
 
 
         return instr;

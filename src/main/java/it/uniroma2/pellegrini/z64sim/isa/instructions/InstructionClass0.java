@@ -4,21 +4,21 @@
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
 
 public class InstructionClass0 extends Instruction {
 
     int idn;
 
-    public InstructionClass0(String mnemonic, int idn) throws DisassembleException {
+    public InstructionClass0(String mnemonic, int idn) throws ParseException {
         super(mnemonic, 0);
         this.idn = idn;
 
         // Set the size in memory
         this.setSize(8);
 
-        byte enc[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         switch(mnemonic) {
             case "hlt":
@@ -33,7 +33,7 @@ public class InstructionClass0 extends Instruction {
                 enc[0] = 0x03;
                 this.type = 0x03;
             default:
-                throw new DisassembleException("Unknown Class 0 instruction: " + mnemonic);
+                throw new ParseException("Unknown Class 0 instruction: " + mnemonic);
         }
 
         this.setEncoding(enc);

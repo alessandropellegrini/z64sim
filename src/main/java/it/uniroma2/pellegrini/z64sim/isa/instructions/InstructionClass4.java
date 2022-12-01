@@ -6,7 +6,6 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
 
 /**
  *
@@ -82,8 +81,7 @@ public class InstructionClass4 extends Instruction {
                 this.type = 0x0c;
                 this.val = 1;
                 break;
-
-            case "sto":     //GHALI
+            case "sto":
                 this.type = 0x0d;
                 this.val = 1;
                 break;
@@ -104,14 +102,9 @@ public class InstructionClass4 extends Instruction {
     }
 
 
-    public static String disassemble(byte[] encoding) {
-        byte b[] = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
-
+    public static String disassemble(byte[] encoding) throws DisassembleException {
         String instr = "";
-        switch(b[0]) {
+        switch(encoding[0]) {
             case 0x40:
                 instr += "clc";
                 break;

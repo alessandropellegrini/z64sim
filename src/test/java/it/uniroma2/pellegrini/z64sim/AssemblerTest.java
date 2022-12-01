@@ -6,11 +6,8 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import it.uniroma2.pellegrini.z64sim.assembler.*;
-import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
-import it.uniroma2.pellegrini.z64sim.model.Program;
-import it.uniroma2.pellegrini.z64sim.util.log.Logger;
-import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.util.Objects;
@@ -25,7 +22,7 @@ public class AssemblerTest {
     @Test
     @DisplayName("Lexer test")
     public void testLexer() throws IOException {
-        File f = new File(this.getClass().getResource("/test.asm").getFile());
+        File f = new File(Objects.requireNonNull(this.getClass().getResource("/test.asm")).getFile());
         InputStreamReader isr = new FileReader(Objects.requireNonNull(f));
         JavaCharStream stream = new JavaCharStream(isr);
         AssemblerTokenManager manager = new AssemblerTokenManager(stream);

@@ -7,7 +7,6 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
@@ -143,13 +142,8 @@ public class InstructionClass3 extends Instruction {
 
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
-        byte b[] = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
-
         String instr = "";
-        switch(b[0]) {
+        switch(encoding[0]) {
             case 0x30:
             case 0x31:
                 instr += "shl ";
@@ -179,12 +173,12 @@ public class InstructionClass3 extends Instruction {
                 instr += "ror ";
                 break;
             default:
-                throw new RuntimeException("Unkown instruction type");
+                throw new RuntimeException("Unknown instruction type");
 
         }
         int sizeInt = 0;
 
-        switch(byteToBits(b[1], 7, 6)) {
+        switch(byteToBits(encoding[1], 7, 6)) {
             case 0:
                 sizeInt = 8;
                 break;
@@ -200,15 +194,15 @@ public class InstructionClass3 extends Instruction {
             default:
                 throw new DisassembleException("Wrong value size");
         }
-        if(byteToBits(b[1], 2, 2) == 1) {
-            instr += "$" + ((b[7] << 24) + (b[6] << 16) + (b[5] << 8) + b[4]) + ",";
+        if(byteToBits(encoding[1], 2, 2) == 1) {
+            instr += "$" + ((encoding[7] << 24) + (encoding[6] << 16) + (encoding[5] << 8) + encoding[4]) + ",";
         }
-        int destRegister = byteToBits(b[3], 3, 0);
+        int destRegister = byteToBits(encoding[3], 3, 0);
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
         instr += dest_Reg;
 
         log.trace("disassembled: {} {} {} {} {} {} {} {}",
-            b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+            encoding[0], encoding[1], encoding[2], encoding[3], encoding[4], encoding[5], encoding[6], encoding[7]);
         return instr;
 
     }

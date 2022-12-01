@@ -5,7 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
+
 ;
 
 /**
@@ -61,13 +61,9 @@ public class InstructionClass7 extends Instruction {
 
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
-        byte b[] = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
         String instr = "";
 
-        switch(b[0]) {
+        switch(encoding[0]) {
             case 0x70:
                 instr += "in";
                 break;
@@ -83,7 +79,7 @@ public class InstructionClass7 extends Instruction {
             default:
                 throw new DisassembleException("Unknown instruction type");
         }
-        switch(b[1]) {
+        switch(encoding[1]) {
             case 0x00:
                 instr = instr.concat("b");
                 break;

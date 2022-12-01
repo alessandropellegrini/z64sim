@@ -11,7 +11,6 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
@@ -53,16 +52,8 @@ public class InstructionClass1 extends Instruction {
         boolean dest_register = d instanceof OperandRegister;
         boolean dest_memory = d instanceof OperandMemory;
 
-        byte ss = 0;
-        byte sd = 0;
-        byte di = 0;
-        byte mem = 0;
-        byte Bp = 0;
-        byte Ip = 0;
-        byte Scale = 0;
-        byte idxReg = 0;
-        byte srcReg = 0;
-        byte dstReg = 0;
+        byte ss = 0, sd = 0, di = 0, mem = 0, Bp = 0, Ip = 0, scale = 0;
+        byte idxReg = 0, srcReg = 0, dstReg = 0;
 
         //Popolamento campo ss
         if(s != null) {
@@ -136,16 +127,16 @@ public class InstructionClass1 extends Instruction {
         if(srcMem) {
             switch(((OperandMemory) s).getScale()) {
                 case 1:
-                    Scale = 0b00000000;
+                    scale = 0b00000000;
                     break;
                 case 2:
-                    Scale = 0b00010000;
+                    scale = 0b00010000;
                     break;
                 case 4:
-                    Scale = 0b00100000;
+                    scale = 0b00100000;
                     break;
                 case 8:
-                    Scale = 0b00110000;
+                    scale = 0b00110000;
                     break;
             }
             idxReg = (byte) ((OperandMemory) s).getIndex();
@@ -153,16 +144,16 @@ public class InstructionClass1 extends Instruction {
         if(dest_memory) {
             switch(((OperandMemory) d).getScale()) {
                 case 1:
-                    Scale = 0b00000000;
+                    scale = 0b00000000;
                     break;
                 case 2:
-                    Scale = 0b00010000;
+                    scale = 0b00010000;
                     break;
                 case 4:
-                    Scale = 0b00100000;
+                    scale = 0b00100000;
                     break;
                 case 8:
-                    Scale = 0b00110000;
+                    scale = 0b00110000;
                     break;
             }
             idxReg = (byte) ((OperandMemory) d).getIndex();
@@ -233,7 +224,7 @@ public class InstructionClass1 extends Instruction {
         //MODE
         enc[1] = (byte) (ss | sd | di | mem);
         //SIB
-        enc[2] = (byte) (Bp | Ip | Scale | idxReg);
+        enc[2] = (byte) (Bp | Ip | scale | idxReg);
         //R-M
         enc[3] = (byte) (srcReg | dstReg);
         //Opcode
@@ -282,7 +273,7 @@ public class InstructionClass1 extends Instruction {
             mem,
             Bp,
             Ip,
-            Scale,
+            scale,
             idxReg,
             srcReg,
             dstReg);
@@ -366,54 +357,51 @@ public class InstructionClass1 extends Instruction {
         boolean hasDisp = byteToBits(encoding[1], 3, 3) == 1;
 
         // Additional Fetch
-        long displ = 0;
-        long immed = 0;
+        long disp = 0;
+        long imm = 0;
 
         if(hasImm && hasDisp || hasImm && sizeIntSs == 64) {
             byte[] immediate = new byte[8];
             System.arraycopy(encoding, 8, immediate, 0, 8);
             ByteBuffer wrapped = ByteBuffer.wrap(immediate);
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
-            immed = wrapped.getLong();
-            if(immed < 0) immed += Math.pow(2, 64);
-            instr += "$" + immed + ",";
-
-            skip = true;
-
+            imm = wrapped.getLong();
+            if(imm < 0) imm += Math.pow(2, 64);
+            instr += "$" + imm + ",";
         } else if(hasImm && !hasDisp) {
-            byte b3[] = new byte[4];
-            b3[0] = b[4];
-            b3[1] = b[5];
-            b3[2] = b[6];
-            b3[3] = b[7];
+            byte[] b3 = new byte[4];
+            b3[0] = encoding[4];
+            b3[1] = encoding[5];
+            b3[2] = encoding[6];
+            b3[3] = encoding[7];
 
 
             ByteBuffer wrapped = ByteBuffer.wrap(b3);
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
-            immed = wrapped.getInt();
-            log.trace("immed: {}", String.format("%016x", immed));
-            if(immed < 0) immed += Math.pow(2, 64);
-            instr += "$" + immed + ",";
+            imm = wrapped.getInt();
+            log.trace("immed: {}", String.format("%016x", imm));
+            if(imm < 0) imm += Math.pow(2, 64);
+            instr += "$" + imm + ",";
         }
 
         if(hasDisp) {
-            byte b3[] = new byte[4];
-            b3[0] = b[4];
-            b3[1] = b[5];
-            b3[2] = b[6];
-            b3[3] = b[7];
+            byte[] b3 = new byte[4];
+            b3[0] = encoding[4];
+            b3[1] = encoding[5];
+            b3[2] = encoding[6];
+            b3[3] = encoding[7];
 
             ByteBuffer wrapped = ByteBuffer.wrap(b3);
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
-            displ = wrapped.getInt();
-            if(displ < 0) displ += Math.pow(2, 32);
-            instr += displ;
+            disp = wrapped.getInt();
+            if(disp < 0) disp += Math.pow(2, 32);
+            instr += disp;
         }
 
-        boolean isBp = byteToBits(b[2], 7, 7) == 1;
-        boolean isIp = byteToBits(b[2], 6, 6) == 1;
-        boolean isMemorySource = byteToBits(b[1], 1, 1) == 1;
-        boolean isMemoryDest = byteToBits(b[1], 0, 0) == 1;
+        boolean isBp = byteToBits(encoding[2], 7, 7) == 1;
+        boolean isIp = byteToBits(encoding[2], 6, 6) == 1;
+        boolean isMemorySource = byteToBits(encoding[1], 1, 1) == 1;
+        boolean isMemoryDest = byteToBits(encoding[1], 0, 0) == 1;
 
         if(isMemorySource) {
             if(isBp) {
@@ -423,14 +411,14 @@ public class InstructionClass1 extends Instruction {
             }
 
             if(isIp) {
-                int indexRegister = byteToBits(b[2], 3, 0);
+                int indexRegister = byteToBits(encoding[2], 3, 0);
                 String index_Reg = Register.getRegisterName(indexRegister, sizeIntSs);
                 instr += ", " + index_Reg;
             } else {
                 instr += ", ";
             }
 
-            switch(byteToBits(b[2], 5, 4)) {
+            switch(byteToBits(encoding[2], 5, 4)) {
                 case 0b00:
                     instr += ", 1), ";
                     break;
@@ -457,14 +445,14 @@ public class InstructionClass1 extends Instruction {
             }
 
             if(isIp) {
-                int indexRegister = byteToBits(b[2], 3, 0);
+                int indexRegister = byteToBits(encoding[2], 3, 0);
                 String index_Reg = Register.getRegisterName(indexRegister, sizeIntDs);
                 instr += ", " + index_Reg;
             } else {
                 instr += ", ";
             }
 
-            switch(byteToBits(b[2], 5, 4)) {
+            switch(byteToBits(encoding[2], 5, 4)) {
                 case 0b00:
                     instr += ", 1)";
                     break;

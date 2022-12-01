@@ -9,7 +9,6 @@ import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.model.Memory;
 
 
 /**
@@ -21,7 +20,7 @@ public class InstructionClass6 extends Instruction {
     private final byte bit;
     private final OperandMemory target;
 
-    public InstructionClass6(String mnemonic, OperandMemory t) throws DisassembleException {
+    public InstructionClass6(String mnemonic, OperandMemory t) throws ParseException {
         super(mnemonic, 6);
         this.bit = 0; /* depends on the mnemonic */
         this.target = t;
@@ -85,12 +84,8 @@ public class InstructionClass6 extends Instruction {
 
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
-        byte b[] = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
         String instr = "";
-        switch(b[0]) {
+        switch(encoding[0]) {
             case 0x60:
                 instr += "jc";
                 break;
@@ -127,7 +122,7 @@ public class InstructionClass6 extends Instruction {
 
         int sizeInt = 0;
 
-        switch(byteToBits(b[1], 5, 4)) {
+        switch(byteToBits(encoding[1], 5, 4)) {
             case 0:
                 sizeInt = 8;
                 break;
@@ -144,7 +139,7 @@ public class InstructionClass6 extends Instruction {
                 throw new DisassembleException("Wrong value size");
         }
 
-        int destRegister = byteToBits(b[3], 3, 0);
+        int destRegister = byteToBits(encoding[3], 3, 0);
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
         instr += " " + dest_Reg;
 
