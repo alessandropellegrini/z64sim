@@ -1,10 +1,10 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
@@ -35,8 +35,8 @@ public class InstructionClass5 extends Instruction {
         byte dest = 0b00000000;
         byte sd = 0b00000000;
 
-        if(t!=null){
-            switch (t.getSize()) {
+        if(t != null) {
+            switch(t.getSize()) {
                 case 8:
                     sd = 0b00000000;
                     break;
@@ -50,32 +50,31 @@ public class InstructionClass5 extends Instruction {
                     sd = 0b00110000;
                     break;
             }
-        }
-        else{
+        } else {
             sd = 0b00000000;
         }
-        if(t!=null){
+        if(t != null) {
             if(t instanceof OperandMemory)
-                dest = (byte) (((OperandMemory)t).getBase());
+                dest = (byte) (((OperandMemory) t).getBase());
             else {
-                dest = (byte)(((OperandRegister)t).getRegister());
+                dest = (byte) (((OperandRegister) t).getRegister());
             }
         }
 
         enc[3] = (byte) (sour | dest);
 
-        switch (mnemonic) {
+        switch(mnemonic) {
             case "jmp":
-                if(t instanceof OperandMemory){
+                if(t instanceof OperandMemory) {
                     this.type = 0x00;
-                }else{
+                } else {
                     this.type = 0x01;
                 }
                 break;
             case "call":
-                if(t instanceof OperandMemory){
+                if(t instanceof OperandMemory) {
                     this.type = 0x02;
-                }else{
+                } else {
                     this.type = 0x03;
                 }
             case "ret":
@@ -88,7 +87,7 @@ public class InstructionClass5 extends Instruction {
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
 
-        enc[0] = (byte)(enc[0] | this.type);
+        enc[0] = (byte) (enc[0] | this.type);
         this.setEncoding(enc);
 
     }
@@ -99,39 +98,39 @@ public class InstructionClass5 extends Instruction {
     }
 
 
-    public static String disassemble(int address) {
+    public static String disassemble(byte[] encoding) throws DisassembleException {
         byte b[] = new byte[8];
         for(int i = 0; i < 8; i++) {
             b[i] = Memory.getProgram().program[address + i];
         }
 
-        String instr="";
+        String instr = "";
 
-        switch(b[0]){
+        switch(b[0]) {
             case 0x50:
-                instr+="jmp *";
+                instr += "jmp *";
                 break;
             case 0x51:
-                instr+="jmp ";
+                instr += "jmp ";
                 break;
             case 0x52:
-                instr+="call *";
+                instr += "call *";
                 break;
             case 0x53:
-                instr+="call ";
+                instr += "call ";
                 break;
             case 0x54:
-                instr+="ret ";
+                instr += "ret ";
                 return instr;
 
             case 0x55:
-                instr+="iret ";
+                instr += "iret ";
                 return instr;
 
         }
-        int sizeInt=0;
+        int sizeInt = 0;
 
-        switch(byteToBits(b[1],7,6)){
+        switch(byteToBits(b[1], 7, 6)) {
             case 0:
                 sizeInt = 8;
                 break;
@@ -145,15 +144,15 @@ public class InstructionClass5 extends Instruction {
                 sizeInt = 64;
                 break;
             default:
-                throw new RuntimeException("Wrong value size");
+                throw new DisassembleException("Wrong value size");
         }
 
-        int destRegister = byteToBits(b[3],3,0);
+        int destRegister = byteToBits(b[3], 3, 0);
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
-        instr+=dest_Reg;
+        instr += dest_Reg;
 
-        log.trace("disassembled: {} {} {} {} {} {} {} {}",
-                b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+        log.trace("disassembled: {0} {0} {0} {0} {0} {0} {0} {0}",
+            b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
 
 
         return instr;

@@ -1,17 +1,17 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 
 public class InstructionClass0 extends Instruction {
 
     int idn;
 
-    public InstructionClass0(String mnemonic, int idn) {
+    public InstructionClass0(String mnemonic, int idn) throws DisassembleException {
         super(mnemonic, 0);
         this.idn = idn;
 
@@ -20,7 +20,7 @@ public class InstructionClass0 extends Instruction {
 
         byte enc[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-        switch (mnemonic) {
+        switch(mnemonic) {
             case "hlt":
                 enc[0] = 0x01;
                 this.type = 0x01;
@@ -33,7 +33,7 @@ public class InstructionClass0 extends Instruction {
                 enc[0] = 0x03;
                 this.type = 0x03;
             default:
-                throw new RuntimeException("Unknown Class 0 instruction: " + mnemonic);
+                throw new DisassembleException("Unknown Class 0 instruction: " + mnemonic);
         }
 
         this.setEncoding(enc);
@@ -44,30 +44,20 @@ public class InstructionClass0 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public static String disassemble(int address) {
-        byte b[] = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
-
-        //  JOptionPane.showMessageDialog(null, "" + address + " - " + b[0] + " " + b[1]);
-
+    public static String disassemble(byte[] encoding) throws DisassembleException {
         String instr = "";
-        switch (b[0]){
-            case 0x00:
-                instr+= "";
-                break;
+        switch(encoding[0]) {
             case 0x01:
-                instr+= "hlt";
+                instr += "hlt";
                 break;
             case 0x02:
-                instr+= "nop";
+                instr += "nop";
                 break;
             case 0x03:
-                instr+= "int";
+                instr += "int";
                 break;
             default:
-                throw new RuntimeException("Unkown instruction type");
+                throw new DisassembleException("Unkown instruction type");
 
         }
         return instr;

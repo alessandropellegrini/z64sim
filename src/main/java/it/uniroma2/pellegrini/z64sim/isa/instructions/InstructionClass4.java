@@ -1,11 +1,11 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 
 /**
@@ -29,7 +29,7 @@ public class InstructionClass4 extends Instruction {
         byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         enc[0] = 0b01000000;
 
-        switch (mnemonic) {
+        switch(mnemonic) {
             case "clc":
                 this.type = 0x00;
                 this.val = 0;
@@ -92,7 +92,7 @@ public class InstructionClass4 extends Instruction {
 
         }
 
-        enc[0] = (byte)(enc[0] | this.type);
+        enc[0] = (byte) (enc[0] | this.type);
         this.setEncoding(enc);
 
 
@@ -104,61 +104,59 @@ public class InstructionClass4 extends Instruction {
     }
 
 
-    public static String disassemble(int address) {
+    public static String disassemble(byte[] encoding) {
         byte b[] = new byte[8];
         for(int i = 0; i < 8; i++) {
             b[i] = Memory.getProgram().program[address + i];
         }
 
         String instr = "";
-        switch (b[0]){
+        switch(b[0]) {
             case 0x40:
-                instr+= "clc";
+                instr += "clc";
                 break;
             case 0x41:
-                instr+= "clp";
+                instr += "clp";
                 break;
             case 0x42:
-                instr+= "clz";
+                instr += "clz";
                 break;
             case 0x43:
-                instr+= "cls";
+                instr += "cls";
                 break;
             case 0x44:
-                instr+= "cli";
+                instr += "cli";
                 break;
             case 0x45:
-                instr+= "cld";
+                instr += "cld";
                 break;
             case 0x46:
-                instr+= "clo";
+                instr += "clo";
                 break;
             case 0x47:
-                instr+= "stc";
+                instr += "stc";
                 break;
             case 0x48:
-                instr+= "stp";
+                instr += "stp";
                 break;
             case 0x49:
-                instr+= "stz";
+                instr += "stz";
                 break;
             case 0x4a:
-                instr+= "sts";
+                instr += "sts";
                 break;
             case 0x4b:
-                instr+= "sti";
+                instr += "sti";
                 break;
             case 0x4c:
-                instr+= "std";
+                instr += "std";
                 break;
             case 0x4d:
-                instr+= "sto"; //GHALI
+                instr += "sto"; //GHALI
                 break;
             default:
-                throw new RuntimeException("Unkown instruction type");
-
+                throw new DisassembleException("Unkown instruction type");
         }
         return instr;
     }
-
 }

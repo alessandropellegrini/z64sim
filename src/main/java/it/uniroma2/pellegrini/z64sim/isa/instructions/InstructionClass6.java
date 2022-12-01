@@ -1,10 +1,11 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
@@ -20,7 +21,7 @@ public class InstructionClass6 extends Instruction {
     private final byte bit;
     private final OperandMemory target;
 
-    public InstructionClass6(String mnemonic, OperandMemory t) {
+    public InstructionClass6(String mnemonic, OperandMemory t) throws DisassembleException {
         super(mnemonic, 6);
         this.bit = 0; /* depends on the mnemonic */
         this.target = t;
@@ -31,13 +32,13 @@ public class InstructionClass6 extends Instruction {
         this.setSize(8);
         byte dest = 0b00000000;
         byte sour = 0b00000000;
-        if(t instanceof OperandMemory){
-            dest = (byte)(((OperandMemory)target).getBase());
+        if(t instanceof OperandMemory) {
+            dest = (byte) (((OperandMemory) target).getBase());
         }
 
         enc[3] = (byte) (sour | dest);
 
-        switch (mnemonic) {
+        switch(mnemonic) {
             case "jc":
                 this.type = 0x00;
                 break;
@@ -69,64 +70,64 @@ public class InstructionClass6 extends Instruction {
                 this.type = 0x09;
                 break;
             default:
-                throw new RuntimeException("Unknown Class 6 instruction: " + mnemonic);
+                throw new ParseException("Unknown Class 6 instruction: " + mnemonic);
         }
 
-        enc[0] = (byte)(enc[0] | this.type);
+        enc[0] = (byte) (enc[0] | this.type);
         this.setEncoding(enc);
 
     }
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 
-    public static String disassemble(int address) {
+    public static String disassemble(byte[] encoding) throws DisassembleException {
         byte b[] = new byte[8];
         for(int i = 0; i < 8; i++) {
             b[i] = Memory.getProgram().program[address + i];
         }
-        String instr="";
-        switch (b[0]){
+        String instr = "";
+        switch(b[0]) {
             case 0x60:
-                instr+="jc";
+                instr += "jc";
                 break;
             case 0x61:
-                instr+="jp";
+                instr += "jp";
                 break;
             case 0x62:
-                instr+="jz";
+                instr += "jz";
                 break;
             case 0x63:
-                instr+="js";
+                instr += "js";
                 break;
             case 0x64:
-                instr+="jo";
+                instr += "jo";
                 break;
             case 0x65:
-                instr+="jnc";
+                instr += "jnc";
                 break;
             case 0x66:
-                instr+="jnp";
+                instr += "jnp";
                 break;
             case 0x67:
-                instr+="jnz";
+                instr += "jnz";
                 break;
             case 0x68:
-                instr+="jns";
+                instr += "jns";
                 break;
             case 0x69:
-                instr+="jno";
+                instr += "jno";
                 break;
             default:
-                throw new RuntimeException("Unkown instruction type");
+                throw new DisassembleException("Unkown instruction type");
         }
 
         int sizeInt = 0;
 
-        switch(byteToBits(b[1],5,4)){
+        switch(byteToBits(b[1], 5, 4)) {
             case 0:
                 sizeInt = 8;
                 break;
@@ -140,12 +141,12 @@ public class InstructionClass6 extends Instruction {
                 sizeInt = 64;
                 break;
             default:
-                throw new RuntimeException("Wrong value size");
+                throw new DisassembleException("Wrong value size");
         }
 
-        int destRegister = byteToBits(b[3],3,0);
+        int destRegister = byteToBits(b[3], 3, 0);
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
-        instr+=" "+dest_Reg;
+        instr += " " + dest_Reg;
 
 
         return instr;

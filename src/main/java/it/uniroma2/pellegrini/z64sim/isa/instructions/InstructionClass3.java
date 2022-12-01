@@ -1,10 +1,10 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
@@ -39,8 +39,8 @@ public class InstructionClass3 extends Instruction {
         byte diImm = 0b00000000;
         byte mem = 0b00000000;
 
-        if(reg!=null){
-            switch (reg.getSize()) {
+        if(reg != null) {
+            switch(reg.getSize()) {
                 case 8:
                     ss = 0b00000000;
                     break;
@@ -54,13 +54,13 @@ public class InstructionClass3 extends Instruction {
                     ss = (byte) 0b11000000;
                     break;
             }
-        }else{
+        } else {
             ss = 0b00000000;
         }
-        if(places == -1){
+        if(places == -1) {
             sd = ss;
             diImm = 0b00000000;
-        }else{
+        } else {
             diImm = 0b00000100;
         }
         //MODE
@@ -78,68 +78,60 @@ public class InstructionClass3 extends Instruction {
         byte sour = 0b00000000;
         byte dest = 0b00000000;
 
-        dest =  (byte) (((OperandRegister)reg).getRegister());
+        dest = (byte) (((OperandRegister) reg).getRegister());
         enc[3] = (byte) (sour | dest);
 
-        enc[4] = (byte)(places >> 24); // IPOTIZZANDO CHE IL CAST TRONCHI
-        enc[5] = (byte)(places >> 16);
-        enc[6] = (byte)(places >> 8);
-        enc[7] = (byte)(places);
+        enc[4] = (byte) (places >> 24); // IPOTIZZANDO CHE IL CAST TRONCHI
+        enc[5] = (byte) (places >> 16);
+        enc[6] = (byte) (places >> 8);
+        enc[7] = (byte) (places);
 
-        switch (mnemonic) {
+        switch(mnemonic) {
             case "sal":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x00;
-                }
-                else this.type = 0x01;
+                } else this.type = 0x01;
                 break;
             case "shl":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x00;
-                }
-                else this.type = 0x01;
+                } else this.type = 0x01;
                 break;
             case "sar":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x02;
-                }
-                else this.type = 0x03;
+                } else this.type = 0x03;
                 break;
             case "shr":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x04;
-                }
-                else this.type = 0x05;
+                } else this.type = 0x05;
                 break;
             case "rcl":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x06;
-                }
-                else this.type = 0x07;
+                } else this.type = 0x07;
                 break;
             case "rcr":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x08;
-                }
-                else this.type = 0x09;
+                } else this.type = 0x09;
                 break;
             case "rol":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x0a;
-                }
-                else this.type = 0x0b;
+                } else this.type = 0x0b;
                 break;
             case "ror":
-                if(this.places != -1){
+                if(this.places != -1) {
                     this.type = 0x0c;
-                }
-                else this.type = 0x0d;
+                } else this.type = 0x0d;
                 break;
             default:
                 throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
         }
         this.setSize(size);
-        enc[0] = (byte)(enc[0] | this.type);
+        enc[0] = (byte) (enc[0] | this.type);
         this.setEncoding(enc);
 
     }
@@ -150,49 +142,49 @@ public class InstructionClass3 extends Instruction {
     }
 
 
-    public static String disassemble(int address) {
+    public static String disassemble(byte[] encoding) throws DisassembleException {
         byte b[] = new byte[8];
         for(int i = 0; i < 8; i++) {
             b[i] = Memory.getProgram().program[address + i];
         }
 
-        String instr="";
-        switch (b[0]){
+        String instr = "";
+        switch(b[0]) {
             case 0x30:
             case 0x31:
-                instr+="shl ";
+                instr += "shl ";
                 break;
             case 0x32:
             case 0x33:
-                instr+="sar ";
+                instr += "sar ";
                 break;
             case 0x34:
             case 0x35:
-                instr+="shr ";
+                instr += "shr ";
                 break;
             case 0x36:
             case 0x37:
-                instr+="rcl ";
+                instr += "rcl ";
                 break;
             case 0x38:
             case 0x39:
-                instr+="rcr ";
+                instr += "rcr ";
                 break;
             case 0x3a:
             case 0x3b:
-                instr+="rol ";
+                instr += "rol ";
                 break;
             case 0x3c:
             case 0x3d:
-                instr+="ror ";
+                instr += "ror ";
                 break;
             default:
                 throw new RuntimeException("Unkown instruction type");
 
         }
-        int sizeInt=0;
+        int sizeInt = 0;
 
-        switch(byteToBits(b[1],7,6)){
+        switch(byteToBits(b[1], 7, 6)) {
             case 0:
                 sizeInt = 8;
                 break;
@@ -206,17 +198,17 @@ public class InstructionClass3 extends Instruction {
                 sizeInt = 64;
                 break;
             default:
-                throw new RuntimeException("Wrong value size");
+                throw new DisassembleException("Wrong value size");
         }
-        if(byteToBits(b[1],2,2) == 1){
-            instr +="$"+((b[7]<<24)+(b[6]<<16)+(b[5]<<8)+b[4])+",";
+        if(byteToBits(b[1], 2, 2) == 1) {
+            instr += "$" + ((b[7] << 24) + (b[6] << 16) + (b[5] << 8) + b[4]) + ",";
         }
-        int destRegister = byteToBits(b[3],3,0);
+        int destRegister = byteToBits(b[3], 3, 0);
         String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
-        instr+=dest_Reg;
+        instr += dest_Reg;
 
         log.trace("disassembled: {} {} {} {} {} {} {} {}",
-                b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+            b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
         return instr;
 
     }

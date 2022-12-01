@@ -1,10 +1,10 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 ;
 
@@ -25,8 +25,8 @@ public class InstructionClass7 extends Instruction {
         byte di = 0b00000000;
         byte diImm = 0b00000000;
         byte mem = 0b00000000;
-        byte ss = (byte)transfer_size;
-        byte ds = (byte)transfer_size;
+        byte ss = (byte) transfer_size;
+        byte ds = (byte) transfer_size;
 
         enc[1] = (byte) (ss | ds | diImm | di | mem);
 
@@ -47,7 +47,7 @@ public class InstructionClass7 extends Instruction {
                 throw new RuntimeException("Unknown Class 7 instruction: " + mnemonic);
         }
 
-        enc[0] = (byte)(enc[0] | this.type);
+        enc[0] = (byte) (enc[0] | this.type);
         this.setEncoding(enc);
 
         this.setSize(8);
@@ -56,48 +56,47 @@ public class InstructionClass7 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 
-    public static String disassemble(int address) {
+    public static String disassemble(byte[] encoding) throws DisassembleException {
         byte b[] = new byte[8];
         for(int i = 0; i < 8; i++) {
             b[i] = Memory.getProgram().program[address + i];
         }
-        String instr="";
+        String instr = "";
 
-        switch (b[0]){
+        switch(b[0]) {
             case 0x70:
-                instr+="in";
+                instr += "in";
                 break;
             case 0x71:
-                instr+="out";
+                instr += "out";
                 break;
             case 0x72:
-                instr+="ins";
+                instr += "ins";
                 break;
             case 0x73:
-                instr+="outs";
+                instr += "outs";
                 break;
             default:
-                throw new RuntimeException("Unknown instruction type");
+                throw new DisassembleException("Unknown instruction type");
         }
-        switch(b[1]){
+        switch(b[1]) {
             case 0x00:
                 instr = instr.concat("b");
                 break;
             case 0x50:
                 instr = instr.concat("w");
                 break;
-            case (byte)0xa0:
+            case (byte) 0xa0:
                 instr = instr.concat("l");
                 break;
             default:
-                throw new RuntimeException("Wrong value size");
+                throw new DisassembleException("Wrong value size");
 
         }
         return instr;
     }
-
 }

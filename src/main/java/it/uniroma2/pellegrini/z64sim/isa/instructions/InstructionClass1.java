@@ -1,10 +1,11 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
@@ -18,23 +19,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass1 extends Instruction {
     private static final Logger log = LoggerFactory.getLogger();
-
-    /*static boolean disassemble(long l) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }*/
+    private static final String[] opcodes = {"mov", "movs", "movz", "lea", "push", "pop", "pushf", "popf", "movs", "stos"};
 
     private final Operand source;
     private final Operand destination;
     private final int implicitSize; // For instructions such as pushf, popf,
-    // movs, stos, we store the size ('b', 'w',
-    // 'l', 'q') here because they have no operands
 
-    public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) {
+    public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) throws ParseException {
         super(mnemonic, 1);
         this.source = s;
         this.destination = d;
@@ -42,9 +37,9 @@ public class InstructionClass1 extends Instruction {
 
         byte[] enc;
 
-        if (s instanceof OperandImmediate && s.getSize() == 64 || (s instanceof OperandMemory &&
-                (byte)((OperandMemory) s).getDisplacement()!=-1) || (d instanceof OperandMemory &&
-                (byte)((OperandMemory) d).getDisplacement()!=-1)) {
+        if(s instanceof OperandImmediate && s.getSize() == 64 || (s instanceof OperandMemory &&
+            (byte) ((OperandMemory) s).getDisplacement() != -1) || (d instanceof OperandMemory &&
+            (byte) ((OperandMemory) d).getDisplacement() != -1)) {
             this.setSize(16);
             enc = new byte[16];
         } else {
@@ -53,8 +48,8 @@ public class InstructionClass1 extends Instruction {
         }
 
         boolean sour_register = s instanceof OperandRegister;
-        boolean sour_memory = s instanceof OperandMemory;
-        boolean sour_immediate = s instanceof OperandImmediate;
+        boolean srcMem = s instanceof OperandMemory;
+        boolean srcImm = s instanceof OperandImmediate;
         boolean dest_register = d instanceof OperandRegister;
         boolean dest_memory = d instanceof OperandMemory;
 
@@ -65,13 +60,13 @@ public class InstructionClass1 extends Instruction {
         byte Bp = 0;
         byte Ip = 0;
         byte Scale = 0;
-        byte Index_Register = 0;
-        byte sour_Register = 0;
-        byte dest_Register = 0;
+        byte idxReg = 0;
+        byte srcReg = 0;
+        byte dstReg = 0;
 
         //Popolamento campo ss
-        if(s!=null){
-            switch (s.getSize()) {
+        if(s != null) {
+            switch(s.getSize()) {
                 case 8:
                     ss = 0b00000000;
                     break;
@@ -88,8 +83,8 @@ public class InstructionClass1 extends Instruction {
         }
 
         //Popolamento campo ds
-        if(d!=null){
-            switch (d.getSize()) {
+        if(d != null) {
+            switch(d.getSize()) {
                 case 8:
                     sd = 0b00000000;
                     break;
@@ -105,43 +100,41 @@ public class InstructionClass1 extends Instruction {
             }
         }
         //Popolamento campo di
-        if(!sour_immediate && !dest_memory) di = 0b00000000;
-        if(sour_immediate && !dest_memory) di = 0b00000100;
-        if(!sour_immediate && dest_memory && ((OperandMemory)d).getDisplacement() != -1) di = 0b00001000;
-        if(sour_immediate && dest_memory && ((OperandMemory)d).getDisplacement() != -1) di = 0b00001100;
+        if(!srcImm && !dest_memory) di = 0b00000000;
+        if(srcImm && !dest_memory) di = 0b00000100;
+        if(!srcImm && dest_memory && ((OperandMemory) d).getDisplacement() != -1) di = 0b00001000;
+        if(srcImm && dest_memory && ((OperandMemory) d).getDisplacement() != -1) di = 0b00001100;
 
         //Popolamento campo mem
         if(sour_register && dest_register) mem = 0b00000000;
         if(sour_register && dest_memory) mem = 0b00000001;
-        if(sour_memory && dest_register) mem = 0b00000010;
+        if(srcMem && dest_register) mem = 0b00000010;
 
         //Popolamento campo Bp
-        if(sour_memory || dest_memory){
-            if(sour_memory){
-                if(((OperandMemory)s).getBase() != -1) Bp = (byte)0b10000000;
+        if(srcMem || dest_memory) {
+            if(srcMem) {
+                if(((OperandMemory) s).getBase() != -1) Bp = (byte) 0b10000000;
                 else Bp = 0b00000000;
-            }
-            else{
-                if(((OperandMemory)d).getBase() != -1) Bp = (byte)0b10000000;
+            } else {
+                if(((OperandMemory) d).getBase() != -1) Bp = (byte) 0b10000000;
                 else Bp = 0b00000000;
             }
         }
 
         //Popolamento campo Ip
-        if(sour_memory || dest_memory){
-            if(sour_memory){
-                if(((OperandMemory)s).getIndex()!= -1) Ip = (byte)0b01000000;
+        if(srcMem || dest_memory) {
+            if(srcMem) {
+                if(((OperandMemory) s).getIndex() != -1) Ip = (byte) 0b01000000;
                 else Ip = 0b00000000;
-            }
-            else{
-                if(((OperandMemory)d).getIndex() != -1) Ip = (byte)0b01000000;
+            } else {
+                if(((OperandMemory) d).getIndex() != -1) Ip = (byte) 0b01000000;
                 else Ip = 0b00000000;
             }
         }
 
         //Popolamento campo Scale e IndexRegister
-        if(sour_memory){
-            switch (((OperandMemory) s).getScale()){
+        if(srcMem) {
+            switch(((OperandMemory) s).getScale()) {
                 case 1:
                     Scale = 0b00000000;
                     break;
@@ -155,10 +148,10 @@ public class InstructionClass1 extends Instruction {
                     Scale = 0b00110000;
                     break;
             }
-            Index_Register = (byte)((OperandMemory)s).getIndex();
+            idxReg = (byte) ((OperandMemory) s).getIndex();
         }
-        if(dest_memory){
-            switch (((OperandMemory) d).getScale()){
+        if(dest_memory) {
+            switch(((OperandMemory) d).getScale()) {
                 case 1:
                     Scale = 0b00000000;
                     break;
@@ -172,72 +165,79 @@ public class InstructionClass1 extends Instruction {
                     Scale = 0b00110000;
                     break;
             }
-            Index_Register = (byte)((OperandMemory)d).getIndex();
+            idxReg = (byte) ((OperandMemory) d).getIndex();
         }
-        //Popolamento campo R/M
-        if(sour_register) sour_Register = (byte)(((OperandRegister)s).getRegister() << 4);
-        if(sour_memory) sour_Register = (byte)(((OperandMemory)s).getBase() << 4);
 
-        if(dest_register) dest_Register = (byte)((OperandRegister)d).getRegister();
-        if(dest_memory) dest_Register = (byte)((OperandMemory)d).getBase();
+        //Popolamento campo R/M
+        if(sour_register) {
+            assert s instanceof OperandRegister;
+            srcReg = (byte) (((OperandRegister) s).getRegister() << 4);
+        }
+        if(srcMem) srcReg = (byte) (((OperandMemory) s).getBase() << 4);
+
+        if(dest_register) {
+            assert d instanceof OperandRegister;
+            dstReg = (byte) ((OperandRegister) d).getRegister();
+        }
+        if(dest_memory) dstReg = (byte) ((OperandMemory) d).getBase();
 
         //Popolamento Displacement e Immediate
         boolean min32 = false;
         boolean displ = false;
-        if(sour_immediate && ((OperandImmediate)s).getSize() <= 32) min32 = true;
+        if(srcImm && s.getSize() <= 32) min32 = true;
 
-        if(sour_memory || dest_memory){
-            if(sour_memory && ((OperandMemory)s).getDisplacement()!=-1){
-                enc[4] = (byte)((OperandMemory) s).getDisplacement();
-                enc[5] = (byte)((((OperandMemory) s).getDisplacement()) >> 8);
-                enc[6] = (byte)((((OperandMemory) s).getDisplacement()) >> 16);
-                enc[7] = (byte)(((OperandMemory) s).getDisplacement() >> 24);
+        if(srcMem || dest_memory) {
+            if(srcMem && ((OperandMemory) s).getDisplacement() != -1) {
+                enc[4] = (byte) ((OperandMemory) s).getDisplacement();
+                enc[5] = (byte) ((((OperandMemory) s).getDisplacement()) >> 8);
+                enc[6] = (byte) ((((OperandMemory) s).getDisplacement()) >> 16);
+                enc[7] = (byte) (((OperandMemory) s).getDisplacement() >> 24);
                 displ = true;
             }
-            if(dest_memory &&((OperandMemory)d).getDisplacement()!=-1){
-                enc[4] = (byte)((OperandMemory) d).getDisplacement();
-                enc[5] = (byte)((((OperandMemory) d).getDisplacement()) >> 8);
-                enc[6] = (byte)((((OperandMemory) d).getDisplacement()) >> 16);
-                enc[7] = (byte)(((OperandMemory) d).getDisplacement() >> 24);
+            if(dest_memory && ((OperandMemory) d).getDisplacement() != -1) {
+                enc[4] = (byte) ((OperandMemory) d).getDisplacement();
+                enc[5] = (byte) ((((OperandMemory) d).getDisplacement()) >> 8);
+                enc[6] = (byte) ((((OperandMemory) d).getDisplacement()) >> 16);
+                enc[7] = (byte) (((OperandMemory) d).getDisplacement() >> 24);
                 displ = true;
             }
         }
-        if(sour_immediate && min32){
-            if(displ == false){
-                enc[4] = (byte)((OperandImmediate) s).getValue();
-                enc[5] = (byte)((((OperandImmediate) s).getValue()) >> 8);
-                enc[6] = (byte)((((OperandImmediate) s).getValue()) >> 16);
-                enc[7] = (byte)(((OperandImmediate) s).getValue() >> 24);
-            }else{
-                enc[8] = (byte)((OperandImmediate)s).getValue();
-                enc[9] = (byte)((((OperandImmediate) s).getValue()) >> 8);
-                enc[10] = (byte)((((OperandImmediate) s).getValue()) >> 16);
-                enc[11] = (byte)((((OperandImmediate) s).getValue()) >> 24);
-                enc[12] = (byte)((((OperandImmediate) s).getValue()) >> 32);
-                enc[13] = (byte)((((OperandImmediate) s).getValue()) >> 40);
-                enc[14] = (byte)((((OperandImmediate) s).getValue()) >> 48);
-                enc[15] = (byte)(((OperandImmediate) s).getValue() >> 56);
+        if(srcImm && min32) {
+            if(displ) {
+                enc[8] = (byte) ((OperandImmediate) s).getValue();
+                enc[9] = (byte) ((((OperandImmediate) s).getValue()) >> 8);
+                enc[10] = (byte) ((((OperandImmediate) s).getValue()) >> 16);
+                enc[11] = (byte) ((((OperandImmediate) s).getValue()) >> 24);
+                enc[12] = (byte) ((((OperandImmediate) s).getValue()) >> 32);
+                enc[13] = (byte) ((((OperandImmediate) s).getValue()) >> 40);
+                enc[14] = (byte) ((((OperandImmediate) s).getValue()) >> 48);
+                enc[15] = (byte) (((OperandImmediate) s).getValue() >> 56);
+            } else {
+                enc[4] = (byte) ((OperandImmediate) s).getValue();
+                enc[5] = (byte) ((((OperandImmediate) s).getValue()) >> 8);
+                enc[6] = (byte) ((((OperandImmediate) s).getValue()) >> 16);
+                enc[7] = (byte) (((OperandImmediate) s).getValue() >> 24);
             }
         }
-        if(sour_immediate && !min32){
-            enc[8] = (byte)((OperandImmediate)s).getValue();
-            enc[9] = (byte)((((OperandImmediate) s).getValue()) >> 8);
-            enc[10] = (byte)((((OperandImmediate) s).getValue()) >> 16);
-            enc[11] = (byte)((((OperandImmediate) s).getValue()) >> 24);
-            enc[12] = (byte)((((OperandImmediate) s).getValue()) >> 32);
-            enc[13] = (byte)((((OperandImmediate) s).getValue()) >> 40);
-            enc[14] = (byte)((((OperandImmediate) s).getValue()) >> 48);
-            enc[15] = (byte)(((OperandImmediate) s).getValue() >> 56);
+        if(srcImm && !min32) {
+            enc[8] = (byte) ((OperandImmediate) s).getValue();
+            enc[9] = (byte) ((((OperandImmediate) s).getValue()) >> 8);
+            enc[10] = (byte) ((((OperandImmediate) s).getValue()) >> 16);
+            enc[11] = (byte) ((((OperandImmediate) s).getValue()) >> 24);
+            enc[12] = (byte) ((((OperandImmediate) s).getValue()) >> 32);
+            enc[13] = (byte) ((((OperandImmediate) s).getValue()) >> 40);
+            enc[14] = (byte) ((((OperandImmediate) s).getValue()) >> 48);
+            enc[15] = (byte) (((OperandImmediate) s).getValue() >> 56);
         }
 
         //MODE
-        enc[1] = (byte) (ss | sd  | di | mem);
+        enc[1] = (byte) (ss | sd | di | mem);
         //SIB
-        enc[2] = (byte) (Bp | Ip | Scale | Index_Register);
+        enc[2] = (byte) (Bp | Ip | Scale | idxReg);
         //R-M
-        enc[3] = (byte) (sour_Register | dest_Register);
+        enc[3] = (byte) (srcReg | dstReg);
         //Opcode
-        switch (mnemonic) {
+        switch(mnemonic) {
             case "mov":
                 this.type = 0x00;
                 break;
@@ -269,23 +269,23 @@ public class InstructionClass1 extends Instruction {
                 this.type = 0x09;
                 break;
             default:
-                throw new RuntimeException("Unknown Class 1 instruction: " + mnemonic);
+                throw new ParseException("Unknown Class 1 instruction: " + mnemonic);
         }
 
-        enc[0] = (byte)((byte)0b00010000 | this.type);
+        enc[0] = (byte) ((byte) 0b00010000 | this.type);
         this.setEncoding(enc);
         log.trace("Assembled INS1: {0} SS: {0} DS: {0} DI: {0} MEM: {0} Bp: {0} Ip: {0} Scale: {0} IDX: {0} srcReg: {0} dstReg: {0}",
-                enc[0],
-                ss,
-                sd,
-                di,
-                mem,
-                Bp,
-                Ip,
-                Scale,
-                Index_Register,
-                sour_Register,
-                dest_Register);
+            enc[0],
+            ss,
+            sd,
+            di,
+            mem,
+            Bp,
+            Ip,
+            Scale,
+            idxReg,
+            srcReg,
+            dstReg);
     }
 
 
@@ -294,31 +294,16 @@ public class InstructionClass1 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public String toString() {
-        String mnem = this.mnemonic;
-        return mnem;
-    }
+    public static String disassemble(byte[] encoding) throws DisassembleException {
+        String instr = "";
+        int index = byteToBits(encoding[0], 3, 0);
+        instr += opcodes[index];
 
-    private static String opcodes[] = {"mov", "movs", "movz","lea", "push", "pop","pushf","popf","movs","stos"};
-
-    public static String disassemble(int address) {
-
-        byte[] b = new byte[8];
-        for(int i = 0; i < 8; i++) {
-            b[i] = Memory.getProgram().program[address + i];
-        }
-
-        byte[] b2 = new byte[8];
-
-        String instr="";
-        int index = byteToBits(b[0],3,0);
-        instr+=opcodes[index];
-
-        int sizeIntDs=0;
-        String sizeDest="";
-        switch(byteToBits(b[1],5,4)){
+        int sizeIntDs = 0;
+        String sizeDest = "";
+        switch(byteToBits(encoding[1], 5, 4)) {
             case 0:
-                sizeDest="b ";
+                sizeDest = "b ";
                 sizeIntDs = 8;
                 break;
             case 1:
@@ -326,76 +311,72 @@ public class InstructionClass1 extends Instruction {
                 sizeIntDs = 16;
                 break;
             case 2:
-                sizeDest="l ";
+                sizeDest = "l ";
                 sizeIntDs = 32;
                 break;
             case 3:
-                sizeDest="q ";
+                sizeDest = "q ";
                 sizeIntDs = 64;
                 break;
             default:
-                throw new RuntimeException("Wrong value size");
+                throw new DisassembleException("Wrong value size");
         }
-        int sizeIntSs=0;
-        String sizeSorg="";
-        switch(byteToBits(b[1],7,6)){
+
+        int sizeIntSs = 0;
+        String sizeSorg = "";
+
+        switch(byteToBits(encoding[1], 7, 6)) {
             case 0:
-                sizeSorg ="b";
+                sizeSorg = "b";
                 sizeIntSs = 8;
                 break;
             case 1:
-                sizeSorg ="w";
+                sizeSorg = "w";
                 sizeIntSs = 16;
                 break;
             case 2:
-                sizeSorg="l";
+                sizeSorg = "l";
                 sizeIntSs = 32;
                 break;
             case 3:
-                sizeSorg="q";
+                sizeSorg = "q";
                 sizeIntSs = 64;
                 break;
             default:
-                throw new RuntimeException("Wrong value size");
+                throw new DisassembleException("Wrong value size");
         }
-        int destRegister = byteToBits(b[3],3,0);
-        int sourRegister = byteToBits(b[3],7,4);
+
+        int destRegister = byteToBits(encoding[3], 3, 0);
+        int sourRegister = byteToBits(encoding[3], 7, 4);
         String sour_Reg = Register.getRegisterName(sourRegister, sizeIntSs);
         String dest_Reg = Register.getRegisterName(destRegister, sizeIntDs);
 
-        if(index == 1 || index == 2){
-            instr += sizeSorg+sizeDest;
-        }
-        else if(index == 6 || index == 7 || index == 8 || index == 9){
+        if(index == 1 || index == 2) {
+            instr += sizeSorg + sizeDest;
+        } else if(index == 6 || index == 7 || index == 8 || index == 9) {
             return instr;
-        }
-        else if(index == 4 || index == 5){
-            instr+= sizeDest+" "+dest_Reg;
+        } else if(index == 4 || index == 5) {
+            instr += sizeDest + " " + dest_Reg;
             return instr;
+        } else {
+            instr += sizeDest;
         }
-        else{
-            instr+=sizeDest;
-        }
 
-
-        boolean hasImm  = byteToBits(b[1],2,2) == 1;
-        boolean hasDisp = byteToBits(b[1],3,3) == 1;
-
+        boolean hasImm = byteToBits(encoding[1], 2, 2) == 1;
+        boolean hasDisp = byteToBits(encoding[1], 3, 3) == 1;
 
         // Additional Fetch
         long displ = 0;
         long immed = 0;
 
         if(hasImm && hasDisp || hasImm && sizeIntSs == 64) {
-            for(int i = 0; i < 8; i++) {
-                b2[i] = Memory.getProgram().program[address + 8  + i];
-            }
-
-            ByteBuffer wrapped = ByteBuffer.wrap(b2);
+            byte[] immediate = new byte[8];
+            System.arraycopy(encoding, 8, immediate, 0, 8);
+            ByteBuffer wrapped = ByteBuffer.wrap(immediate);
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
             immed = wrapped.getLong();
-            if (immed < 0) immed += Math.pow(2, 64);
-            instr+="$"+immed+",";
+            if(immed < 0) immed += Math.pow(2, 64);
+            instr += "$" + immed + ",";
 
             skip = true;
 
@@ -411,8 +392,8 @@ public class InstructionClass1 extends Instruction {
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
             immed = wrapped.getInt();
             log.trace("immed: {}", String.format("%016x", immed));
-            if (immed < 0) immed += Math.pow(2, 64);
-            instr+="$"+immed+",";
+            if(immed < 0) immed += Math.pow(2, 64);
+            instr += "$" + immed + ",";
         }
 
         if(hasDisp) {
@@ -425,89 +406,87 @@ public class InstructionClass1 extends Instruction {
             ByteBuffer wrapped = ByteBuffer.wrap(b3);
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
             displ = wrapped.getInt();
-            if (displ < 0) displ += Math.pow(2, 32);
-            instr+=displ;
+            if(displ < 0) displ += Math.pow(2, 32);
+            instr += displ;
         }
 
-        boolean isBp = byteToBits(b[2],7,7) == 1;
-        boolean isIp = byteToBits(b[2],6,6) == 1;
-        boolean isMemorySource = byteToBits(b[1],1,1) == 1;
-        boolean isMemoryDest = byteToBits(b[1],0,0) == 1;
+        boolean isBp = byteToBits(b[2], 7, 7) == 1;
+        boolean isIp = byteToBits(b[2], 6, 6) == 1;
+        boolean isMemorySource = byteToBits(b[1], 1, 1) == 1;
+        boolean isMemoryDest = byteToBits(b[1], 0, 0) == 1;
 
-        if(isMemorySource){
-            if(isBp){
-                instr+="("+sour_Reg;
-            }
-            else{
-                instr+="(,";
+        if(isMemorySource) {
+            if(isBp) {
+                instr += "(" + sour_Reg;
+            } else {
+                instr += "(,";
             }
 
-            if(isIp){
-                int indexRegister = byteToBits(b[2],3,0);
+            if(isIp) {
+                int indexRegister = byteToBits(b[2], 3, 0);
                 String index_Reg = Register.getRegisterName(indexRegister, sizeIntSs);
-                instr+=", "+index_Reg;
-            }
-            else{
-                instr+=", ";
+                instr += ", " + index_Reg;
+            } else {
+                instr += ", ";
             }
 
-            switch(byteToBits(b[2],5,4)){
+            switch(byteToBits(b[2], 5, 4)) {
                 case 0b00:
-                    instr+=", 1), ";
+                    instr += ", 1), ";
                     break;
                 case 0b01:
-                    instr+=", 2), ";
+                    instr += ", 2), ";
                     break;
                 case 0b10:
-                    instr+=", 4), ";
+                    instr += ", 4), ";
                     break;
                 case 0b11:
-                    instr+=", 8), ";
+                    instr += ", 8), ";
                     break;
                 default:
-                    instr+=",), ";
+                    instr += ",), ";
             }
 
 
-        }if(isMemoryDest){
-            if(isBp){
-                instr+="("+dest_Reg;
-            }
-            else {
-                instr+="(,";
+        }
+        if(isMemoryDest) {
+            if(isBp) {
+                instr += "(" + dest_Reg;
+            } else {
+                instr += "(,";
             }
 
-            if(isIp){
-                int indexRegister = byteToBits(b[2],3,0);
+            if(isIp) {
+                int indexRegister = byteToBits(b[2], 3, 0);
                 String index_Reg = Register.getRegisterName(indexRegister, sizeIntDs);
-                instr+=", "+index_Reg;
-            }
-            else{
-                instr+=", ";
+                instr += ", " + index_Reg;
+            } else {
+                instr += ", ";
             }
 
-            switch(byteToBits(b[2],5,4)){
+            switch(byteToBits(b[2], 5, 4)) {
                 case 0b00:
-                    instr+=", 1)";
+                    instr += ", 1)";
                     break;
                 case 0b01:
-                    instr+=", 2)";
+                    instr += ", 2)";
                     break;
                 case 0b10:
-                    instr+=", 4)";
+                    instr += ", 4)";
                     break;
                 case 0b11:
-                    instr+=", 8)";
+                    instr += ", 8)";
                     break;
                 default:
-                    instr+=",)";
+                    instr += ",)";
             }
 
 
-        }if(!isMemorySource && !isMemoryDest && !hasImm){
-            instr+=""+sour_Reg+", "+dest_Reg;
-        }else{
-            instr+=" "+dest_Reg;
+        }
+        if(!isMemorySource && !isMemoryDest && !hasImm) {
+            instr += "" + sour_Reg + ", " + dest_Reg;
+        } else {
+            instr += " " + dest_Reg;
         }
 
         return instr;
