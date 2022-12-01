@@ -507,7 +507,7 @@ void Code() :
             {if(i != null) {
                 try {
                     // The size of the MemoryElement is added by the Instruction classes
-                    this.program.addInstructionToMemory(i);
+                    this.program.addInstruction(i);
                 } catch(ProgramException e) {
                     throw new ParseException(e.getMessage());
                 }

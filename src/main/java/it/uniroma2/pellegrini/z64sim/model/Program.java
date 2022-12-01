@@ -5,42 +5,33 @@
  */
 package it.uniroma2.pellegrini.z64sim.model;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
-import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
+import java.util.*;
+
 
 /**
- *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class Program {
     private static final Logger log = LoggerFactory.getLogger();
 
     private Byte[] IDT = new Byte[0x800];
-    private Deque<Byte> text = new ArrayDeque<Byte>();
-    private Deque<Byte> data = new ArrayDeque<Byte>();
+    private Map<Long, Instruction> text = new Hashtable<>();
+    private Deque<Byte> data = new ArrayDeque<>();
 
-    private Map<String, Long> labels = new LinkedHashMap<>();
-    private Map<String, Long> equs = new LinkedHashMap<>();
+    private Map<String, Long> labels = new Hashtable<>();
+    private Map<String, Long> equs = new Hashtable<>();
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
     private long locationCounter = 0;
 
     public long _start = -1;
-    public long _dataStart = -1;
-    public Byte[] program = null;
-
-
-    public final static int STACK_SIZE = 0x800;
+    public long _dataEnd = -1;
 
     public Program() {
         for(int i = 0; i < 0x800; i++) {
@@ -49,31 +40,15 @@ public class Program {
     }
 
     public void finalizeProgram() throws ProgramException {
-
         // Perform relocation of label values
-        for (RelocationEntry rel : this.relocations) {
+        for(RelocationEntry rel : this.relocations) {
             rel.relocate();
         }
 
-        int TextS=this.text.size();
-        int DataS=this.data.size();
+        int DataS = this.data.size();
+        this._dataEnd = 0x800 + DataS;
 
-        this.program = new Byte[TextS + DataS + Program.STACK_SIZE];
-
-        Byte[] text = this.text.toArray(new Byte[this.text.size()]);
-        Byte[] data = this.data.toArray(new Byte[this.data.size()]);
-
-        System.arraycopy(text, 0, this.program, 0, TextS);
-        System.arraycopy(this.IDT, 0, this.program, 0, this.IDT.length);
-        System.arraycopy(data, 0, this.program, TextS, DataS);
-
-        this._dataStart = TextS;
-
-        for(int i = 0; i < Program.STACK_SIZE; i++) {
-            this.program[TextS + DataS + i] = 0;
-        }
-
-        // This Program does not need anymore intermediate assemblying
+        // This Program does not need anymore intermediate assembling
         // information, so we remove references. This is particularly useful
         // when this object is serialized to save an executable.
         this.labels.clear();
@@ -82,14 +57,6 @@ public class Program {
         this.equs = null;
         this.relocations.clear();
         this.relocations = null;
-        this.IDT = null;
-        this.text.clear();
-        this.text = null;
-        this.data.clear();
-        this.data = null;
-
-        // Register this as the currently assembled program
-//        Memory.setProgram(this);
     }
 
     private long findLabelAddress(String name) {
@@ -101,10 +68,15 @@ public class Program {
         relocations.add(new RelocationEntry(offset, label));
     }
 
-    // Returns false if a label with the same name alrady exists
+    // Returns false if a label with the same name already exists
     public boolean newLabel(String name, long address) {
-        if (labels.containsKey(name)) {
+        if(labels.containsKey(name)) {
             return false;
+        }
+
+        // Special handling of the main label
+        if(name.equals("main")) {
+            this._start = address;
         }
 
         labels.put(name, address);
@@ -119,13 +91,6 @@ public class Program {
         if (locationCounter < this.locationCounter) {
             throw new ProgramException("Moving backwards the location counter is not supported");
         }
-
-        // Fill memory in between
-        long fillSize = locationCounter - this.locationCounter;
-        for(int i = 0; i < fillSize; i++) {
-            this.text.add((byte)0);
-        }
-
         this.locationCounter = locationCounter;
     }
 
@@ -145,39 +110,20 @@ public class Program {
             for(int i = 0; i < fillSize; i++) {
                 this.data.add((byte)0);
             }
-
         }
     }
 
-    public void addInstructionToMemory(Instruction insn) throws ProgramException {
-
-        // Take the first instruction as the entry point
-        if(this._start == -1)
-            this._start = this.locationCounter;
-
+    public void addInstruction(Instruction insn) throws ProgramException {
         // We must preserve the IDT
-        if (this.locationCounter < 0x800) {
+        if(this.locationCounter < 0x800) {
             throw new ProgramException("You are trying to put data/instructions over the IVT.");
         }
 
-        byte[] bytes = insn.getEncoding();
+        this.text.put(this.locationCounter, insn);
 
-        log.trace("Found a {0}-byte instruction", bytes.length);
-
-        for(int i = 0; i < bytes.length; i++) {
-           /* if(i>=bytes.length)
-            {
-                this.text.add(bytes[i]);
-            }*/
-            //if(i <= bytes.length){
-            this.text.add(bytes[i]);
-           /*}
-           else{
-                this.text.add((byte)0x00);
-            }*/
-
-        }
-        this.locationCounter += bytes.length;
+        final int length = insn.getEncoding().length;
+        this.locationCounter += length;
+        log.trace("Found a {0}-byte instruction", length);
     }
 
     public void newDriver(Integer idn, long address) {
@@ -247,7 +193,7 @@ public class Program {
 
     /**
      * A relocation entry. Points to the initial address of the instruction. It
-     * is then the role of the relocate() method to account for differences in
+     * is then the role of relocate() method to account for differences in
      * the various instruction formats.
      */
     private class RelocationEntry {
@@ -271,11 +217,6 @@ public class Program {
         }
 
         private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
-            // TODO: da implementare
-
-            //throw new ProgramException("Da implementare!");
-
-            /*
             // Get target address of the relocation
             long target = findLabelAddress(this.label);
             if (target == -1) {
@@ -286,13 +227,10 @@ public class Program {
             long displacement = target - insn.getAddress() + insn.getSize();
 
             op.relocate(displacement);
-            */
         }
 
         public void relocate() throws ProgramException {
-            //throw new ProgramException("Da implementare!");
 
-            /*
             // Get address of the instruction where relocation should be applied
             MemoryElement el = Memory.getElementFromAddress(this.applyTo);
             if (!(el instanceof Instruction)) {
@@ -345,9 +283,6 @@ public class Program {
                 default:
                     throw new ProgramException("Relocating an instruction which does not belong to a relocatable class");
             }
-            */
-
         }
-
     }
 }
