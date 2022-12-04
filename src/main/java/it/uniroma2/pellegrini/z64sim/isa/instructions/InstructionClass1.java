@@ -37,8 +37,8 @@ public class InstructionClass1 extends Instruction {
         byte[] enc;
 
         if(s instanceof OperandImmediate && s.getSize() == 64 || (s instanceof OperandMemory &&
-            (byte) ((OperandMemory) s).getDisplacement() != -1) || (d instanceof OperandMemory &&
-            (byte) ((OperandMemory) d).getDisplacement() != -1)) {
+            ((OperandMemory) s).getDisplacement() != -1) || (d instanceof OperandMemory &&
+            ((OperandMemory) d).getDisplacement() != -1)) {
             this.setSize(16);
             enc = new byte[16];
         } else {
@@ -179,17 +179,17 @@ public class InstructionClass1 extends Instruction {
 
         if(srcMem || dest_memory) {
             if(srcMem && ((OperandMemory) s).getDisplacement() != -1) {
-                enc[4] = (byte) ((OperandMemory) s).getDisplacement();
-                enc[5] = (byte) ((((OperandMemory) s).getDisplacement()) >> 8);
-                enc[6] = (byte) ((((OperandMemory) s).getDisplacement()) >> 16);
-                enc[7] = (byte) (((OperandMemory) s).getDisplacement() >> 24);
+                enc[4] = (byte) (((OperandMemory) s).getDisplacement() & 0xFF);
+                enc[5] = (byte) (((((OperandMemory) s).getDisplacement()) >> 8) & 0xFF);
+                enc[6] = (byte) (((((OperandMemory) s).getDisplacement()) >> 16) & 0xFF);
+                enc[7] = (byte) ((((OperandMemory) s).getDisplacement() >> 24) & 0xFF);
                 displ = true;
             }
             if(dest_memory && ((OperandMemory) d).getDisplacement() != -1) {
-                enc[4] = (byte) ((OperandMemory) d).getDisplacement();
-                enc[5] = (byte) ((((OperandMemory) d).getDisplacement()) >> 8);
-                enc[6] = (byte) ((((OperandMemory) d).getDisplacement()) >> 16);
-                enc[7] = (byte) (((OperandMemory) d).getDisplacement() >> 24);
+                enc[4] = (byte) (((OperandMemory) d).getDisplacement() & 0xFF);
+                enc[5] = (byte) (((((OperandMemory) d).getDisplacement()) >> 8) & 0xFF);
+                enc[6] = (byte) (((((OperandMemory) d).getDisplacement()) >> 16) & 0xFF);
+                enc[7] = (byte) ((((OperandMemory) d).getDisplacement() >> 24) & 0xFF);
                 displ = true;
             }
         }

@@ -32,7 +32,7 @@ public class OperandImmediate extends Operand {
     // This call actually sums the value of the label. This is because we could
     // write an instruction such as "movq $constant+10". The +10 is stored in the
     // 'value' field of the object, and we have then to sum $constant.
-    public void relocate(long value) {
-        this.value += value;
+    public void relocate(MemoryTarget value) {
+        this.value += value.getDisplacement();
     }
 }

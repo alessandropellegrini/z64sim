@@ -5,10 +5,14 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
+import it.uniroma2.pellegrini.z64sim.isa.operands.MemoryTarget;
+import it.uniroma2.pellegrini.z64sim.util.log.Logger;
+import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
-public abstract class Instruction {
+public abstract class Instruction extends MemoryTarget {
+    private static final Logger log = LoggerFactory.getLogger();
 
     protected final String mnemonic;
     protected final byte clas;
@@ -16,7 +20,10 @@ public abstract class Instruction {
     protected int size;
     protected byte[] encoding;
 
+    private MemoryTarget target = null;
+
     public Instruction(String mnemonic, int clas) {
+        super(-1L);
         this.mnemonic = mnemonic;
         this.clas = (byte) clas;
     }
@@ -69,6 +76,14 @@ public abstract class Instruction {
         this.encoding = encoding;
     }
 
+    public MemoryTarget getMemoryTarget() {
+        return target;
+    }
+
+    public void setMemoryTarget(MemoryTarget target) {
+        this.target = target;
+    }
+
     public abstract void run();
 
     public static byte[] longToBytes(long l) {
@@ -102,6 +117,4 @@ public abstract class Instruction {
         }
         return ret;
     }
-
-
 }

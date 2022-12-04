@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import it.uniroma2.pellegrini.z64sim.assembler.*;
+import it.uniroma2.pellegrini.z64sim.model.Program;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -44,5 +45,16 @@ public class AssemblerTest {
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
         Assembler a = new Assembler(isr);
         a.Program();
+    }
+
+    @Test
+    @DisplayName("Relocations")
+    public void testRelocations() throws ParseException {
+        InputStream is = getClass().getResourceAsStream("/relocations.asm");
+        InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
+        Assembler a = new Assembler(isr);
+        a.Program();
+        Program p = a.getProgram();
+        assert(p != null);
     }
 }

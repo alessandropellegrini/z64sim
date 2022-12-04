@@ -6,7 +6,9 @@
 package it.uniroma2.pellegrini.z64sim.model;
 
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
-import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.*;
+import it.uniroma2.pellegrini.z64sim.isa.operands.MemoryTarget;
+import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
@@ -25,12 +27,12 @@ public class Program {
     private Map<Long, Instruction> text = new Hashtable<>();
     private Deque<Byte> data = new ArrayDeque<>();
 
-    private Map<String, Long> labels = new Hashtable<>();
+    private Map<String, MemoryTarget> labels = new Hashtable<>();
     private Map<String, Long> equs = new Hashtable<>();
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
     private long locationCounter = 0;
 
-    public long _start = -1;
+    public MemoryTarget _start = null;
     public long _dataEnd = -1;
 
     public Program() {
@@ -59,17 +61,16 @@ public class Program {
         this.relocations = null;
     }
 
-    private long findLabelAddress(String name) {
-        Long address = labels.get(name);
-        return (address != null ? address : -1);
+    private MemoryTarget findLabelAddress(String name) {
+        return labels.get(name);
     }
 
     public void addRelocationEntry(long offset, String label) {
-        relocations.add(new RelocationEntry(offset, label));
+        relocations.add(new RelocationEntry(new MemoryTarget(offset), label));
     }
 
     // Returns false if a label with the same name already exists
-    public boolean newLabel(String name, long address) {
+    public boolean newLabel(String name, MemoryTarget address) {
         if(labels.containsKey(name)) {
             return false;
         }
@@ -198,18 +199,18 @@ public class Program {
      */
     private class RelocationEntry {
 
-        private final long applyTo;
+        private final MemoryTarget applyTo;
         private final String label;
 
-        public RelocationEntry(long applyTo, String label) {
+        public RelocationEntry(MemoryTarget applyTo, String label) {
             this.applyTo = applyTo;
             this.label = label;
         }
 
         private void relocateImmediate(OperandImmediate op, Instruction insn) throws ProgramException {
             // Get target address of the relocation
-            long target = findLabelAddress(this.label);
-            if (target == -1) {
+            MemoryTarget target = findLabelAddress(this.label);
+            if (target == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
 
@@ -218,36 +219,33 @@ public class Program {
 
         private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
             // Get target address of the relocation
-            long target = findLabelAddress(this.label);
-            if (target == -1) {
+            MemoryTarget target = findLabelAddress(this.label);
+            if (target == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
 
-            // Offset is computed after the fetch phase
-            long displacement = target - insn.getAddress() + insn.getSize();
-
-            op.relocate(displacement);
+            op.relocate(target);
         }
 
         public void relocate() throws ProgramException {
 
             // Get address of the instruction where relocation should be applied
-            MemoryElement el = Memory.getElementFromAddress(this.applyTo);
-            if (!(el instanceof Instruction)) {
+            // TODO: this is wrong, we might want to relocate also the data section with label
+            if (!(this.applyTo instanceof Instruction)) {
                 throw new ProgramException("Relocation entry pointing to something which is not an instruction");
             }
 
             // Perform the relocation, depending on the instruction class
-            Instruction insn = (Instruction) el;
+            Instruction insn = (Instruction) this.applyTo;
             Operand source, destination;
             switch (insn.getClas()) {
                 case 1:
                     source = ((InstructionClass1) insn).getSource();
                     destination = ((InstructionClass1) insn).getDestination();
-                    if (source != null && source instanceof OperandImmediate) {
+                    if (source instanceof OperandImmediate) {
                         relocateImmediate((OperandImmediate) source, insn);
                     }
-                    if (source != null && source instanceof OperandMemory) {
+                    if (source instanceof OperandMemory) {
                         relocateMemory((OperandMemory) source, insn);
                     }
                     if (destination != null) {
@@ -257,10 +255,10 @@ public class Program {
                 case 2:
                     source = ((InstructionClass2) insn).getSource();
                     destination = ((InstructionClass2) insn).getDestination();
-                    if (source != null && source instanceof OperandImmediate) {
+                    if (source instanceof OperandImmediate) {
                         relocateImmediate((OperandImmediate) source, insn);
                     }
-                    if (source != null && source instanceof OperandMemory) {
+                    if (source instanceof OperandMemory) {
                         relocateMemory((OperandMemory) source, insn);
                     }
                     if (destination != null) {
