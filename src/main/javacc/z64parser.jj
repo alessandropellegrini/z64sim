@@ -228,7 +228,6 @@ TOKEN:
 | <DATA_SECTION: ".data">
 | <CODE_SECTION: ".text">
 | <BSS_SECTION: ".bss">
-| <PROGRAM_END: ".end"> // This is a dead token, to remove
 | <EQU_ASSIGN: ".equ">
 | <BYTE_ASSIGN: ".byte">
 | <WORD_ASSIGN: ".word">
@@ -430,7 +429,13 @@ void Data() :
                         throw new ParseException(e.getMessage());
                     }
                   }
-                | t1 = <LABEL>
+                | (t1 = <LABEL>
+                  {
+                        // Add the label, remove trailing ':'
+                       l = t1.image.substring(0, t1.image.length()-1);
+                       this.program.newLabel(l, new MemoryTarget(this.program.getLocationCounter()));
+                  }
+                  )+
                   (
                        ( <BYTE_ASSIGN> {elementSize = 1;}
                        | <WORD_ASSIGN> {elementSize = 2;}
@@ -450,10 +455,6 @@ void Data() :
                        {
                         // Put data in memory
                         addr = this.program.addData(data);
-
-                         // Add the label, remove trailing ':'
-                         l = t1.image.substring(0, t1.image.length()-1);
-                         this.program.newLabel(l, new MemoryTarget(addr));
                        }
                      | <ASCII_ASSIGN> t2 = <STRING_LITERAL>
                        {
@@ -529,7 +530,7 @@ Instruction Drivers() :
 {
     try {
         (
-            <DRIVER> (t=<INTEGER> | t=<LABEL_NAME>) (<COMMENT> | <NEWLINE>)*
+            <DRIVER> (t=<INTEGER> | t=<LABEL_NAME>)
             {
                 this.program.newDriver(Integer.parseInt(t.image), this.program.getLocationCounter());
             }
@@ -553,12 +554,12 @@ Instruction Statement() :
 {
     try {
         (
-            label = Label() (<NEWLINE>)? i = Instruction()
+          label = Label()
             {this.program.newLabel(label, new MemoryTarget(this.program.getLocationCounter()));}
           | LocationCounter()
           | i = Instruction()
         )
-        (<COMMENT> | <NEWLINE>)+
+        (<COMMENT> | <NEWLINE>)*
         { return i; }
 
     } catch (ParseException ex) {
