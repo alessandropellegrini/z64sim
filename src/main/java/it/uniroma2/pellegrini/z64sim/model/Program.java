@@ -23,17 +23,17 @@ import java.util.*;
 public class Program {
     private static final Logger log = LoggerFactory.getLogger();
 
-    private Byte[] IDT = new Byte[0x800];
-    private Map<Long, Instruction> text = new Hashtable<>();
-    private Deque<Byte> data = new ArrayDeque<>();
+    private final Byte[] IDT = new Byte[0x800];
+    private final Map<Integer, Instruction> text = new Hashtable<>();
+    private final List<Byte> data = new ArrayList<>();
 
     private Map<String, MemoryTarget> labels = new Hashtable<>();
     private Map<String, Long> equs = new Hashtable<>();
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
-    private long locationCounter = 0;
+    private Integer locationCounter = 0;
 
     public MemoryTarget _start = null;
-    public long _dataEnd = -1;
+    public long _dataStart = -1;
 
     public Program() {
         for(int i = 0; i < 0x800; i++) {
@@ -44,15 +44,10 @@ public class Program {
     public void finalizeProgram() throws ProgramException {
         // Perform relocation of label values
         for(RelocationEntry rel : this.relocations) {
-            rel.relocate();
+            rel.relocate(this);
         }
 
-        int DataS = this.data.size();
-        this._dataEnd = 0x800 + DataS;
-
-        // This Program does not need anymore intermediate assembling
-        // information, so we remove references. This is particularly useful
-        // when this object is serialized to save an executable.
+        // This Program does not need anymore intermediate assembling information
         this.labels.clear();
         this.labels = null;
         this.equs.clear();
@@ -65,7 +60,7 @@ public class Program {
         return labels.get(name);
     }
 
-    public void addRelocationEntry(long offset, String label) {
+    public void addRelocationEntry(Integer offset, String label) {
         relocations.add(new RelocationEntry(new MemoryTarget(offset), label));
     }
 
@@ -84,34 +79,39 @@ public class Program {
         return true;
     }
 
-    public long getLocationCounter() {
+    public Integer getLocationCounter() {
         return locationCounter;
     }
 
-    public void setLocationCounter(long locationCounter) throws ProgramException {
+    public void setLocationCounter(Integer locationCounter) throws ProgramException {
         if (locationCounter < this.locationCounter) {
             throw new ProgramException("Moving backwards the location counter is not supported");
         }
         this.locationCounter = locationCounter;
     }
 
+    public void setDataStart(long dataStart) {
+        this._dataStart = dataStart;
+    }
+
     public void finalizeData() {
 
-        // Get the initial address of data
-        long initialAddress = this.locationCounter;
-
-        // Align instructions to 8 bytes
-        if ((initialAddress & 0x07) != 0) {
-            long newAddress = initialAddress;
-            newAddress += 8;
-            newAddress = newAddress & 0xfffffffffffffff8L;
-
-            // Fill memory in between
-            long fillSize = newAddress - initialAddress;
-            for(int i = 0; i < fillSize; i++) {
-                this.data.add((byte)0);
-            }
-        }
+        // TODO: inconsistent with relocations
+//        // Get the initial address of data
+//        long initialAddress = this.locationCounter;
+//
+//        // Align instructions to 8 bytes
+//        if ((initialAddress & 0x07) != 0) {
+//            long newAddress = initialAddress;
+//            newAddress += 8;
+//            newAddress = newAddress & 0xfffffffffffffff8L;
+//
+//            // Fill memory in between
+//            long fillSize = newAddress - initialAddress;
+//            for(int i = 0; i < fillSize; i++) {
+//                this.data.add((byte)0);
+//            }
+//        }
     }
 
     public void addInstruction(Instruction insn) throws ProgramException {
@@ -147,7 +147,6 @@ public class Program {
         this.equs.put(name, value);
     }
 
-    // TODO: missing size of text!!!!!!
     public long addData(byte val) {
         long addr = this.data.size();
         this.data.add(val);
@@ -183,11 +182,11 @@ public class Program {
         return addr;
     }
 
-    public long addData(byte[] val) {
-        long addr = this.data.size();
+    public Integer addData(byte[] val) {
+        Integer addr = this.data.size();
         // Fill memory in between
-        for(int i = 0; i < val.length; i++) {
-            this.data.add(val[i]);
+        for(byte b : val) {
+            this.data.add(b);
         }
         return addr;
     }
@@ -227,12 +226,24 @@ public class Program {
             op.relocate(target);
         }
 
-        public void relocate() throws ProgramException {
+        private void relocateData(Program program) throws ProgramException {
+            final int dataOffset = (int)(this.applyTo.getDisplacement() - program._dataStart);
+            final MemoryTarget labelAddress = findLabelAddress(this.label);
+            if(labelAddress == null) {
+                throw new ProgramException("Label " + this.label + " was not defined in the program");
+            }
+            long target = labelAddress.getDisplacement();
+            for(int i = 0; i < 4; i++) {
+                program.data.set(dataOffset + i, (byte)((target >> (3 - i)) & 0xFF));
+            }
+        }
 
-            // Get address of the instruction where relocation should be applied
-            // TODO: this is wrong, we might want to relocate also the data section with label
+        public void relocate(Program program) throws ProgramException {
+
+            // See if we are relocating against memory
             if (!(this.applyTo instanceof Instruction)) {
-                throw new ProgramException("Relocation entry pointing to something which is not an instruction");
+                this.relocateData(program);
+                return;
             }
 
             // Perform the relocation, depending on the instruction class

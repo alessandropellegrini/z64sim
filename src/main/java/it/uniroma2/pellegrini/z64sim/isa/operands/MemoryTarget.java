@@ -1,17 +1,17 @@
 package it.uniroma2.pellegrini.z64sim.isa.operands;
 
 public class MemoryTarget {
-    private Long memoryDisplacement = null;
+    private Integer memoryDisplacement = null;
 
-    public MemoryTarget(Long value) {
+    public MemoryTarget(Integer value) {
         this.memoryDisplacement = value;
     }
 
-    public Long getDisplacement() {
+    public Integer getDisplacement() {
         return memoryDisplacement;
     }
 
-    public void setDisplacement(long value) {
+    public void setDisplacement(Integer value) {
         this.memoryDisplacement = value;
     }
 }

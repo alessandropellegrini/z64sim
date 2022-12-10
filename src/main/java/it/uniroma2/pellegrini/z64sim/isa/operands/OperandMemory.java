@@ -15,13 +15,9 @@ public class OperandMemory extends Operand {
     private int scale = -1;
     private int index = -1;
     private MemoryTarget displacement = null;
-
-    // In z64 assembly you can say both (%ax) or (%rax) for example, so we must
-    // account fot the size of the base register as well
-    // On the other hand, the index is always a 64-bit register
     private int base_size = -1;
 
-    public OperandMemory(int base, int base_size, int index, int scale, long displacement, int size) {
+    public OperandMemory(int base, int base_size, int index, int scale, Integer displacement, int size) {
         super(size);
 
         this.base = base;
@@ -31,9 +27,9 @@ public class OperandMemory extends Operand {
         this.displacement = new MemoryTarget(displacement);
     }
 
-    public Long getDisplacement() {
+    public Integer getDisplacement() {
         if(this.displacement == null)
-            return -1L;
+            return -1;
         return displacement.getDisplacement();
     }
 
@@ -53,7 +49,7 @@ public class OperandMemory extends Operand {
         return base_size;
     }
 
-    public void setDisplacement(long displacement) {
+    public void setDisplacement(Integer displacement) {
         this.displacement = new MemoryTarget(displacement);
     }
 

@@ -45,6 +45,8 @@ public class AssemblerTest {
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
         Assembler a = new Assembler(isr);
         a.Program();
+        a.getSyntaxErrors().forEach(System.out::println);
+        assert(a.getSyntaxErrors().isEmpty());
     }
 
     @Test
@@ -54,6 +56,8 @@ public class AssemblerTest {
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
         Assembler a = new Assembler(isr);
         a.Program();
+        a.getSyntaxErrors().forEach(System.out::println);
+        assert(a.getSyntaxErrors().isEmpty());
         Program p = a.getProgram();
         assert(p != null);
     }

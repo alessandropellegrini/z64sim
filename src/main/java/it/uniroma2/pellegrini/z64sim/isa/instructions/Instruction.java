@@ -23,7 +23,7 @@ public abstract class Instruction extends MemoryTarget {
     private MemoryTarget target = null;
 
     public Instruction(String mnemonic, int clas) {
-        super(-1L);
+        super(-1);
         this.mnemonic = mnemonic;
         this.clas = (byte) clas;
     }

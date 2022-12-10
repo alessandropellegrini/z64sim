@@ -126,17 +126,17 @@ public class Assembler {
         return mnemonic;
     }
 
-    private long stringToLong(String s) throws ParseException {
+    private int stringToInt(String s) throws ParseException {
 
         if(s.length() >= 2) {
-            if(s.substring(0,2).equals("0e"))
+            if(s.startsWith("0e"))
                 throw new ParseException("FLONUMS are still not supported"); // TODO
 
-            if(s.substring(0,2).equals("0b"))
-                return Long.parseLong(s.substring(2, s.length()), 2);
+            if(s.startsWith("0b"))
+                return Integer.parseInt(s.substring(2), 2);
         }
 
-        return Long.decode(s);
+        return Integer.decode(s);
     }
 
     // Converts a long to a byte[] vector, representing elements as little endians
@@ -400,16 +400,19 @@ void Data() :
     Token t1, t2;
     long value = -1;
     long repeat, size = -1; // Used for fill assignments
-    long addr;
+    int addr;
     int elementSize;
     byte[] data;
     String l;
 }
 {
     try {
-        (   (<DATA_SECTION> | <BSS_SECTION>)
+        (   <DATA_SECTION>
+            {
+            this.program.setDataStart(this.program.getLocationCounter());
+            }
             (
-                  (<COMMENT> | <NEWLINE>)
+                <COMMENT> | <NEWLINE>
                 |  LocationCounter()
                 | <EQU_ASSIGN> t1 = <LABEL_NAME> "," value = Expression()
                   {
@@ -526,7 +529,10 @@ Instruction Drivers() :
 {
     try {
         (
-            <DRIVER> (<INTEGER> | <LABEL_NAME>) (<COMMENT> | <NEWLINE>)*
+            <DRIVER> (t=<INTEGER> | t=<LABEL_NAME>) (<COMMENT> | <NEWLINE>)*
+            {
+                this.program.newDriver(Integer.parseInt(t.image), this.program.getLocationCounter());
+            }
             ( Statement() )+
             t = <IRET> (<COMMENT> | <NEWLINE>)*
             {
@@ -538,7 +544,6 @@ Instruction Drivers() :
         return null; // otherwise javaCC throws exceptions
     }
 }
-
 
 Instruction Statement() :
 {
@@ -565,7 +570,7 @@ Instruction Statement() :
 void LocationCounter() :
 {
     Token t, t2 = null;
-    long newLocationCounter;
+    int newLocationCounter;
 }
 {
     try {
@@ -573,11 +578,11 @@ void LocationCounter() :
           | <ORG> t = <INTEGER> ("," t2 = <INTEGER> )?
         )
         {
-            newLocationCounter = stringToLong( t.image );
+            newLocationCounter = stringToInt( t.image );
 
             // if t2 != null, we have a fill assignment
             if(t2 != null) {
-                byte value = (byte)stringToLong( t2.image );
+                byte value = (byte)stringToInt( t2.image );
                 long size = newLocationCounter - this.program.getLocationCounter();
                 this.program.addData(getFilledMemoryArea((int)size, value));
 
@@ -595,7 +600,6 @@ void LocationCounter() :
         error_recover(ex, NEWLINE);
     }
 }
-
 
 Instruction Instruction() :
 {
@@ -689,8 +693,10 @@ Instruction Instruction() :
         t = <INSN_JC> { size = getSuffixSize( t.image ); }
         ( ( <TIMES> op1 = FormatG() ) | op1 = FormatM(size) )
         {
-            // Sanity check
-            if(op1.getSize() != size)
+
+            if(size == -1) // Size is given by the operand
+                size = op1.getSize();
+            else if(op1.getSize() != size) // Sanity check
                 throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             // They all belong to class 5
@@ -1059,7 +1065,7 @@ long Primary() :
     try {
 
         t = <INTEGER>
-        { return stringToLong( t.image ); }
+        { return stringToInt( t.image ); }
       | <LOCATION_COUNTER>
         { return this.program.getLocationCounter(); }
       | t = <LABEL_NAME>
