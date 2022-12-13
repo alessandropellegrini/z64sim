@@ -5,6 +5,7 @@
  */
 package it.uniroma2.pellegrini.z64sim.model;
 
+import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.*;
 import it.uniroma2.pellegrini.z64sim.isa.operands.MemoryTarget;
@@ -65,9 +66,9 @@ public class Program {
     }
 
     // Returns false if a label with the same name already exists
-    public boolean newLabel(String name, MemoryTarget address) {
+    public boolean newLabel(String name, MemoryTarget address) throws ParseException {
         if(labels.containsKey(name)) {
-            return false;
+            throw new ParseException("Label " + name + " already defined");
         }
 
         // Special handling of the main label
@@ -96,7 +97,7 @@ public class Program {
 
     public void finalizeData() {
 
-        // TODO: inconsistent with relocations
+        // TODO: inconsistent with relocations and data start above
 //        // Get the initial address of data
 //        long initialAddress = this.locationCounter;
 //
@@ -147,30 +148,33 @@ public class Program {
         this.equs.put(name, value);
     }
 
-    public long addData(byte val) {
-        long addr = this.data.size();
+    public int addData(byte val) {
+        int addr = this.locationCounter;
         this.data.add(val);
+        this.locationCounter += 1;
         return addr;
     }
 
-    public long addData(short val) {
-        long addr = this.data.size();
+    public int addData(short val) {
+        int addr = this.locationCounter;
         this.data.add((byte)(val >> 8));
         this.data.add((byte)val);
+        this.locationCounter += 2;
         return addr;
     }
 
-    public long addData(int val) {
-        long addr = this.data.size();
+    public int addData(int val) {
+        int addr = this.locationCounter;
         this.data.add((byte)(val >> 24));
         this.data.add((byte)(val >> 16));
         this.data.add((byte)(val >> 8));
         this.data.add((byte)val);
+        this.locationCounter += 4;
         return addr;
     }
 
-    public long addData(long val) {
-        long addr = this.data.size();
+    public int addData(long val) {
+        int addr = this.locationCounter;
         this.data.add((byte)(val >> 56));
         this.data.add((byte)(val >> 48));
         this.data.add((byte)(val >> 40));
@@ -179,15 +183,17 @@ public class Program {
         this.data.add((byte)(val >> 16));
         this.data.add((byte)(val >> 8));
         this.data.add((byte)val);
+        this.locationCounter += 8;
         return addr;
     }
 
-    public Integer addData(byte[] val) {
-        Integer addr = this.data.size();
+    public int addData(byte[] val) {
+        int addr = this.locationCounter;
         // Fill memory in between
         for(byte b : val) {
             this.data.add(b);
         }
+        this.locationCounter += val.length;
         return addr;
     }
 
@@ -240,14 +246,20 @@ public class Program {
 
         public void relocate(Program program) throws ProgramException {
 
-            // See if we are relocating against memory
-            if (!(this.applyTo instanceof Instruction)) {
-                this.relocateData(program);
+            final MemoryTarget labelAddress = findLabelAddress(this.label);
+            if(labelAddress == null) {
+                throw new ProgramException("Label " + this.label + " was not defined in the program");
+            }
+
+            final long target = labelAddress.getDisplacement();
+            final int dataOffset = (int)(this.applyTo.getDisplacement() - program._dataStart);
+            if(dataOffset < program.data.size()) {
+                relocateData(program);
                 return;
             }
 
             // Perform the relocation, depending on the instruction class
-            Instruction insn = (Instruction) this.applyTo;
+            Instruction insn = program.text.get(this.applyTo.getDisplacement());
             Operand source, destination;
             switch (insn.getClas()) {
                 case 1:
@@ -259,7 +271,7 @@ public class Program {
                     if (source instanceof OperandMemory) {
                         relocateMemory((OperandMemory) source, insn);
                     }
-                    if (destination != null) {
+                    if (destination instanceof OperandMemory) {
                         relocateMemory((OperandMemory) destination, insn);
                     }
                     break;

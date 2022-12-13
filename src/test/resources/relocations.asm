@@ -1,3 +1,4 @@
+# Comment
 .org 0x800
 
 .data
@@ -27,7 +28,7 @@ main:
     jz .end
     addl $1, var
     subl $1, %ebx
-    jmp end
+    jmp .end
 
   .end:
     hlt
