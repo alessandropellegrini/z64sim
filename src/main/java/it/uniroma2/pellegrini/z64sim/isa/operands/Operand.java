@@ -26,5 +26,5 @@ public abstract class Operand {
     }
 
     // toString() must be explicitly re-implemented
-//    public abstract String toString();
+    public abstract String toString();
 }

@@ -528,8 +528,17 @@ Instruction Drivers() :
         (
             <DRIVER> (t=<INTEGER> | t=<LABEL_NAME>)
             {
-                this.program.newDriver(Integer.parseInt(t.image), this.program.getLocationCounter());
+                if(t.kind == INTEGER) {
+                    this.program.newDriver(Integer.parseInt(t.image), this.program.getLocationCounter());
+                } else if(t.kind == LABEL_NAME) { // this can only be an equ
+                    if(this.program.getEqu(t.image) == null)
+                        throw new ParseException(t.image + " undefined");
+                    this.program.newDriver(this.program.getEqu(t.image).intValue(), this.program.getLocationCounter());
+                } else {
+                    throw new ParseException("Invalid driver definition");
+                }
             }
+            (<COMMENT> | <NEWLINE>)*
             ( Statement() )+
             t = <IRET> (<COMMENT> | <NEWLINE>)*
             {
@@ -600,11 +609,11 @@ void LocationCounter() :
 
 Instruction Instruction() :
 {
-    Token t, t2, l;
+    Token t = null, t2 = null, l;
     int size;
     int sizeExt;
     String mnemonic;
-    Operand op1, op2;
+    Operand op1 = null, op2 = null;
     int i = -1;
     Instruction insn = null;
 }
@@ -647,6 +656,8 @@ Instruction Instruction() :
             mnemonic = stripSuffix(t.image);
 
             // Sanity check
+            if(size == -1) // Size is given by the operand
+                size = op1.getSize();
             if(op1.getSize() != size)
                 throw new ParseException("Line " + t.beginLine + ": operand size and instruction suffix mismatch");
 
@@ -706,8 +717,17 @@ Instruction Instruction() :
             mnemonic = stripSuffix(t.image);
 
             // Sanity check
+            if(size == -1) { // Size is given by the operand
+                if(op1 instanceof OperandRegister)
+                    size = op1.getSize();
+                else if(op2 instanceof OperandRegister)
+                    size = op2.getSize();
+
+                if(op1 instanceof OperandImmediate)
+                    op1.setSize(size);
+            }
             if(op1.getSize() != size || op2.getSize() != size)
-                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch, or size not specified.");
 
             // mov is class 1
             if(mnemonic.equals("mov"))
@@ -739,13 +759,17 @@ Instruction Instruction() :
             mnemonic = stripSuffix(t.image);
 
             // Sanity check
+            if(size == -1) // Size is given by the operand
+                            size = op1.getSize();
             if(op1.getSize() != size || op2.getSize() != size)
                 throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             insn = new InstructionClass1(mnemonic, op1, op2, -1);
         }
       |
-        t = <INSN_IN> t2 = <REG_16> <COMMA> op1 = Register() /* programmatically check for registers */
+        t = <INSN_IN>
+            (t2 = <REG_16> | op1 = ConstantExpression())
+            <COMMA> op2 = Register() /* programmatically check for registers */
         {
             size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
@@ -753,13 +777,21 @@ Instruction Instruction() :
             if(size > 32)
                 throw new ParseException("Wrong size suffix for in instruction");
 
-            if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
-                throw new ParseException("Wrong operands for instruction " + t.image + ".");
+            if(((OperandRegister)op2).getRegister() != Register.RAX)
+                throw new ParseException("Line " + t.beginLine + ": in instruction must use RAX as destination operand");
 
-            insn = new InstructionClass7(mnemonic, size);
+            if(t2 != null) {
+                if(!t2.image.equals("%dx"))
+                    throw new ParseException("Line " + t.beginLine + ": in instruction must use DX as source register");
+                insn = new InstructionClass7(mnemonic, size);
+            } else {
+                insn = new InstructionClass7(mnemonic, size, (int) ((OperandImmediate) op1).getValue());
+            }
         }
       |
-        t = <INSN_OUT> op1 = Register() <COMMA> t2 = <REG_16> /* programmatically check for registers */
+        t = <INSN_OUT>
+            op1 = Register() <COMMA>
+            (t2 = <REG_16> | op2 = ConstantExpression()) /* programmatically check for registers */
         {
             size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
@@ -767,8 +799,16 @@ Instruction Instruction() :
             if(size > 32)
                 throw new ParseException("Wrong size suffix for out instruction");
 
-            if(!t2.image.equals("%dx") || ((OperandRegister)op1).getRegister() != Register.RAX)
-                throw new ParseException("Wrong operands for instruction " + t.image + ".");
+            if(((OperandRegister)op1).getRegister() != Register.RAX)
+                throw new ParseException("Line " + t.beginLine + ": out instruction must use RAX as source operand");
+
+            if(t2 != null) {
+                if(!t2.image.equals("%dx"))
+                    throw new ParseException("Line " + t.beginLine + ": out instruction must use DX as destination register");
+                insn = new InstructionClass7(mnemonic, size);
+            } else {
+                insn = new InstructionClass7(mnemonic, size, (int) ((OperandImmediate) op2).getValue());
+            }
 
             insn = new InstructionClass7(mnemonic, size);
         }

@@ -1,9 +1,10 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.operands;
+
+import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 
 public class OperandRegister extends Operand {
 
@@ -18,8 +19,8 @@ public class OperandRegister extends Operand {
         return register;
     }
 
-//    @Override
-//    public String toString() {
-//        return Register.getRegisterName(this.register, this.size);
-//    }
+    @Override
+    public String toString() {
+        return Register.getRegisterName(this.register, this.size);
+    }
 }

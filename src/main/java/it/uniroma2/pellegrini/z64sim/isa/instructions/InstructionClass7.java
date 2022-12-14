@@ -15,10 +15,12 @@ import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 public class InstructionClass7 extends Instruction {
 
     private final int transfer_size; // The size of a data transfer
+    private int ioport; // The I/O port number in case of an explicit I/O port
 
     public InstructionClass7(String mnemonic, int size) {
         super(mnemonic, 7);
         this.transfer_size = size;
+
 
         byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         enc[0] = 0b01110000;
@@ -51,7 +53,16 @@ public class InstructionClass7 extends Instruction {
         this.setEncoding(enc);
 
         this.setSize(8);
+        this.ioport = -1;
+    }
 
+    public InstructionClass7(String mnemonic, int size, int ioport) {
+        this(mnemonic, size);
+
+        if (!mnemonic.equals("in") && !mnemonic.equals("out")) {
+            throw new RuntimeException("Invalid instruction with explicit I/O port");
+        }
+        this.ioport = ioport;
     }
 
     @Override
@@ -59,11 +70,10 @@ public class InstructionClass7 extends Instruction {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-
     public static String disassemble(byte[] encoding) throws DisassembleException {
         String instr = "";
 
-        switch(encoding[0]) {
+        switch (encoding[0]) {
             case 0x70:
                 instr += "in";
                 break;

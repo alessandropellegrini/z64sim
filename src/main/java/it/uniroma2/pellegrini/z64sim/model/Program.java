@@ -15,7 +15,9 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
 
 
 /**
@@ -138,10 +140,14 @@ public class Program {
         this.equs.put(name, value);
     }
 
+    public Long getEqu(String name) {
+        return this.equs.get(name);
+    }
+
     public int addData(@NotNull byte[] val) {
         int addr = this.locationCounter;
         // Fill memory in between
-        for(byte b : val) {
+        for (byte b : val) {
             this.binary.put(this.locationCounter++, new MemoryData(b));
         }
         return addr;

@@ -8,7 +8,7 @@ variable: .word 0
 array: .word 0, 0, 0
 array_size = . - array
 
-.bss
+#.bss
 
 .comm array_dest, 8
 
@@ -40,4 +40,6 @@ main:
     movw $DEVICE_ADDR, %dx
     inb %dx, %al
     inb $DEVICE_ADDR, %al
+    outb %al, %dx
+    outb %al, $DEVICE_ADDR
     iret

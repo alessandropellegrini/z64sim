@@ -66,7 +66,7 @@ public class MainWindow extends View {
     }
 
     public static MainWindow getInstance() {
-        if(instance == null)
+        if (instance == null)
             instance = new MainWindow();
         return instance;
     }
@@ -87,15 +87,15 @@ public class MainWindow extends View {
         try {
             final Taskbar taskbar = Taskbar.getTaskbar();
             taskbar.setIconImage(image);
-        } catch(final UnsupportedOperationException ignored) {
-        } catch(final SecurityException e) {
+        } catch (final UnsupportedOperationException ignored) {
+        } catch (final SecurityException e) {
             log.error("Security exception while trying to set the icon.");
         }
     }
 
     @Override
     public boolean dispatch(Events command) {
-        switch(command) {
+        switch (command) {
             case SET_THEME_LIGHT:
                 this.setTheme(new FlatLightLaf());
                 break;
@@ -111,7 +111,7 @@ public class MainWindow extends View {
             UIManager.setLookAndFeel(theme);
             SwingUtilities.updateComponentTreeUI(this.mainFrame);
             this.mainFrame.pack();
-        } catch(UnsupportedLookAndFeelException e) {
+        } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
     }
@@ -127,46 +127,46 @@ public class MainWindow extends View {
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         Font mainPanelFont = UIManager.getFont("Panel.font");
-        if(mainPanelFont != null) mainPanel.setFont(mainPanelFont);
+        if (mainPanelFont != null) mainPanel.setFont(mainPanelFont);
         final JToolBar toolBar1 = new JToolBar();
         Font toolBar1Font = UIManager.getFont("ToolBar.font");
-        if(toolBar1Font != null) toolBar1.setFont(toolBar1Font);
+        if (toolBar1Font != null) toolBar1.setFont(toolBar1Font);
         mainPanel.add(toolBar1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
         button1 = new JButton();
         Font button1Font = UIManager.getFont("Button.font");
-        if(button1Font != null) button1.setFont(button1Font);
+        if (button1Font != null) button1.setFont(button1Font);
         button1.setIcon(new ImageIcon(getClass().getResource("/images/assemble_icon.png")));
         button1.setText("");
         toolBar1.add(button1);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
         Font splitPane1Font = UIManager.getFont("Panel.font");
-        if(splitPane1Font != null) splitPane1.setFont(splitPane1Font);
+        if (splitPane1Font != null) splitPane1.setFont(splitPane1Font);
         splitPane1.setOrientation(0);
         splitPane1.setResizeWeight(0.9);
         mainPanel.add(splitPane1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         final JSplitPane splitPane2 = new JSplitPane();
         splitPane2.setDividerSize(5);
         Font splitPane2Font = UIManager.getFont("Panel.font");
-        if(splitPane2Font != null) splitPane2.setFont(splitPane2Font);
+        if (splitPane2Font != null) splitPane2.setFont(splitPane2Font);
         splitPane2.setResizeWeight(1.0);
         splitPane1.setLeftComponent(splitPane2);
         final JTabbedPane tabbedPane1 = new JTabbedPane();
         Font tabbedPane1Font = UIManager.getFont("Panel.font");
-        if(tabbedPane1Font != null) tabbedPane1.setFont(tabbedPane1Font);
+        if (tabbedPane1Font != null) tabbedPane1.setFont(tabbedPane1Font);
         splitPane2.setLeftComponent(tabbedPane1);
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         Font panel1Font = UIManager.getFont("TabbedPane.smallFont");
-        if(panel1Font != null) panel1.setFont(panel1Font);
+        if (panel1Font != null) panel1.setFont(panel1Font);
         tabbedPane1.addTab(this.$$$getMessageFromBundle$$$("i18n", "file.tab.untitled"), panel1);
         final JScrollPane scrollPane1 = new JScrollPane();
         Font scrollPane1Font = UIManager.getFont("Panel.font");
-        if(scrollPane1Font != null) scrollPane1.setFont(scrollPane1Font);
+        if (scrollPane1Font != null) scrollPane1.setFont(scrollPane1Font);
         panel1.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         editor = new JEditorPane();
         Font editorFont = UIManager.getFont("EditorPane.font");
-        if(editorFont != null) editor.setFont(editorFont);
+        if (editorFont != null) editor.setFont(editorFont);
         scrollPane1.setViewportView(editor);
         final JScrollPane scrollPane2 = new JScrollPane();
         splitPane2.setRightComponent(scrollPane2);
@@ -175,7 +175,7 @@ public class MainWindow extends View {
         scrollPane2.setViewportView(memoryView);
         final JScrollPane scrollPane3 = new JScrollPane();
         Font scrollPane3Font = UIManager.getFont("Panel.font");
-        if(scrollPane3Font != null) scrollPane3.setFont(scrollPane3Font);
+        if (scrollPane3Font != null) scrollPane3.setFont(scrollPane3Font);
         splitPane1.setRightComponent(scrollPane3);
         compilerOutput = new JTextArea();
         compilerOutput.setEditable(false);
@@ -190,12 +190,12 @@ public class MainWindow extends View {
         ResourceBundle bundle;
         try {
             Class<?> thisClass = this.getClass();
-            if($$$cachedGetBundleMethod$$$ == null) {
+            if ($$$cachedGetBundleMethod$$$ == null) {
                 Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
                 $$$cachedGetBundleMethod$$$ = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
             }
             bundle = (ResourceBundle) $$$cachedGetBundleMethod$$$.invoke(null, path, thisClass);
-        } catch(Exception e) {
+        } catch (Exception e) {
             bundle = ResourceBundle.getBundle(path);
         }
         return bundle.getString(key);
