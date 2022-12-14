@@ -8,13 +8,14 @@ package it.uniroma2.pellegrini.z64sim.isa.operands;
 
 import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
+import it.uniroma2.pellegrini.z64sim.model.MemoryPointer;
 
 public class OperandMemory extends Operand {
 
     private int base = -1;
     private int scale = -1;
     private int index = -1;
-    private MemoryTarget displacement = null;
+    private MemoryPointer displacement = null;
     private int base_size = -1;
 
     public OperandMemory(int base, int base_size, int index, int scale, Integer displacement, int size) {
@@ -24,13 +25,13 @@ public class OperandMemory extends Operand {
         this.base_size = base_size;
         this.index = index;
         this.scale = scale;
-        this.displacement = new MemoryTarget(displacement);
+        this.displacement = new MemoryPointer(displacement);
     }
 
     public Integer getDisplacement() {
         if(this.displacement == null)
             return -1;
-        return displacement.getDisplacement();
+        return (int)displacement.getTarget();
     }
 
     public int getScale() {
@@ -50,15 +51,14 @@ public class OperandMemory extends Operand {
     }
 
     public void setDisplacement(Integer displacement) {
-        this.displacement = new MemoryTarget(displacement);
+        this.displacement = new MemoryPointer(displacement);
     }
 
     public String toString() {
         String representation = "";
 
         if(this.displacement != null) {
-            if(!(this.displacement instanceof Instruction))
-                representation = representation.concat(String.format("$%x", this.displacement.getDisplacement()));
+            representation = representation.concat(String.format("%x", this.displacement.getTarget()));
         }
 
         if(this.base != -1 || this.index != -1) {
@@ -81,7 +81,7 @@ public class OperandMemory extends Operand {
         return representation;
     }
 
-    public void relocate(MemoryTarget value) {
-        this.displacement.setDisplacement(this.displacement.getDisplacement() + value.getDisplacement());
+    public void relocate(MemoryPointer value) {
+        this.displacement.setTarget(this.displacement.getTarget() + value.getTarget());
     }
 }

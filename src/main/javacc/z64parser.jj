@@ -407,9 +407,6 @@ void Data() :
 {
     try {
         (   <DATA_SECTION>
-            {
-            this.program.setDataStart(this.program.getLocationCounter());
-            }
             (
                 <COMMENT> | <NEWLINE>
                 |  LocationCounter()
@@ -433,7 +430,7 @@ void Data() :
                   {
                         // Add the label, remove trailing ':'
                        l = t1.image.substring(0, t1.image.length()-1);
-                       this.program.newLabel(l, new MemoryTarget(this.program.getLocationCounter()));
+                       this.program.newLabel(l, new MemoryPointer(this.program.getLocationCounter()));
                   }
                   )+
                   (
@@ -442,20 +439,15 @@ void Data() :
                        | <LONG_ASSIGN> {elementSize = 4;}
                        | <QUAD_ASSIGN> {elementSize = 8;} )
                           value = Expression()
-                          { data = dataToByte(elementSize, value); }
+                          { data = dataToByte(elementSize, value);
+                            addr = this.program.addData(data);
+                          }
                        ("," value = Expression()
                           {
-                            byte additionalData[] = dataToByte(elementSize, value);
-                            byte updatedData[] = new byte[ data.length + additionalData.length ];
-                            System.arraycopy(data, 0, updatedData, 0, data.length);
-                            System.arraycopy(additionalData, 0, updatedData, data.length, additionalData.length);
-                            data = updatedData;
+                            data = dataToByte(elementSize, value);
+                            addr = this.program.addData(data);
                           }
                        )*
-                       {
-                        // Put data in memory
-                        addr = this.program.addData(data);
-                       }
                      | <ASCII_ASSIGN> t2 = <STRING_LITERAL>
                        {
                          // Put data in memory
@@ -464,7 +456,7 @@ void Data() :
 
                         // Add the label
                         l = t1.image.substring(0, t1.image.length()-1);
-                        this.program.newLabel(l, new MemoryTarget(addr));
+                        this.program.newLabel(l, new MemoryPointer(addr));
                        }
                      | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
                        {
@@ -481,7 +473,7 @@ void Data() :
 
                           // Add the label
                           l = t1.image.substring(0, t1.image.length()-1);
-                          this.program.newLabel(l, new MemoryTarget(addr));
+                          this.program.newLabel(l, new MemoryPointer(addr));
                        }
                   )
                 | <COMM_ASSIGN> t1 = <LABEL_NAME> "," size = Expression()
@@ -489,7 +481,7 @@ void Data() :
                     // .comm assigns to zero
                     addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
                     l = t1.image.substring(0, t1.image.length()-1);
-                    this.program.newLabel(l, new MemoryTarget(addr));
+                    this.program.newLabel(l, new MemoryPointer(addr));
                   }
             )+
         )+
@@ -505,7 +497,11 @@ void Code() :
 }
 {
     try {
-        <CODE_SECTION> (<COMMENT> | <NEWLINE>)+
+        <CODE_SECTION>
+        {
+            this.program.textSectionStart(this.program.getLocationCounter());
+        }
+        (<COMMENT> | <NEWLINE>)+
         (
             i = Statement()
             {if(i != null) {
@@ -555,7 +551,7 @@ Instruction Statement() :
     try {
         (
           label = Label()
-            {this.program.newLabel(label, new MemoryTarget(this.program.getLocationCounter()));}
+            {this.program.newLabel(label, new MemoryPointer(this.program.getLocationCounter()));}
           | LocationCounter()
           | i = Instruction()
         )

@@ -8,12 +8,12 @@ package it.uniroma2.pellegrini.z64sim.model;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.ProgramException;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.*;
-import it.uniroma2.pellegrini.z64sim.isa.operands.MemoryTarget;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -24,23 +24,17 @@ import java.util.*;
 public class Program {
     private static final Logger log = LoggerFactory.getLogger();
 
-    private final Byte[] IDT = new Byte[0x800];
-    private final Map<Integer, Instruction> text = new Hashtable<>();
-    private final List<Byte> data = new ArrayList<>();
+    private final Map<Integer, MemoryElement> binary = new Hashtable<>();
 
-    private Map<String, MemoryTarget> labels = new Hashtable<>();
+    private Map<String, MemoryPointer> labels = new Hashtable<>();
     private Map<String, Long> equs = new Hashtable<>();
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
     private Integer locationCounter = 0;
 
-    public MemoryTarget _start = null;
-    public long _dataStart = -1;
+    public MemoryPointer text = new MemoryPointer(0);
+    public MemoryPointer _start = null;
 
-    public Program() {
-        for(int i = 0; i < 0x800; i++) {
-            this.IDT[i] = 0;
-        }
-    }
+    public Program() {}
 
     public void finalizeProgram() throws ProgramException {
         // Perform relocation of label values
@@ -48,7 +42,7 @@ public class Program {
             rel.relocate(this);
         }
 
-        // This Program does not need anymore intermediate assembling information
+        // This program does not need anymore intermediate assembling information
         this.labels.clear();
         this.labels = null;
         this.equs.clear();
@@ -57,16 +51,20 @@ public class Program {
         this.relocations = null;
     }
 
-    private MemoryTarget findLabelAddress(String name) {
+    public void textSectionStart(Integer address) {
+        this.text.setTarget(address);
+    }
+
+    private MemoryPointer findLabelAddress(String name) {
         return labels.get(name);
     }
 
     public void addRelocationEntry(Integer offset, String label) {
-        relocations.add(new RelocationEntry(new MemoryTarget(offset), label));
+        relocations.add(new RelocationEntry(new MemoryPointer(offset), label));
     }
 
     // Returns false if a label with the same name already exists
-    public boolean newLabel(String name, MemoryTarget address) throws ParseException {
+    public boolean newLabel(String name, MemoryPointer address) throws ParseException {
         if(labels.containsKey(name)) {
             throw new ParseException("Label " + name + " already defined");
         }
@@ -91,10 +89,6 @@ public class Program {
         this.locationCounter = locationCounter;
     }
 
-    public void setDataStart(long dataStart) {
-        this._dataStart = dataStart;
-    }
-
     public void finalizeData() {
 
         // TODO: inconsistent with relocations and data start above
@@ -117,11 +111,7 @@ public class Program {
 
     public void addInstruction(Instruction insn) throws ProgramException {
         // We must preserve the IDT
-        if(this.locationCounter < 0x800) {
-            throw new ProgramException("You are trying to put data/instructions over the IVT.");
-        }
-
-        this.text.put(this.locationCounter, insn);
+        this.binary.put(this.locationCounter, insn);
 
         final int length = insn.getEncoding().length;
         this.locationCounter += length;
@@ -130,14 +120,14 @@ public class Program {
 
     public void newDriver(Integer idn, long address) {
         int offset = idn * 8;
-        this.IDT[offset] = (byte)(address >> 56);
-        this.IDT[offset+2] = (byte)(address >> 48);
-        this.IDT[offset+3] = (byte)(address >> 40);
-        this.IDT[offset+4] = (byte)(address >> 32);
-        this.IDT[offset+5] = (byte)(address >> 24);
-        this.IDT[offset+6] = (byte)(address >> 16);
-        this.IDT[offset+7] = (byte)(address >> 8);
-        this.IDT[offset+8] = (byte)(address);
+        this.binary.put(offset, new MemoryData((byte) (address >> 56)));
+        this.binary.put(offset+1, new MemoryData((byte) (address >> 48)));
+        this.binary.put(offset+2, new MemoryData((byte) (address >> 40)));
+        this.binary.put(offset+3, new MemoryData((byte) (address >> 32)));
+        this.binary.put(offset+4, new MemoryData((byte) (address >> 24)));
+        this.binary.put(offset+5, new MemoryData((byte) (address >> 16)));
+        this.binary.put(offset+6, new MemoryData((byte) (address >> 8)));
+        this.binary.put(offset+7, new MemoryData((byte) (address)));
     }
 
     public void addEqu(String name, Long value) throws ProgramException {
@@ -148,52 +138,12 @@ public class Program {
         this.equs.put(name, value);
     }
 
-    public int addData(byte val) {
-        int addr = this.locationCounter;
-        this.data.add(val);
-        this.locationCounter += 1;
-        return addr;
-    }
-
-    public int addData(short val) {
-        int addr = this.locationCounter;
-        this.data.add((byte)(val >> 8));
-        this.data.add((byte)val);
-        this.locationCounter += 2;
-        return addr;
-    }
-
-    public int addData(int val) {
-        int addr = this.locationCounter;
-        this.data.add((byte)(val >> 24));
-        this.data.add((byte)(val >> 16));
-        this.data.add((byte)(val >> 8));
-        this.data.add((byte)val);
-        this.locationCounter += 4;
-        return addr;
-    }
-
-    public int addData(long val) {
-        int addr = this.locationCounter;
-        this.data.add((byte)(val >> 56));
-        this.data.add((byte)(val >> 48));
-        this.data.add((byte)(val >> 40));
-        this.data.add((byte)(val >> 32));
-        this.data.add((byte)(val >> 24));
-        this.data.add((byte)(val >> 16));
-        this.data.add((byte)(val >> 8));
-        this.data.add((byte)val);
-        this.locationCounter += 8;
-        return addr;
-    }
-
-    public int addData(byte[] val) {
+    public int addData(@NotNull byte[] val) {
         int addr = this.locationCounter;
         // Fill memory in between
         for(byte b : val) {
-            this.data.add(b);
+            this.binary.put(this.locationCounter++, new MemoryData(b));
         }
-        this.locationCounter += val.length;
         return addr;
     }
 
@@ -204,17 +154,17 @@ public class Program {
      */
     private class RelocationEntry {
 
-        private final MemoryTarget applyTo;
+        private final MemoryPointer applyTo;
         private final String label;
 
-        public RelocationEntry(MemoryTarget applyTo, String label) {
+        public RelocationEntry(MemoryPointer applyTo, String label) {
             this.applyTo = applyTo;
             this.label = label;
         }
 
         private void relocateImmediate(OperandImmediate op, Instruction insn) throws ProgramException {
             // Get target address of the relocation
-            MemoryTarget target = findLabelAddress(this.label);
+            MemoryPointer target = findLabelAddress(this.label);
             if (target == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
@@ -224,7 +174,7 @@ public class Program {
 
         private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
             // Get target address of the relocation
-            MemoryTarget target = findLabelAddress(this.label);
+            MemoryPointer target = findLabelAddress(this.label);
             if (target == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
@@ -233,33 +183,32 @@ public class Program {
         }
 
         private void relocateData(Program program) throws ProgramException {
-            final int dataOffset = (int)(this.applyTo.getDisplacement() - program._dataStart);
-            final MemoryTarget labelAddress = findLabelAddress(this.label);
+            final int dataOffset = (int)(this.applyTo.getTarget());
+            final MemoryPointer labelAddress = findLabelAddress(this.label);
             if(labelAddress == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
-            long target = labelAddress.getDisplacement();
-            for(int i = 0; i < 4; i++) {
-                program.data.set(dataOffset + i, (byte)((target >> (3 - i)) & 0xFF));
+            long target = labelAddress.getTarget();
+            for(int i = 0; i < 8; i++) { // TODO: 8 bytes are common, but relocation should be more flexible
+                byte currByte = (byte)((target >> ((8 - i) * 8)) & 0xFF);
+                program.binary.put(dataOffset + i, new MemoryData(currByte));
             }
         }
 
         public void relocate(Program program) throws ProgramException {
 
-            final MemoryTarget labelAddress = findLabelAddress(this.label);
+            final MemoryPointer labelAddress = findLabelAddress(this.label);
             if(labelAddress == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
 
-            final long target = labelAddress.getDisplacement();
-            final int dataOffset = (int)(this.applyTo.getDisplacement() - program._dataStart);
-            if(dataOffset < program.data.size()) {
+            if(this.applyTo.getTarget() < program.text.getTarget()) {
                 relocateData(program);
                 return;
             }
 
             // Perform the relocation, depending on the instruction class
-            Instruction insn = program.text.get(this.applyTo.getDisplacement());
+            Instruction insn = (Instruction) program.binary.get((int)this.applyTo.getTarget());
             Operand source, destination;
             switch (insn.getClas()) {
                 case 1:

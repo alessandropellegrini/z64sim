@@ -15,7 +15,6 @@ import javax.swing.table.TableModel;
  */
 public class Memory implements TableModel {
     private static Memory instance = null;
-
     private Program program = null;
 
     private Memory() {}

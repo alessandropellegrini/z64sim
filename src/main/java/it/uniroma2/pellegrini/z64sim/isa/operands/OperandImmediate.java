@@ -5,6 +5,8 @@
  */
 package it.uniroma2.pellegrini.z64sim.isa.operands;
 
+import it.uniroma2.pellegrini.z64sim.model.MemoryPointer;
+
 public class OperandImmediate extends Operand {
 
     private long value;
@@ -32,7 +34,7 @@ public class OperandImmediate extends Operand {
     // This call actually sums the value of the label. This is because we could
     // write an instruction such as "movq $constant+10". The +10 is stored in the
     // 'value' field of the object, and we have then to sum $constant.
-    public void relocate(MemoryTarget value) {
-        this.value += value.getDisplacement();
+    public void relocate(MemoryPointer value) {
+        this.value += value.getTarget();
     }
 }
