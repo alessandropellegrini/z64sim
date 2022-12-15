@@ -80,6 +80,14 @@ public class Program {
         return true;
     }
 
+    public Long getLabelAddress(String name) throws ParseException {
+        if(!labels.containsKey(name)) {
+            throw new ParseException("Label " + name + " not defined");
+        }
+
+        return labels.get(name).getTarget();
+    }
+
     public Integer getLocationCounter() {
         return locationCounter;
     }

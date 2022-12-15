@@ -336,7 +336,7 @@ TOKEN:
 /** Label/Text/Ascii stuff */
 TOKEN:
 { <LABEL: <LABEL_NAME> ":">
-| <LABEL_NAME: ([".","_","-","a"-"z","0"-"9"])+ >
+| <LABEL_NAME: ([".","_","a"-"z","0"-"9"])+ >
 | <STRING_LITERAL: "\"" ( ~["\"","\\","\n","\r"] | "\\" ( ["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])?  | ["0"-"3"] ["0"-"7"] ["0"-"7"] | ( ["\n","\r"] | "\r\n")))* "\"">
 }
 
@@ -455,8 +455,7 @@ void Data() :
                          addr = this.program.addData(str);
 
                         // Add the label
-                        l = t1.image.substring(0, t1.image.length()-1);
-                        this.program.newLabel(l, new MemoryPointer(addr));
+                        this.program.newLabel(t1.image, new MemoryPointer(addr));
                        }
                      | <FILL_ASSIGN> repeat = Expression() ( "," size = Expression() ( "," value = Expression() )? )?
                        {
@@ -472,16 +471,14 @@ void Data() :
                           addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
 
                           // Add the label
-                          l = t1.image.substring(0, t1.image.length()-1);
-                          this.program.newLabel(l, new MemoryPointer(addr));
+                          this.program.newLabel(t1.image, new MemoryPointer(addr));
                        }
                   )
                 | <COMM_ASSIGN> t1 = <LABEL_NAME> "," size = Expression()
                   {
                     // .comm assigns to zero
                     addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
-                    l = t1.image.substring(0, t1.image.length()-1);
-                    this.program.newLabel(l, new MemoryPointer(addr));
+                    this.program.newLabel(t1.image, new MemoryPointer(addr));
                   }
             )+
         )+
@@ -1107,6 +1104,17 @@ long Primary() :
         { return this.program.getLocationCounter(); }
       | t = <LABEL_NAME>
         {
+            // Check if there is an equ with this name
+            Long value = this.program.getEqu(t.image);
+            if(value != null)
+                return value;
+
+            // Check if there is a label with this name
+            value = this.program.getLabelAddress(t.image);
+            if(value != null)
+                return value;
+
+            // Otherwise, it could be a label that is defined later in the program
             this.program.addRelocationEntry(this.program.getLocationCounter(), t.image);
             return 0; // This will be resolved later
         }
