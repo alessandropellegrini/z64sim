@@ -10,7 +10,7 @@ var: .long 1
 main:
     movl var, %eax
     movq table(,%rax,8), %rax
-    see: jmp *%rax
+    jmp *%rax
 
   .case0:
     movl $0, %ebx

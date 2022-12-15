@@ -81,15 +81,18 @@ public class Program {
     }
 
     public Long getLabelAddress(String name) throws ParseException {
-        if(!labels.containsKey(name)) {
-            throw new ParseException("Label " + name + " not defined");
-        }
-
-        return labels.get(name).getTarget();
+        final MemoryPointer mp = labels.get(name);
+        if(mp == null)
+            return null;
+        return mp.getTarget();
     }
 
     public Integer getLocationCounter() {
         return locationCounter;
+    }
+
+    public MemoryElement getMemoryElementAt(Long address) {
+        return binary.get(address.intValue());
     }
 
     public void setLocationCounter(Integer locationCounter) throws ProgramException {
@@ -119,7 +122,7 @@ public class Program {
 //        }
     }
 
-    public void addInstruction(Instruction insn) throws ProgramException {
+    public void addInstruction(Instruction insn) {
         // We must preserve the IDT
         this.binary.put(this.locationCounter, insn);
 

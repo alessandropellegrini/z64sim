@@ -53,13 +53,13 @@ public class Register {
     private long subRegister(int size, long value) {
 
         switch (size) {
-            case 8:
+            case 1:
                 return value & 0xFFL;
-            case 16:
+            case 2:
                 return value & 0xFFFFL;
-            case 32:
-
-            case 64:
+            case 4:
+                return value & 0xFFFFFFFFL;
+            case 8:
                 return value;
             default:
                 throw new RuntimeException("Wrong register size in runtime access");
@@ -150,21 +150,17 @@ public class Register {
     public static String getRegisterName(int code, int size) {
         int index;
 
-        if (size != 8 && size != 16 && size != 32 && size != 64) {
-
-        }
-
         switch (size) {
-            case 8:
+            case 1:
                 index = 0;
                 break;
-            case 16:
+            case 2:
                 index = 1;
                 break;
-            case 32:
+            case 4:
                 index = 2;
                 break;
-            case 64:
+            case 8:
                 index = 3;
                 break;
             default:

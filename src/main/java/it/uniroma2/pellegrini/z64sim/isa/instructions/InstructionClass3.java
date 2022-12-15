@@ -40,16 +40,16 @@ public class InstructionClass3 extends Instruction {
 
         if(reg != null) {
             switch(reg.getSize()) {
-                case 8:
+                case 1:
                     ss = 0b00000000;
                     break;
-                case 16:
+                case 2:
                     ss = 0b01000000;
                     break;
-                case 32:
+                case 4:
                     ss = (byte) 0b10000000;
                     break;
-                case 64:
+                case 8:
                     ss = (byte) 0b11000000;
                     break;
             }
@@ -80,17 +80,13 @@ public class InstructionClass3 extends Instruction {
         dest = (byte) (((OperandRegister) reg).getRegister());
         enc[3] = (byte) (sour | dest);
 
-        enc[4] = (byte) (places >> 24); // IPOTIZZANDO CHE IL CAST TRONCHI
+        enc[4] = (byte) (places >> 24);
         enc[5] = (byte) (places >> 16);
         enc[6] = (byte) (places >> 8);
         enc[7] = (byte) (places);
 
         switch(mnemonic) {
             case "sal":
-                if(this.places != -1) {
-                    this.type = 0x00;
-                } else this.type = 0x01;
-                break;
             case "shl":
                 if(this.places != -1) {
                     this.type = 0x00;
@@ -204,6 +200,14 @@ public class InstructionClass3 extends Instruction {
         log.trace("disassembled: {} {} {} {} {} {} {} {}",
             encoding[0], encoding[1], encoding[2], encoding[3], encoding[4], encoding[5], encoding[6], encoding[7]);
         return instr;
+    }
 
+    @Override
+    public String toString() {
+        try {
+            return this.mnemonic + this.reg.getSizeSuffix() + " $" + this.places + ", " + this.reg;
+        } catch(DisassembleException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

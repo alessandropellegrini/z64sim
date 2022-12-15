@@ -152,4 +152,12 @@ public class InstructionClass6 extends Instruction {
         return this.target;
     }
 
+    @Override
+    public String toString() {
+        String insn = this.mnemonic + " ";
+        if(this.target != null) {
+            insn += this.target;
+        }
+        return insn;
+    }
 }

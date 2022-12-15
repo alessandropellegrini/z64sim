@@ -36,16 +36,16 @@ public class InstructionClass5 extends Instruction {
 
         if(t != null) {
             switch(t.getSize()) {
-                case 8:
+                case 1:
                     sd = 0b00000000;
                     break;
-                case 16:
+                case 2:
                     sd = 0b00010000;
                     break;
-                case 32:
+                case 4:
                     sd = 0b00100000;
                     break;
-                case 64:
+                case 8:
                     sd = 0b00110000;
                     break;
             }
@@ -77,13 +77,15 @@ public class InstructionClass5 extends Instruction {
                     this.type = 0x03;
                 }
             case "ret":
+            case "retq":
                 this.type = 0x04;
                 break;
             case "iret":
+            case "iretq":
                 this.type = 0x05;
                 break;
             default:
-                throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
+                throw new RuntimeException("Unknown Class 5 instruction: " + mnemonic);
         }
 
         enc[0] = (byte) (enc[0] | this.type);
@@ -154,6 +156,17 @@ public class InstructionClass5 extends Instruction {
 
     public Operand getTarget() {
         return this.target;
+    }
+
+    @Override
+    public String toString() {
+        String insn = this.mnemonic + " ";
+        if(this.target != null) {
+            if(this.target instanceof OperandRegister)
+                insn += "*";
+            insn += this.target;
+        }
+        return insn;
     }
 
 }

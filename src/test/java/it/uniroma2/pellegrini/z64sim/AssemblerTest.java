@@ -4,13 +4,16 @@
  */
 package it.uniroma2.pellegrini.z64sim;
 
-import it.uniroma2.pellegrini.z64sim.assembler.*;
-import it.uniroma2.pellegrini.z64sim.model.Program;
+import it.uniroma2.pellegrini.z64sim.assembler.Assembler;
+import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 
 /**
@@ -19,29 +22,9 @@ import java.util.Objects;
  */
 
 public class AssemblerTest {
-    @Test
-    @DisplayName("Lexer test")
-    public void testLexer() throws IOException {
-        File f = new File(Objects.requireNonNull(this.getClass().getResource("/test.asm")).getFile());
-        InputStreamReader isr = new FileReader(Objects.requireNonNull(f));
-        JavaCharStream stream = new JavaCharStream(isr);
-        AssemblerTokenManager manager = new AssemblerTokenManager(stream);
-        Token token = manager.getNextToken();
 
-        int i = 1;
-        while (token != null && token.kind != AssemblerConstants.EOF) {
-            token = manager.getNextToken();
-            i++;
-        }
-
-        System.out.println("tokens: " + i);
-        assert(i == 145);
-    }
-
-    @Test
-    @DisplayName("Parser test")
-    public void testParser() throws ParseException {
-        InputStream is = getClass().getResourceAsStream("/test.asm");
+    private void assemble(String testProgram) throws ParseException {
+        InputStream is = getClass().getResourceAsStream(testProgram);
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
         Assembler a = new Assembler(isr);
         a.Program();
@@ -50,15 +33,11 @@ public class AssemblerTest {
     }
 
     @Test
-    @DisplayName("Relocations")
-    public void testRelocations() throws ParseException {
-        InputStream is = getClass().getResourceAsStream("/relocations.asm");
-        InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
-        Assembler a = new Assembler(isr);
-        a.Program();
-        a.getSyntaxErrors().forEach(System.out::println);
-        assert(a.getSyntaxErrors().isEmpty());
-        Program p = a.getProgram();
-        assert(p != null);
+    @DisplayName("Testing Assembler")
+    public void testAssembler() throws ParseException {
+        assertDoesNotThrow(() -> assemble("/test.asm"));
+        assertDoesNotThrow(() -> assemble("/relocations.asm"));
+        assertDoesNotThrow(() -> assemble("/isa.asm"));
     }
+
 }

@@ -81,11 +81,11 @@ public class Assembler {
 
         switch(suffix) {
             case "b":
-                return 8;
+                return 1;
             case "w":
-                return 16;
+                return 2;
             case "l":
-                return 32;
+                return 4;
         }
         throw new ParseException("Zero/Sign extension with wrong source prefix");
     }
@@ -98,17 +98,26 @@ public class Assembler {
         // handled here, before checking the suffix.
         switch(mnemonic) {
             case "call":
-                return 64;
+                return 8;
+            case "shl":
+            case "sal":
+            case "rcl":
+            case "rol":
+            case "sub":
+            case "sbb":
+                return -1;
         }
 
-        if(suffix.equals("b"))
-            return 8;
-        else if(suffix.equals("w"))
-            return 16;
-        else if(suffix.equals("l"))
-            return 32;
-        else if(suffix.equals("q"))
-            return 64;
+        switch(suffix) {
+            case "b":
+                return 1;
+            case "w":
+                return 2;
+            case "l":
+                return 4;
+            case "q":
+                return 8;
+        }
         return -1; // No suffix given, depends on the operands
     }
 
@@ -118,6 +127,12 @@ public class Assembler {
         // handled here, before checking the suffix.
         switch(mnemonic) {
             case "call":
+            case "shl":
+            case "sal":
+            case "rcl":
+            case "rol":
+            case "sub":
+            case "sbb":
                 return mnemonic;
         }
 
@@ -271,7 +286,7 @@ TOKEN:
            | "stos" )("b"|"w"|"l"|"q")?>
 | <INSN_0_WQ: ("pushf"
              | "popf" )("w"|"l"|"q")?>
-| <INSN_0_NOSUFF:  "ret"
+| <INSN_0_NOSUFF:  "ret"("q")?
                  | "clc"
                  | "clp"
                  | "clz"
@@ -290,7 +305,7 @@ TOKEN:
                  | "nop">
 | <INSN_1_S: "int">
 | <INSN_LEA: "lea"("b"|"w"|"l"|"q")?>
-| <INSN_1_E: ("push"
+| <INSN_1_B: ("push"
            | "pop"
            | "neg"
            | "not")("b"|"w"|"l"|"q")?>
@@ -330,7 +345,7 @@ TOKEN:
 | <INSN_OUT: "out"("b"|"w"|"l"|"q")?>
 | <INSN_IO_S :("ins"
            | "outs")("b"|"w"|"l")>
-| <IRET: "iret">
+| <IRET: "iret"("q")?>
 }
 
 /** Label/Text/Ascii stuff */
@@ -376,9 +391,9 @@ void Program() :
     try {
         (<COMMENT> | <NEWLINE>)*
         LocationCounter() (<COMMENT> | <NEWLINE>)+
-        Data()
+        (Data())?
         Code()
-        (Drivers())?
+        Drivers()
         <EOF>
 
         {   // Finalize the program
@@ -502,12 +517,8 @@ void Code() :
         (
             i = Statement()
             {if(i != null) {
-                try {
-                    // The size of the MemoryElement is added by the Instruction classes
-                    this.program.addInstruction(i);
-                } catch(ProgramException e) {
-                    throw new ParseException(e.getMessage());
-                }
+                //The size of the MemoryElement is added by the Instruction classes
+                this.program.addInstruction(i);
             }
 }
         )*
@@ -529,21 +540,23 @@ Instruction Drivers() :
                     this.program.newDriver(Integer.parseInt(t.image), this.program.getLocationCounter());
                 } else if(t.kind == LABEL_NAME) { // this can only be an equ
                     if(this.program.getEqu(t.image) == null)
-                        throw new ParseException(t.image + " undefined");
+                        throw new ParseException("Line " + t.beginLine + ": " + t.image + " undefined");
                     this.program.newDriver(this.program.getEqu(t.image).intValue(), this.program.getLocationCounter());
                 } else {
-                    throw new ParseException("Invalid driver definition");
+                    throw new ParseException("Line " + t.beginLine + ": Invalid driver definition");
                 }
             }
             (<COMMENT> | <NEWLINE>)*
             ( Statement() )+
-            t = <IRET> (<COMMENT> | <NEWLINE>)*
+            t = <IRET>
             {
-                return new InstructionClass5(t.image, null);
+                this.program.addInstruction(new InstructionClass5(t.image, null));
             }
-        )+
+            (<COMMENT> | <NEWLINE>)+
+        )*
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
+    } finally {
         return null; // otherwise javaCC throws exceptions
     }
 }
@@ -632,31 +645,31 @@ Instruction Instruction() :
         t = <INSN_0_NOSUFF>
         {
             // ret is class 5, with no actual operand
-            if(t.image.equals("ret"))
+            if(t.image.equals("ret") || t.image.equals("retq"))
                 insn = new InstructionClass5(t.image, null);
 
             // hlt, nop are class 0
             else if(t.image.equals("hlt") || t.image.equals("nop"))
-                insn = new InstructionClass0(t.image, -1); // -1 is for the idn in a non-int instruction
+                insn = new InstructionClass0(t.image, null); // null is for the idn in a non-int instruction
 
             // others are all class 4
             else
                 insn = new InstructionClass4(t.image);
         }
       |
-        t = <INSN_1_S> t2 = <INTEGER>
-        { insn = new InstructionClass0(t.image, Integer.parseInt(t2.image)); }
+        t = <INSN_1_S> op1 = ConstantExpression()
+        { insn = new InstructionClass0(t.image, (OperandImmediate) op1); }
       |
-        t = <INSN_1_E>  { size = getSuffixSize(t.image); }
-        op1 = FormatE(size)
+        t = <INSN_1_B>  { size = getSuffixSize(t.image); }
+        op1 = FormatB(size)
         {
             mnemonic = stripSuffix(t.image);
 
             // Sanity check
             if(size == -1) // Size is given by the operand
                 size = op1.getSize();
-            if(op1.getSize() != size)
-                throw new ParseException("Line " + t.beginLine + ": operand size and instruction suffix mismatch");
+            if(op1 != null && op1.getSize() != size)
+                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch");
 
             // push and pop are class 1
             if(mnemonic.equals("push") || mnemonic.equals("pop"))
@@ -682,15 +695,9 @@ Instruction Instruction() :
             insn = new InstructionClass2(stripSuffix(t.image), op1, op2);
         }
       |
-        t = <INSN_1_M>  { size = getSuffixSize( t.image ); }
-        l = <LABEL_NAME>
+        t = <INSN_1_M> { size = getSuffixSize( t.image ); }
+        op1 = FormatM(size)
         {
-            // This is a memory operand with displacement only (pointing
-            // to the label's address. The real address will be placed in memory by
-            // relocation, at the end of the program's generation.
-            op1 = new OperandMemory(-1, -1, -1, -1, 0, size);
-            this.program.addRelocationEntry(this.program.getLocationCounter(), l.image);
-
             // They all belong to class 6
             insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         }
@@ -701,11 +708,11 @@ Instruction Instruction() :
 
             if(size == -1) // Size is given by the operand
                 size = op1.getSize();
-            else if(op1.getSize() != size) // Sanity check
+            else if(op1 != null && op1.getSize() != size) // Sanity check
                 throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             // They all belong to class 5
-            insn = new InstructionClass5( stripSuffix(t.image), null);
+            insn = new InstructionClass5( stripSuffix(t.image), op1);
         }
       |
         t = <INSN_B_E>  { size = getSuffixSize( t.image ); }
@@ -722,8 +729,12 @@ Instruction Instruction() :
 
                 if(op1 instanceof OperandImmediate)
                     op1.setSize(size);
+                if(op1 instanceof OperandMemory)
+                    op1.setSize(size);
+                if(op2 instanceof OperandMemory)
+                    op2.setSize(size);
             }
-            if(op1.getSize() != size || op2.getSize() != size)
+            if( (op1 instanceof OperandRegister && op1.getSize() != size) || ( op2 instanceof OperandRegister && op2.getSize() != size))
                 throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch, or size not specified.");
 
             // mov is class 1
@@ -751,13 +762,15 @@ Instruction Instruction() :
         }
       |
         t = <INSN_LEA> { size = getSuffixSize( t.image ); }
-        op1 = FormatE(size) <COMMA> op2 = FormatE(size)
+        op1 = FormatM(size) <COMMA> op2 = FormatG()
         {
             mnemonic = stripSuffix(t.image);
 
             // Sanity check
-            if(size == -1) // Size is given by the operand
-                            size = op1.getSize();
+            if(size == -1) { // Size is given by the destination operand
+                size = op2.getSize();
+                op1.setSize(size);
+            }
             if(op1.getSize() != size || op2.getSize() != size)
                 throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
@@ -771,19 +784,16 @@ Instruction Instruction() :
             size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
-            if(size > 32)
-                throw new ParseException("Wrong size suffix for in instruction");
+            if(size == -1)
+                size = op2.getSize();
 
             if(((OperandRegister)op2).getRegister() != Register.RAX)
                 throw new ParseException("Line " + t.beginLine + ": in instruction must use RAX as destination operand");
 
-            if(t2 != null) {
-                if(!t2.image.equals("%dx"))
-                    throw new ParseException("Line " + t.beginLine + ": in instruction must use DX as source register");
-                insn = new InstructionClass7(mnemonic, size);
-            } else {
-                insn = new InstructionClass7(mnemonic, size, (int) ((OperandImmediate) op1).getValue());
-            }
+            if(t2 != null && !t2.image.equals("%dx"))
+                throw new ParseException("Line " + t.beginLine + ": in instruction must use DX as source register");
+
+            insn = new InstructionClass7(mnemonic, size, op1);
         }
       |
         t = <INSN_OUT>
@@ -793,21 +803,16 @@ Instruction Instruction() :
             size = getSuffixSize( t.image );
             mnemonic = stripSuffix(t.image);
 
-            if(size > 32)
-                throw new ParseException("Wrong size suffix for out instruction");
+            if(size == -1)
+                size = op1.getSize();
 
             if(((OperandRegister)op1).getRegister() != Register.RAX)
                 throw new ParseException("Line " + t.beginLine + ": out instruction must use RAX as source operand");
 
-            if(t2 != null) {
-                if(!t2.image.equals("%dx"))
+            if(t2 != null && !t2.image.equals("%dx"))
                     throw new ParseException("Line " + t.beginLine + ": out instruction must use DX as destination register");
-                insn = new InstructionClass7(mnemonic, size);
-            } else {
-                insn = new InstructionClass7(mnemonic, size, (int) ((OperandImmediate) op2).getValue());
-            }
 
-            insn = new InstructionClass7(mnemonic, size);
+            insn = new InstructionClass7(mnemonic, size, op2);
         }
       |
         t = <INSN_IO_S>
@@ -816,15 +821,15 @@ Instruction Instruction() :
             mnemonic = stripSuffix(t.image);
 
             if(size == -1)
-                throw new ParseException("Wrong size suffix for instruction " + mnemonic);
+                throw new ParseException("Line " + t.beginLine + ": Wrong size suffix for instruction " + mnemonic);
 
-            insn = new InstructionClass7(mnemonic, size);
+            insn = new InstructionClass7(mnemonic, size, null);
         }
     )
     { return insn; }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
-        return null; // otherwise javaCC throws exceptions
+        return null; // otherwise javaCC gets angry
     }
 }
 
@@ -861,16 +866,16 @@ OperandRegister Register() :
 {
     try {
         t = <REG_8>
-        { return new OperandRegister( Register.getRegister8( t.image ) , 8 ); }
+        { return new OperandRegister( Register.getRegister8( t.image ) , 1 ); }
       |
         t = <REG_16>
-        { return new OperandRegister( Register.getRegister16( t.image ) , 16 ); }
+        { return new OperandRegister( Register.getRegister16( t.image ) , 2 ); }
       |
         t = <REG_32>
-        { return new OperandRegister( Register.getRegister32( t.image ) , 32 ); }
+        { return new OperandRegister( Register.getRegister32( t.image ) , 4 ); }
       |
         t = <REG_64>
-        { return new OperandRegister( Register.getRegister64( t.image ) , 64 ); }
+        { return new OperandRegister( Register.getRegister64( t.image ) , 8 ); }
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
         return null; // otherwise javaCC throws exceptions

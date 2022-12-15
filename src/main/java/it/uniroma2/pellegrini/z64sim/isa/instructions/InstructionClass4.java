@@ -145,11 +145,20 @@ public class InstructionClass4 extends Instruction {
                 instr += "std";
                 break;
             case 0x4d:
-                instr += "sto"; //GHALI
+                instr += "sto";
                 break;
             default:
                 throw new DisassembleException("Unkown instruction type");
         }
         return instr;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return InstructionClass4.disassemble(this.getEncoding());
+        } catch(DisassembleException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -6,7 +6,6 @@
 package it.uniroma2.pellegrini.z64sim.isa.operands;
 
 
-import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.MemoryPointer;
 
@@ -57,8 +56,8 @@ public class OperandMemory extends Operand {
     public String toString() {
         String representation = "";
 
-        if(this.displacement != null) {
-            representation = representation.concat(String.format("%x", this.displacement.getTarget()));
+        if(this.displacement != null && this.displacement.getTarget() != 0) {
+            representation = representation.concat(String.format("%#x", this.displacement.getTarget()));
         }
 
         if(this.base != -1 || this.index != -1) {
@@ -70,7 +69,7 @@ public class OperandMemory extends Operand {
         }
 
         if(this.index != -1) {
-            representation = representation.concat(", " + Register.getRegisterName(this.index, 64));
+            representation = representation.concat(", " + Register.getRegisterName(this.index, 8));
             representation = representation.concat(", " + this.scale);
         }
 

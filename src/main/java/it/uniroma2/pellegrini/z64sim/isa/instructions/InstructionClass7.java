@@ -4,7 +4,9 @@
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
+import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 
 ;
 
@@ -14,55 +16,58 @@ import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
  */
 public class InstructionClass7 extends Instruction {
 
-    private final int transfer_size; // The size of a data transfer
-    private int ioport; // The I/O port number in case of an explicit I/O port
+    private final int transferSize; // The size of a data transfer
+    private Operand ioport; // The I/O port number in case of an explicit I/O port
 
-    public InstructionClass7(String mnemonic, int size) {
+//    public InstructionClass7(String mnemonic, int size) throws ParseException {
+//        super(mnemonic, 7);
+//        this.transferSize = size;
+//
+//
+//        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+//        enc[0] = 0b01110000;
+//        byte di = 0b00000000;
+//        byte diImm = 0b00000000;
+//        byte mem = 0b00000000;
+//        byte ss = (byte) transferSize;
+//        byte ds = (byte) transferSize;
+//
+//        enc[1] = (byte) (ss | ds | diImm | di | mem);
+//
+//        switch(mnemonic) {
+//            case "in":
+//                this.type = 0x00;
+//                break;
+//            case "out":
+//                this.type = 0x01;
+//                break;
+//            case "ins":
+//                this.type = 0x02;
+//                break;
+//            case "outs":
+//                this.type = 0x03;
+//                break;
+//            default:
+//                throw new ParseException("Unknown Class 7 instruction: " + mnemonic);
+//        }
+//
+//        enc[0] = (byte) (enc[0] | this.type);
+//        this.setEncoding(enc);
+//
+//        this.setSize(8);
+//        this.ioport = -1;
+//    }
+
+    public InstructionClass7(String mnemonic, int size, Operand ioport) throws ParseException {
         super(mnemonic, 7);
-        this.transfer_size = size;
-
 
         byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        enc[0] = 0b01110000;
-        byte di = 0b00000000;
-        byte diImm = 0b00000000;
-        byte mem = 0b00000000;
-        byte ss = (byte) transfer_size;
-        byte ds = (byte) transfer_size;
 
-        enc[1] = (byte) (ss | ds | diImm | di | mem);
-
-        switch(mnemonic) {
-            case "in":
-                this.type = 0x00;
-                break;
-            case "out":
-                this.type = 0x01;
-                break;
-            case "ins":
-                this.type = 0x02;
-                break;
-            case "outs":
-                this.type = 0x03;
-                break;
-            default:
-                throw new RuntimeException("Unknown Class 7 instruction: " + mnemonic);
-        }
-
-        enc[0] = (byte) (enc[0] | this.type);
-        this.setEncoding(enc);
-
-        this.setSize(8);
-        this.ioport = -1;
-    }
-
-    public InstructionClass7(String mnemonic, int size, int ioport) {
-        this(mnemonic, size);
-
-        if (!mnemonic.equals("in") && !mnemonic.equals("out")) {
-            throw new RuntimeException("Invalid instruction with explicit I/O port");
-        }
+        this.transferSize = size;
         this.ioport = ioport;
+        this.setSize(8);
+
+        this.setEncoding(enc);
     }
 
     @Override
@@ -104,5 +109,58 @@ public class InstructionClass7 extends Instruction {
 
         }
         return instr;
+    }
+
+    private String transferSizeToInsnSuffix() throws DisassembleException {
+        switch(this.transferSize) {
+            case 1:
+                return "b";
+            case 2:
+                return "w";
+            case 4:
+                return "l";
+            case 8:
+                return "q";
+        }
+        throw new DisassembleException("Invalid transfer size");
+    }
+
+    private String transferSizeToReg() throws DisassembleException {
+        switch(this.transferSize) {
+            case 1:
+                return "%al";
+            case 2:
+                return "%ax";
+            case 4:
+                return "%eax";
+            case 8:
+                return "%rax";
+        }
+        throw new DisassembleException("Invalid transfer size");
+    }
+
+    private String getIoPort() {
+        if(this.ioport == null) {
+            return "%dx";
+        }
+        return this.ioport.toString();
+    }
+
+    @Override
+    public String toString() {
+        String insn;
+        try {
+            insn = this.mnemonic + this.transferSizeToInsnSuffix() + " ";
+            if(this.mnemonic.equals("in")) {
+                insn += this.getIoPort() + ", " + this.transferSizeToReg();
+            }
+            if(this.mnemonic.equals("out")) {
+                insn += this.transferSizeToReg() + ", " + this.getIoPort();
+            }
+        } catch(DisassembleException e) {
+            throw new RuntimeException(e);
+        }
+
+        return insn;
     }
 }

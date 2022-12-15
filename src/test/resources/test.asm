@@ -27,7 +27,7 @@ func:
 main:
     movq $array, %rsi
     movq $array_dest, %rdi
-    movq array_size/2, %rcx
+    movq $array_size/2, %rcx
     cld
     movsw
 

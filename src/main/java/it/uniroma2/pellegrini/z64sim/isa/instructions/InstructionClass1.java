@@ -58,16 +58,16 @@ public class InstructionClass1 extends Instruction {
         //Popolamento campo ss
         if(s != null) {
             switch(s.getSize()) {
-                case 8:
+                case 1:
                     ss = 0b00000000;
                     break;
-                case 16:
+                case 2:
                     ss = 0b01000000;
                     break;
-                case 32:
+                case 4:
                     ss = (byte) 0b10000000;
                     break;
-                case 64:
+                case 8:
                     ss = (byte) 0b11000000;
                     break;
             }
@@ -76,16 +76,16 @@ public class InstructionClass1 extends Instruction {
         //Popolamento campo ds
         if(d != null) {
             switch(d.getSize()) {
-                case 8:
+                case 1:
                     sd = 0b00000000;
                     break;
-                case 16:
+                case 2:
                     sd = 0b00010000;
                     break;
-                case 32:
+                case 4:
                     sd = 0b00100000;
                     break;
-                case 64:
+                case 8:
                     sd = 0b00110000;
                     break;
             }
@@ -489,4 +489,77 @@ public class InstructionClass1 extends Instruction {
         return this.destination;
     }
 
+    private String movsXGetSize() {
+        String size = "";
+        switch(this.source.getSize()) {
+            case 1:
+                size += "b";
+                break;
+            case 2:
+                size += "w";
+                break;
+            case 4:
+                size += "l";
+                break;
+        }
+        switch(this.destination.getSize()) {
+            case 2:
+                size += "w";
+                break;
+            case 4:
+                size += "l";
+                break;
+            case 8:
+                size += "q";
+                break;
+        }
+        return size;
+    }
+
+    private String implicitSizeToInsnSuffix() throws DisassembleException {
+        switch(this.implicitSize) {
+            case 1:
+                return "b";
+            case 2:
+                return "w";
+            case 4:
+                return "l";
+            case 8:
+                return "q";
+       }
+       throw new DisassembleException("Invalid implicit size");
+    }
+    @Override
+    public String toString() {
+        String insn;
+
+        if("movsX".equals(this.mnemonic)) {
+            insn = "movs" + this.movsXGetSize();
+        } else if("movzX".equals(this.mnemonic)) {
+            insn = "movz" + this.movsXGetSize();
+        } else if("movs".equals(this.mnemonic) || "stos".equals(this.mnemonic)) {
+            try {
+                insn = this.mnemonic + this.implicitSizeToInsnSuffix();
+            } catch(DisassembleException e) {
+                throw new RuntimeException(e);
+            }
+        } else if("pushf".equals(this.mnemonic) || "popf".equals(this.mnemonic)) {
+            insn = this.mnemonic;
+        } else {
+            try {
+                insn = this.mnemonic + this.source.getSizeSuffix();
+            } catch(DisassembleException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if(this.source != null) {
+            insn += " " + this.source;
+        }
+        if(this.destination != null) {
+            insn += ", " + this.destination;
+        }
+
+        return insn;
+    }
 }

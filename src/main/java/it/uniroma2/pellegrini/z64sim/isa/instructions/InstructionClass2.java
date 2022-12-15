@@ -61,16 +61,16 @@ public class InstructionClass2 extends Instruction {
         //Popolamento campo ss
         if(s != null) {
             switch(s.getSize()) {
-                case 8:
+                case 1:
                     ss = 0b00000000;
                     break;
-                case 16:
+                case 2:
                     ss = 0b01000000;
                     break;
-                case 32:
+                case 4:
                     ss = (byte) 0b10000000;
                     break;
-                case 64:
+                case 8:
                     ss = (byte) 0b11000000;
                     break;
             }
@@ -79,16 +79,16 @@ public class InstructionClass2 extends Instruction {
         //Popolamento campo ds
         if(d != null) {
             switch(d.getSize()) {
-                case 8:
+                case 1:
                     sd = 0b00000000;
                     break;
-                case 16:
+                case 2:
                     sd = 0b00010000;
                     break;
-                case 32:
+                case 4:
                     sd = 0b00100000;
                     break;
-                case 64:
+                case 8:
                     sd = 0b00110000;
                     break;
             }
@@ -274,13 +274,6 @@ public class InstructionClass2 extends Instruction {
     @Override
     public void run() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String toString() {
-        String mnem = this.mnemonic;
-
-        return mnem;
     }
 
     private static String opcodes[] = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
@@ -486,4 +479,20 @@ public class InstructionClass2 extends Instruction {
         return this.destination;
     }
 
+    @Override
+    public String toString() {
+        String insn;
+        try {
+            insn = this.mnemonic + this.source.getSizeSuffix();
+        } catch(DisassembleException e) {
+            throw new RuntimeException(e);
+        }
+
+        insn += " " + this.source;
+        if(this.destination != null) {
+            insn += ", " + this.destination;
+        }
+
+        return insn;
+    }
 }

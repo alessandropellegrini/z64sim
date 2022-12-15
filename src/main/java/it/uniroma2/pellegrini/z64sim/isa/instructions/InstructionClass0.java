@@ -6,12 +6,13 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
+import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 public class InstructionClass0 extends Instruction {
 
-    int idn;
+    OperandImmediate idn;
 
-    public InstructionClass0(String mnemonic, int idn) throws ParseException {
+    public InstructionClass0(String mnemonic, OperandImmediate idn) throws ParseException {
         super(mnemonic, 0);
         this.idn = idn;
 
@@ -32,6 +33,7 @@ public class InstructionClass0 extends Instruction {
             case "int":
                 enc[0] = 0x03;
                 this.type = 0x03;
+                break;
             default:
                 throw new ParseException("Unknown Class 0 instruction: " + mnemonic);
         }
@@ -63,4 +65,11 @@ public class InstructionClass0 extends Instruction {
         return instr;
     }
 
+    @Override
+    public String toString() {
+        String insn = this.mnemonic;
+        if(this.mnemonic.equals("int"))
+            insn += " " + this.idn;
+        return insn;
+    }
 }
