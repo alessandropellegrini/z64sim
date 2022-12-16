@@ -9,6 +9,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import it.uniroma2.pellegrini.z64sim.controller.MainController;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
+import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import it.uniroma2.pellegrini.z64sim.view.Splash;
@@ -33,6 +34,8 @@ public class z64sim {
             FlatDarkLaf.setup();
 
         MainWindow mainWindow = MainWindow.getInstance();
+
+        UpdateController.init();
 
         splashScreen.close();
         mainWindow.show();
