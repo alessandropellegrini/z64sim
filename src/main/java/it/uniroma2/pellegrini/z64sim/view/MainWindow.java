@@ -15,6 +15,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import it.uniroma2.pellegrini.z64sim.view.components.MulticycleCpu;
 
 import javax.swing.*;
 import java.awt.*;
@@ -173,10 +174,15 @@ public class MainWindow extends View {
         memoryView = new JTable();
         memoryView.setFillsViewportHeight(true);
         scrollPane2.setViewportView(memoryView);
+        final JSplitPane splitPane3 = new JSplitPane();
+        splitPane3.setOrientation(0);
+        splitPane1.setRightComponent(splitPane3);
+        final MulticycleCpu nestedForm1 = new MulticycleCpu();
+        splitPane3.setLeftComponent(nestedForm1.$$$getRootComponent$$$());
         final JScrollPane scrollPane3 = new JScrollPane();
         Font scrollPane3Font = UIManager.getFont("Panel.font");
         if(scrollPane3Font != null) scrollPane3.setFont(scrollPane3Font);
-        splitPane1.setRightComponent(scrollPane3);
+        splitPane3.setRightComponent(scrollPane3);
         compilerOutput = new JTextArea();
         compilerOutput.setEditable(false);
         compilerOutput.setRows(5);
