@@ -21,12 +21,13 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="6162c" class="javax.swing.JButton" binding="button1" default-binding="true">
+          <component id="6162c" class="javax.swing.JButton" binding="assembleButton">
             <constraints/>
             <properties>
               <font swing-font="Button.font"/>
               <icon value="images/assemble_icon.png"/>
               <text value=""/>
+              <toolTipText value="Assemble program"/>
             </properties>
           </component>
         </children>
@@ -141,7 +142,7 @@
                     <properties>
                       <editable value="false"/>
                       <rows value="5"/>
-                      <text value="a&#10;b&#10;c&#10;d&#10;e&#10;f&#10;g&#10;h&#10;i"/>
+                      <text value=""/>
                     </properties>
                   </component>
                 </children>

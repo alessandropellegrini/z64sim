@@ -35,7 +35,7 @@ public class Assembler {
     private Program program = new Program();
 
     /** To support error recovery */
-    private List<ParseException> syntaxErrors = new ArrayList<>();
+    private List<String> syntaxErrors = new ArrayList<>();
 
     /**
      * A String-based constructor for ease of use
@@ -58,7 +58,7 @@ public class Assembler {
      * Return found errors, e.g. to show them in the editor
      * @return list of ParseExceptions
      */
-    public List<ParseException> getSyntaxErrors() {
+    public List<String> getSyntaxErrors() {
         return this.syntaxErrors;
     }
 
@@ -69,7 +69,7 @@ public class Assembler {
      * @param kind The token to be reached so as to continue parsing
      */
     private void error_recover(ParseException ex, int kind) {
-        syntaxErrors.add(ex);
+        syntaxErrors.add(ex.getMessage());
         Token t;
         do {
             t = getNextToken();
@@ -382,8 +382,6 @@ TOKEN:
 
 /**
  * This is the Axiom of the parser
- *
- * @throws it.z64sim.assembler.ParseException
  */
 void Program() :
 {}
@@ -400,7 +398,7 @@ void Program() :
             try {
                 this.program.finalizeProgram();
             } catch(ProgramException e) {
-                throw new ParseException(e.getMessage());
+                this.syntaxErrors.add(e.getMessage());
             }
         }
     } catch (ParseException ex) {

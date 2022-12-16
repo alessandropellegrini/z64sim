@@ -32,7 +32,7 @@ public class MainWindow extends View {
     private static MainWindow instance = null;
     private JFrame mainFrame;
     private JPanel mainPanel;
-    private JButton button1;
+    private JButton assembleButton;
     private JTable memoryView;
     private JTextArea compilerOutput;
     private JEditorPane editor;
@@ -64,12 +64,27 @@ public class MainWindow extends View {
 
         this.setApplicationIcon();
         this.mainFrame.pack();
+        assembleButton.addActionListener(actionEvent -> {
+            Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM);
+        });
     }
 
-    public static MainWindow getInstance() {
+    private static MainWindow getInstance() {
         if(instance == null)
             instance = new MainWindow();
         return instance;
+    }
+
+    public static void showMainWindow() {
+        getInstance().show();
+    }
+
+    public static String getCode() {
+        return getInstance().editor.getText();
+    }
+
+    public static void compileResult(String toString) {
+        getInstance().compilerOutput.setText(toString);
     }
 
     public void show() {
@@ -133,12 +148,13 @@ public class MainWindow extends View {
         Font toolBar1Font = UIManager.getFont("ToolBar.font");
         if(toolBar1Font != null) toolBar1.setFont(toolBar1Font);
         mainPanel.add(toolBar1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
-        button1 = new JButton();
-        Font button1Font = UIManager.getFont("Button.font");
-        if(button1Font != null) button1.setFont(button1Font);
-        button1.setIcon(new ImageIcon(getClass().getResource("/images/assemble_icon.png")));
-        button1.setText("");
-        toolBar1.add(button1);
+        assembleButton = new JButton();
+        Font assembleButtonFont = UIManager.getFont("Button.font");
+        if(assembleButtonFont != null) assembleButton.setFont(assembleButtonFont);
+        assembleButton.setIcon(new ImageIcon(getClass().getResource("/images/assemble_icon.png")));
+        assembleButton.setText("");
+        assembleButton.setToolTipText("Assemble program");
+        toolBar1.add(assembleButton);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
         Font splitPane1Font = UIManager.getFont("Panel.font");
@@ -186,7 +202,7 @@ public class MainWindow extends View {
         compilerOutput = new JTextArea();
         compilerOutput.setEditable(false);
         compilerOutput.setRows(5);
-        compilerOutput.setText("a\nb\nc\nd\ne\nf\ng\nh\ni");
+        compilerOutput.setText("");
         scrollPane3.setViewportView(compilerOutput);
     }
 

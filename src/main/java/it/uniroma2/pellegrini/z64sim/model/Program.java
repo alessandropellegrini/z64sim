@@ -39,6 +39,10 @@ public class Program {
     public Program() {}
 
     public void finalizeProgram() throws ProgramException {
+        // Check if main was set
+        if(this._start == null)
+            throw new ProgramException("No main function found");
+
         // Perform relocation of label values
         for(RelocationEntry rel : this.relocations) {
             rel.relocate(this);
