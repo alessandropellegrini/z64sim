@@ -28,18 +28,6 @@ public class DisassemblerTest {
         a.Program();
         Program p = a.getProgram();
 
-//        // Read file content for easier debugging
-//        InputStream in = getClass().getResourceAsStream(testProgram);
-//        byte[] contents = new byte[1024];
-//        int bytesRead = 0;
-//        StringBuilder strFileContents = new StringBuilder("Assembled program [" + testProgram + "]: \n");
-//        while(true) {
-//            assert in != null;
-//            if((bytesRead = in.read(contents)) == -1) break;
-//            strFileContents.append(new String(contents, 0, bytesRead));
-//        }
-//        System.out.print(strFileContents);
-
         // Disassemble the assembled program
         System.out.println("Disassembled program [" + testProgram + "]: ");
         long rip = p.text.getTarget();
