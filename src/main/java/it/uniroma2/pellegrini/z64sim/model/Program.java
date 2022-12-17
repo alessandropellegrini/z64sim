@@ -168,6 +168,10 @@ public class Program {
         return addr;
     }
 
+    public int getLargetAddress() {
+        return this.binary.keySet().stream().max(Integer::compareTo).orElse(0);
+    }
+
     /**
      * A relocation entry. Points to the initial address of the instruction. It
      * is then the role of relocate() method to account for differences in

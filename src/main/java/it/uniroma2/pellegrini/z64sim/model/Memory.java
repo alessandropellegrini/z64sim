@@ -5,7 +5,10 @@
 package it.uniroma2.pellegrini.z64sim.model;
 
 
+import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+
 import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 /**
@@ -25,17 +28,18 @@ public class Memory implements TableModel {
         return instance;
     }
 
-    public static Program getProgram() {
-        return getInstance().program;
+    public static void refresh() {
+        ((AbstractTableModel)(TableModel)getInstance()).fireTableDataChanged();
     }
 
     public static void setProgram(Program program) {
         getInstance().program = program;
+        refresh();
     }
 
     @Override
     public int getRowCount() {
-        return 200;// (int) Math.pow(2, 64);
+        return this.program == null ? 200 : this.program.getLargetAddress() / 8;
     }
 
     @Override
@@ -45,7 +49,7 @@ public class Memory implements TableModel {
 
     @Override
     public String getColumnName(int col) {
-        return col == 0 ? "Address" : "Value";
+        return col == 0 ? PropertyBroker.getMessageFromBundle("memory.table.address") : PropertyBroker.getMessageFromBundle("memory.table.value");
     }
 
     @Override
@@ -60,12 +64,27 @@ public class Memory implements TableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        if(col == 0)
-            return String.format("%016x", row); // 64-bit address
-        else if(col == 1)
-            return "Seconda";
-        else
+        if(col == 0) {
+            return String.format("%016x", row * 8); // 64-bit address
+        } else if(col == 1) {
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < 8; i++) {
+                if(this.program == null) {
+                    sb.append("00 ");
+                } else {
+                    final MemoryElement memoryElement = this.program.getMemoryElementAt(row * 8L + i);
+                    if(memoryElement == null) {
+                        sb.append("00 ");
+                    } else {
+                        sb.append(memoryElement).append(" ");
+                        i += memoryElement.getSize() - 1;
+                    }
+                }
+            }
+            return sb.toString();
+        } else {
             throw new IllegalStateException("Unexpected column request");
+        }
     }
 
     @Override

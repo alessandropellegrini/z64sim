@@ -7,6 +7,7 @@ package it.uniroma2.pellegrini.z64sim.controller;
 
 import it.uniroma2.pellegrini.z64sim.assembler.Assembler;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.model.Program;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
@@ -52,7 +53,8 @@ public class SimulatorController extends Controller {
                 }
 
                 MainWindow.compileResult(assemblerOutput.toString());
-                program = a.getProgram();
+                this.program = a.getProgram();
+                Memory.setProgram(this.program);
         }
         return false;
     }
