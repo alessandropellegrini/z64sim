@@ -15,15 +15,17 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
 import it.uniroma2.pellegrini.z64sim.view.components.MulticycleCpu;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -36,6 +38,14 @@ public class MainWindow extends View {
     private JTable memoryView;
     private JTextArea compilerOutput;
     private JEditorPane editor;
+    private JButton openButton;
+    private JButton saveButton;
+    private JPanel editorTab;
+    private JTabbedPane tabbedPane;
+    private JButton newButton;
+
+    private File openFile = null;
+    private boolean isDirty = false;
 
     private MainWindow() {
         $$$setupUI$$$();
@@ -64,9 +74,76 @@ public class MainWindow extends View {
 
         this.setApplicationIcon();
         this.mainFrame.pack();
-        assembleButton.addActionListener(actionEvent -> {
-            Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM);
+        newButton.addActionListener(actionEvent -> this.newFile());
+        openButton.addActionListener(actionEvent -> this.openFile());
+        saveButton.addActionListener(actionEvent -> this.saveFile());
+        assembleButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM));
+
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                super.keyTyped(e);
+                MainWindow.setDirty();
+            }
         });
+    }
+
+    private void newFile() {
+        if(!this.changesToDiscard())
+            return;
+        this.editor.setText("");
+        this.openFile = null;
+        this.tabbedPane.setTitleAt(0, PropertyBroker.getMessageFromBundle("file.tab.untitled"));
+    }
+
+    private void saveFile() {
+        if(this.openFile == null) {
+            String filePath = (new JFileDialog(".asm", PropertyBroker.getMessageFromBundle("file.assembly"), JFileDialog.MODE_SAVE)).getFilePath();
+            this.openFile = new File(filePath);
+        }
+        try {
+            Files.writeString(this.openFile.toPath(), this.editor.getText());
+            this.isDirty = false;
+            this.tabbedPane.setTitleAt(0, this.openFile.getName());
+        } catch(IOException e) {
+            JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.saving.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void openFile() {
+        if(!this.changesToDiscard())
+            return;
+        String filePath = (new JFileDialog(".asm", PropertyBroker.getMessageFromBundle("file.assembly"), JFileDialog.MODE_OPEN)).getFilePath();
+        try {
+            this.doOpenFile(filePath);
+        } catch(IOException e) {
+            JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.opening.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void doOpenFile(String filePath) throws IOException {
+        this.editor.setText(Files.readString(Path.of(filePath)));
+        this.openFile = new File(filePath);
+        this.tabbedPane.setTitleAt(0, this.openFile.getName());
+    }
+
+    // Return false if the user canceled the action
+    private boolean changesToDiscard() {
+        if(this.isDirty) {
+            int result = JOptionPane.showConfirmDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.modified.want.to.save"), PropertyBroker.getMessageFromBundle("file.save.question"), JOptionPane.YES_NO_CANCEL_OPTION);
+            if(result == JOptionPane.YES_OPTION) {
+                this.saveFile();
+            } else return result != JOptionPane.CANCEL_OPTION;
+        }
+        return true;
+    }
+
+    private static void setDirty() {
+        final MainWindow instance = getInstance();
+        if(!instance.isDirty) {
+            instance.isDirty = true;
+            instance.tabbedPane.setTitleAt(0, instance.tabbedPane.getTitleAt(0) + "*");
+        }
     }
 
     private static MainWindow getInstance() {
@@ -75,8 +152,16 @@ public class MainWindow extends View {
         return instance;
     }
 
-    public static void showMainWindow() {
-        getInstance().show();
+    public static void showMainWindow(String fileToOpen) {
+        MainWindow instance = getInstance();
+        if(fileToOpen != null) {
+            try {
+                instance.doOpenFile(fileToOpen);
+            } catch(IOException e) {
+                log.error(PropertyBroker.getMessageFromBundle("file.error.while.opening"), e);
+            }
+        }
+        instance.show();
     }
 
     public static String getCode() {
@@ -105,7 +190,7 @@ public class MainWindow extends View {
             taskbar.setIconImage(image);
         } catch(final UnsupportedOperationException ignored) {
         } catch(final SecurityException e) {
-            log.error("Security exception while trying to set the icon.");
+            log.error(PropertyBroker.getMessageFromBundle("exception.security.while.setting.icon"));
         }
     }
 
@@ -148,6 +233,27 @@ public class MainWindow extends View {
         Font toolBar1Font = UIManager.getFont("ToolBar.font");
         if(toolBar1Font != null) toolBar1.setFont(toolBar1Font);
         mainPanel.add(toolBar1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 20), null, 0, false));
+        newButton = new JButton();
+        Font newButtonFont = UIManager.getFont("Button.font");
+        if(newButtonFont != null) newButton.setFont(newButtonFont);
+        newButton.setIcon(new ImageIcon(getClass().getResource("/images/z64doc.png")));
+        newButton.setText("");
+        newButton.setToolTipText("New file");
+        toolBar1.add(newButton);
+        openButton = new JButton();
+        Font openButtonFont = UIManager.getFont("Button.font");
+        if(openButtonFont != null) openButton.setFont(openButtonFont);
+        openButton.setIcon(new ImageIcon(getClass().getResource("/images/open.png")));
+        openButton.setText("");
+        openButton.setToolTipText("Open file");
+        toolBar1.add(openButton);
+        saveButton = new JButton();
+        Font saveButtonFont = UIManager.getFont("Button.font");
+        if(saveButtonFont != null) saveButton.setFont(saveButtonFont);
+        saveButton.setIcon(new ImageIcon(getClass().getResource("/images/save.png")));
+        saveButton.setText("");
+        saveButton.setToolTipText("Save file");
+        toolBar1.add(saveButton);
         assembleButton = new JButton();
         Font assembleButtonFont = UIManager.getFont("Button.font");
         if(assembleButtonFont != null) assembleButton.setFont(assembleButtonFont);
@@ -168,19 +274,19 @@ public class MainWindow extends View {
         if(splitPane2Font != null) splitPane2.setFont(splitPane2Font);
         splitPane2.setResizeWeight(1.0);
         splitPane1.setLeftComponent(splitPane2);
-        final JTabbedPane tabbedPane1 = new JTabbedPane();
-        Font tabbedPane1Font = UIManager.getFont("Panel.font");
-        if(tabbedPane1Font != null) tabbedPane1.setFont(tabbedPane1Font);
-        splitPane2.setLeftComponent(tabbedPane1);
-        final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        Font panel1Font = UIManager.getFont("TabbedPane.smallFont");
-        if(panel1Font != null) panel1.setFont(panel1Font);
-        tabbedPane1.addTab(this.$$$getMessageFromBundle$$$("i18n", "file.tab.untitled"), panel1);
+        tabbedPane = new JTabbedPane();
+        Font tabbedPaneFont = UIManager.getFont("Panel.font");
+        if(tabbedPaneFont != null) tabbedPane.setFont(tabbedPaneFont);
+        splitPane2.setLeftComponent(tabbedPane);
+        editorTab = new JPanel();
+        editorTab.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        Font editorTabFont = UIManager.getFont("TabbedPane.smallFont");
+        if(editorTabFont != null) editorTab.setFont(editorTabFont);
+        tabbedPane.addTab(this.$$$getMessageFromBundle$$$("i18n", "file.tab.untitled"), editorTab);
         final JScrollPane scrollPane1 = new JScrollPane();
         Font scrollPane1Font = UIManager.getFont("Panel.font");
         if(scrollPane1Font != null) scrollPane1.setFont(scrollPane1Font);
-        panel1.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        editorTab.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         editor = new JEditorPane();
         Font editorFont = UIManager.getFont("EditorPane.font");
         if(editorFont != null) editor.setFont(editorFont);

@@ -35,6 +35,6 @@ public class z64sim {
             FlatDarkLaf.setup();
 
         splashScreen.close();
-        MainWindow.showMainWindow();
+        MainWindow.showMainWindow(args.length > 0 ? args[0] : null);
     }
 }

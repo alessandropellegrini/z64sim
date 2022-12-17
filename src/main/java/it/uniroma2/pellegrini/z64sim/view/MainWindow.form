@@ -21,6 +21,33 @@
         </properties>
         <border type="none"/>
         <children>
+          <component id="3fd2" class="javax.swing.JButton" binding="newButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/z64doc.png"/>
+              <text value=""/>
+              <toolTipText value="New file"/>
+            </properties>
+          </component>
+          <component id="3486e" class="javax.swing.JButton" binding="openButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/open.png"/>
+              <text value=""/>
+              <toolTipText value="Open file"/>
+            </properties>
+          </component>
+          <component id="aa274" class="javax.swing.JButton" binding="saveButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/save.png"/>
+              <text value=""/>
+              <toolTipText value="Save file"/>
+            </properties>
+          </component>
           <component id="6162c" class="javax.swing.JButton" binding="assembleButton">
             <constraints/>
             <properties>
@@ -57,7 +84,7 @@
             </properties>
             <border type="none"/>
             <children>
-              <tabbedpane id="7e21e" default-binding="true">
+              <tabbedpane id="7e21e" binding="tabbedPane">
                 <constraints>
                   <splitpane position="left"/>
                 </constraints>
@@ -66,7 +93,7 @@
                 </properties>
                 <border type="none"/>
                 <children>
-                  <grid id="4155b" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="4155b" binding="editorTab" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
                       <tabbedpane title-resource-bundle="i18n" title-key="file.tab.untitled"/>

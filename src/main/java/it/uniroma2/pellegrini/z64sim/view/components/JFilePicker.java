@@ -46,6 +46,7 @@ public class JFilePicker extends JPanel {
     public void addFileTypeFilter(String extension, String description) {
         FileTypeFilter filter = new FileTypeFilter(extension, description);
         fileChooser.addChoosableFileFilter(filter);
+        fileChooser.setFileFilter(filter);
     }
 
     public void setMode(int mode) {
