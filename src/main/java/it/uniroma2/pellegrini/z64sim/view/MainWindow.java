@@ -17,7 +17,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
-import it.uniroma2.pellegrini.z64sim.view.components.MulticycleCpu;
+import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,7 +45,7 @@ public class MainWindow extends View {
     private JTabbedPane tabbedPane;
     private JButton newButton;
     private JButton stepButton;
-    private MulticycleCpu cpuView;
+    private RegisterBank cpuView;
     private JButton runButton;
 
     private File openFile = null;
@@ -326,7 +326,7 @@ public class MainWindow extends View {
         final JSplitPane splitPane3 = new JSplitPane();
         splitPane3.setOrientation(0);
         splitPane1.setRightComponent(splitPane3);
-        cpuView = new MulticycleCpu();
+        cpuView = new RegisterBank();
         splitPane3.setLeftComponent(cpuView.$$$getRootComponent$$$());
         final JScrollPane scrollPane3 = new JScrollPane();
         Font scrollPane3Font = UIManager.getFont("Panel.font");

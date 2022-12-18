@@ -168,7 +168,7 @@
             </properties>
             <border type="none"/>
             <children>
-              <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/MulticycleCpu.form" binding="cpuView">
+              <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/RegisterBank.form" binding="cpuView">
                 <constraints>
                   <splitpane position="left"/>
                 </constraints>

@@ -19,7 +19,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
-import it.uniroma2.pellegrini.z64sim.view.components.MulticycleCpu;
+import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class SimulatorController extends Controller {
 
     private final CpuState cpuState = new CpuState();
     private Program program;
-    private MulticycleCpu cpuView;
+    private RegisterBank cpuView;
 
     private SimulatorController() {
     }
@@ -49,7 +49,7 @@ public class SimulatorController extends Controller {
         return instance;
     }
 
-    public static void setCpuView(MulticycleCpu cpuView) {
+    public static void setCpuView(RegisterBank cpuView) {
         getInstance().cpuView = cpuView;
     }
 

@@ -14,7 +14,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 
-public class MulticycleCpu extends View {
+public class RegisterBank extends View {
 
     private JPanel multicycleCPU;
     private JLabel rsp;
