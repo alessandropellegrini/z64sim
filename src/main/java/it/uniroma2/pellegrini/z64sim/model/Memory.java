@@ -6,6 +6,9 @@ package it.uniroma2.pellegrini.z64sim.model;
 
 
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass1;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass2;
+import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
@@ -91,7 +94,20 @@ public class Memory implements TableModel {
                 } else {
                     final MemoryElement memoryElement = this.program.getMemoryElementAt(row * 8L + i);
                     if(memoryElement == null) {
-                        sb.append("00 ");
+                        // Check for 16-byte instructions
+                        // TODO: all this should be made safer!
+                        final MemoryElement memoryElement2 = this.program.getMemoryElementAt((row - 1) * 8L);
+                        if(memoryElement2 instanceof InstructionClass1) {
+                            final OperandImmediate source = (OperandImmediate) ((InstructionClass1) memoryElement2).getSource();
+                            sb.append(source.toBytesString());
+                            i += 8;
+                        } else if(memoryElement2 instanceof InstructionClass2) {
+                            final OperandImmediate source = (OperandImmediate) ((InstructionClass2) memoryElement2).getSource();
+                            sb.append(source.toBytesString());
+                            i += 8;
+                        } else {
+                            sb.append("00 ");
+                        }
                     } else {
                         sb.append(memoryElement).append(" ");
                         i += memoryElement.getSize() - 1;

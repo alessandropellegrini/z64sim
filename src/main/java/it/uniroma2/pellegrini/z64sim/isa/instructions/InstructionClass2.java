@@ -32,9 +32,8 @@ public class InstructionClass2 extends Instruction {
 
         byte[] enc;
 
-        if(s instanceof OperandImmediate && s.getSize() == 64 || (s instanceof OperandMemory &&
-            ((OperandMemory) s).getDisplacement() != -1) || (d instanceof OperandMemory &&
-            ((OperandMemory) d).getDisplacement() != -1)) {
+        if(s instanceof OperandImmediate && s.getSize() == 8 ||
+            s instanceof OperandImmediate && d instanceof OperandMemory) {
             this.setSize(16);
             enc = new byte[16];
         } else {

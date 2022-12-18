@@ -36,4 +36,12 @@ public class OperandImmediate extends Operand {
     public void relocate(MemoryPointer value) {
         this.value += value.getTarget();
     }
+
+    public String toBytesString() {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < 8; i++) {
+            sb.append(String.format("%02x ", (this.value >> (i * 8)) & 0xff));
+        }
+        return sb.toString();
+    }
 }
