@@ -10,6 +10,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -43,6 +44,9 @@ public class MainWindow extends View {
     private JPanel editorTab;
     private JTabbedPane tabbedPane;
     private JButton newButton;
+    private JButton stepButton;
+    private MulticycleCpu cpuView;
+    private JButton runButton;
 
     private File openFile = null;
     private boolean isDirty = false;
@@ -51,6 +55,7 @@ public class MainWindow extends View {
         $$$setupUI$$$();
 
         this.memoryView.setModel(Memory.getInstance());
+        Memory.getInstance().setView(this.memoryView);
         this.compilerOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
         this.mainFrame = new JFrame(PropertyBroker.getPropertyValue("z64sim.name"));
@@ -85,6 +90,14 @@ public class MainWindow extends View {
                 super.keyTyped(e);
                 MainWindow.setDirty();
             }
+        });
+
+        SimulatorController.setCpuView(this.cpuView);
+        stepButton.addActionListener(actionEvent -> {
+            SimulatorController.step();
+        });
+        runButton.addActionListener(actionEvent -> {
+            SimulatorController.run();
         });
     }
 
@@ -261,6 +274,20 @@ public class MainWindow extends View {
         assembleButton.setText("");
         assembleButton.setToolTipText("Assemble program");
         toolBar1.add(assembleButton);
+        stepButton = new JButton();
+        Font stepButtonFont = UIManager.getFont("Button.font");
+        if(stepButtonFont != null) stepButton.setFont(stepButtonFont);
+        stepButton.setIcon(new ImageIcon(getClass().getResource("/images/step.png")));
+        stepButton.setText("");
+        stepButton.setToolTipText("Step instruction");
+        toolBar1.add(stepButton);
+        runButton = new JButton();
+        Font runButtonFont = UIManager.getFont("Button.font");
+        if(runButtonFont != null) runButton.setFont(runButtonFont);
+        runButton.setIcon(new ImageIcon(getClass().getResource("/images/run.png")));
+        runButton.setText("");
+        runButton.setToolTipText("Run program");
+        toolBar1.add(runButton);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
         Font splitPane1Font = UIManager.getFont("Panel.font");
@@ -299,8 +326,8 @@ public class MainWindow extends View {
         final JSplitPane splitPane3 = new JSplitPane();
         splitPane3.setOrientation(0);
         splitPane1.setRightComponent(splitPane3);
-        final MulticycleCpu nestedForm1 = new MulticycleCpu();
-        splitPane3.setLeftComponent(nestedForm1.$$$getRootComponent$$$());
+        cpuView = new MulticycleCpu();
+        splitPane3.setLeftComponent(cpuView.$$$getRootComponent$$$());
         final JScrollPane scrollPane3 = new JScrollPane();
         Font scrollPane3Font = UIManager.getFont("Panel.font");
         if(scrollPane3Font != null) scrollPane3.setFont(scrollPane3Font);

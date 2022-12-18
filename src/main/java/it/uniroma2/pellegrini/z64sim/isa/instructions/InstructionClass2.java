@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
@@ -224,7 +225,7 @@ public class InstructionClass2 extends Instruction {
         //R-M
         enc[3] = (byte) (srcReg | dstReg);
         //Opcode
-        switch(mnemonic) {
+        switch(mnemonic) { // TODO: move to a table/map
             case "add":
                 this.type = 0x00;
                 break;
@@ -273,10 +274,51 @@ public class InstructionClass2 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Long srcValue = SimulatorController.getOperandValue(this.source);
+        Long dstValue = SimulatorController.getOperandValue(this.destination);
+
+        switch(mnemonic) {
+            // TODO: take into account virtual registers
+            // FIXME: update FLAGS!
+            case "add":
+                SimulatorController.setOperandValue(this.destination, srcValue + dstValue);
+                break;
+            case "sub":
+                SimulatorController.setOperandValue(this.destination, dstValue - srcValue);
+                break;
+            case "adc":
+            case "sbb":
+                throw new UnsupportedOperationException("Not supported yet.");
+            case "cmp":
+                // TODO
+                break;
+            case "test":
+                // TODO
+                break;
+            case "neg":
+                SimulatorController.setOperandValue(this.source, (~srcValue)+1);
+                break;
+            case "and":
+                SimulatorController.setOperandValue(this.destination, srcValue & dstValue);
+                break;
+            case "or":
+                SimulatorController.setOperandValue(this.destination, srcValue | dstValue);
+                break;
+            case "xor":
+                SimulatorController.setOperandValue(this.destination, srcValue ^ dstValue);
+                break;
+            case "not":
+                SimulatorController.setOperandValue(this.source, ~srcValue);
+                break;
+            case "bt":
+                // TODO
+                break;
+            default:
+                throw new RuntimeException("Unknown Class 2 instruction: " + mnemonic);
+        }
     }
 
-    private static String opcodes[] = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
+    private static final String[] opcodes = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
         byte[] b2 = new byte[8];

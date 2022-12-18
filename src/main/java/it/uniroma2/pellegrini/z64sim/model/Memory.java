@@ -7,9 +7,12 @@ package it.uniroma2.pellegrini.z64sim.model;
 
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 
+import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 /**
  *
@@ -19,6 +22,7 @@ import javax.swing.table.TableModel;
 public class Memory implements TableModel {
     private static Memory instance = null;
     private Program program = null;
+    private JTable memoryView;
 
     private Memory() {}
 
@@ -28,18 +32,31 @@ public class Memory implements TableModel {
         return instance;
     }
 
-    public static void refresh() {
-        ((AbstractTableModel)(TableModel)getInstance()).fireTableDataChanged();
+    public static void selectAddress(long address) {
+        int row = (int) (address / 8);
+        getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
+        getInstance().memoryView.scrollRectToVisible(getInstance().memoryView.getCellRect(row, 0, true));
+        // TODO: probably overkill
+        getInstance().memoryView.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent e) {
+                getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
+                getInstance().memoryView.scrollRectToVisible(getInstance().memoryView.getCellRect(row, 0, true));
+            }
+        });
     }
 
     public static void setProgram(Program program) {
         getInstance().program = program;
-        refresh();
+    }
+
+    public static void setValueAt(long address, byte srcValue) {
+        getInstance().program.binary.put((int)address, new MemoryData(srcValue));
+        ((AbstractTableModel)(TableModel)getInstance()).fireTableRowsUpdated((int)address, (int)address);
     }
 
     @Override
     public int getRowCount() {
-        return this.program == null ? 200 : this.program.getLargetAddress() / 8;
+        return this.program == null ? 200 : this.program.getLargestAddress() / 8;
     }
 
     @Override
@@ -65,7 +82,7 @@ public class Memory implements TableModel {
     @Override
     public Object getValueAt(int row, int col) {
         if(col == 0) {
-            return String.format("%016x", row * 8); // 64-bit address
+            return String.format("%#016x", row * 8); // 64-bit address
         } else if(col == 1) {
             StringBuilder sb = new StringBuilder();
             for(int i = 0; i < 8; i++) {
@@ -100,5 +117,12 @@ public class Memory implements TableModel {
     @Override
     public void removeTableModelListener(TableModelListener tableModelListener) {
 
+    }
+
+    public static byte getValueAt(long address) {
+        return getInstance().program.getMemoryElementAt(address).getValue()[0]; // TODO: make it safer!
+    }
+    public void setView(JTable memoryView) {
+        this.memoryView = memoryView;
     }
 }

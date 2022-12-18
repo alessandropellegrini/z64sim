@@ -26,7 +26,7 @@ import java.util.Map;
 public class Program {
     private static final Logger log = LoggerFactory.getLogger();
 
-    private final Map<Integer, MemoryElement> binary = new Hashtable<>();
+    final Map<Integer, MemoryElement> binary = new Hashtable<>();
 
     private Map<String, MemoryPointer> labels = new Hashtable<>();
     private Map<String, Long> equs = new Hashtable<>();
@@ -168,7 +168,7 @@ public class Program {
         return addr;
     }
 
-    public int getLargetAddress() {
+    public int getLargestAddress() {
         return this.binary.keySet().stream().max(Integer::compareTo).orElse(0);
     }
 

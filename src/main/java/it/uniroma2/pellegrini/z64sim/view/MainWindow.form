@@ -57,6 +57,24 @@
               <toolTipText value="Assemble program"/>
             </properties>
           </component>
+          <component id="9816c" class="javax.swing.JButton" binding="stepButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/step.png"/>
+              <text value=""/>
+              <toolTipText value="Step instruction"/>
+            </properties>
+          </component>
+          <component id="ec9bb" class="javax.swing.JButton" binding="runButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/run.png"/>
+              <text value=""/>
+              <toolTipText value="Run program"/>
+            </properties>
+          </component>
         </children>
       </toolbar>
       <splitpane id="abeb1">
@@ -150,7 +168,7 @@
             </properties>
             <border type="none"/>
             <children>
-              <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/MulticycleCpu.form">
+              <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/MulticycleCpu.form" binding="cpuView">
                 <constraints>
                   <splitpane position="left"/>
                 </constraints>

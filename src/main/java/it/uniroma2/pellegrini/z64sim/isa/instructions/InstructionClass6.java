@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
@@ -79,7 +80,52 @@ public class InstructionClass6 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Long dest = SimulatorController.getOperandValue(this.target);
+
+        switch(mnemonic) {
+            case "jc":
+                if(SimulatorController.getCF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jp":
+                if(SimulatorController.getPF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jz":
+                if(SimulatorController.getZF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "js":
+                if(SimulatorController.getSF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jo":
+                if(SimulatorController.getOF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jnc":
+                if(!SimulatorController.getCF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jnp":
+                if(!SimulatorController.getPF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jnz":
+                if(!SimulatorController.getZF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jns":
+                if(!SimulatorController.getSF())
+                    SimulatorController.setRIP(dest);
+                break;
+            case "jno":
+                if(!SimulatorController.getOF())
+                    SimulatorController.setRIP(dest);
+                break;
+            default:
+                throw new RuntimeException("Unknown Class 6 instruction: " + mnemonic);
+        }
     }
 
 

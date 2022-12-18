@@ -11,6 +11,7 @@ import it.uniroma2.pellegrini.z64sim.model.MemoryPointer;
 
 public class OperandMemory extends Operand {
 
+    // TODO: map -1 to nulls
     private int base = -1;
     private int scale = -1;
     private int index = -1;

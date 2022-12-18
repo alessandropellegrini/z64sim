@@ -11,6 +11,7 @@ package it.uniroma2.pellegrini.z64sim.isa.registers;
  */
 public class Register {
 
+    // TODO: migrate to an enum
     // Public codes to identify registers
     public static final int RAX = 0;
     public static final int RCX = 1;
@@ -29,6 +30,7 @@ public class Register {
     public static final int R14 = 14;
     public static final int R15 = 15;
 
+    // TODO: migrate to ISA
     // Array to map virtual registers to physical registers
     private static final String[][] registers
             = {

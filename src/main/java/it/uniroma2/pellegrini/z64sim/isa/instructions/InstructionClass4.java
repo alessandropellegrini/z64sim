@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 
 /**
@@ -30,60 +31,46 @@ public class InstructionClass4 extends Instruction {
 
         switch(mnemonic) {
             case "clc":
-                this.type = 0x00;
-                this.val = 0;
+                SimulatorController.setCF(false);
                 break;
             case "clp":
-                this.type = 0x01;
-                this.val = 0;
+                SimulatorController.setPF(false);
                 break;
             case "clz":
-                this.type = 0x02;
-                this.val = 0;
+                SimulatorController.setZF(false);
                 break;
             case "cls":
-                this.type = 0x03;
-                this.val = 0;
+                SimulatorController.setSF(false);
                 break;
             case "cli":
-                this.type = 0x04;
-                this.val = 0;
+                SimulatorController.setIF(false);
                 break;
             case "cld":
-                this.type = 0x05;
-                this.val = 0;
+                SimulatorController.setDF(false);
                 break;
             case "clo":
-                this.type = 0x06;
-                this.val = 0;
+                SimulatorController.setOF(false);
                 break;
             case "stc":
-                this.type = 0x07;
-                this.val = 1;
+                SimulatorController.setCF(true);
                 break;
             case "stp":
-                this.type = 0x08;
-                this.val = 1;
+                SimulatorController.setPF(true);
                 break;
             case "stz":
-                this.type = 0x09;
-                this.val = 1;
+                SimulatorController.setZF(true);
                 break;
             case "sts":
-                this.type = 0x0a;
-                this.val = 1;
+                SimulatorController.setSF(true);
                 break;
             case "sti":
-                this.type = 0x0b;
-                this.val = 1;
+                SimulatorController.setIF(true);
                 break;
             case "std":
-                this.type = 0x0c;
-                this.val = 1;
+                SimulatorController.setDF(true);
                 break;
             case "sto":
-                this.type = 0x0d;
-                this.val = 1;
+                SimulatorController.setOF(true);
                 break;
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
