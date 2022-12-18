@@ -107,23 +107,17 @@ public class Program {
     }
 
     public void finalizeData() {
+        // Get the initial address of data
+        long initialAddress = this.locationCounter;
 
-        // TODO: inconsistent with relocations and data start above
-//        // Get the initial address of data
-//        long initialAddress = this.locationCounter;
-//
-//        // Align instructions to 8 bytes
-//        if ((initialAddress & 0x07) != 0) {
-//            long newAddress = initialAddress;
-//            newAddress += 8;
-//            newAddress = newAddress & 0xfffffffffffffff8L;
-//
-//            // Fill memory in between
-//            long fillSize = newAddress - initialAddress;
-//            for(int i = 0; i < fillSize; i++) {
-//                this.data.add((byte)0);
-//            }
-//        }
+        // Align instructions to 8 bytes
+        if ((initialAddress & 0x07) != 0) {
+            long newAddress = initialAddress;
+            newAddress += 8;
+            newAddress = newAddress & 0xfffffffffffffff8L;
+
+            addData(new byte[(int) (newAddress - initialAddress)]);
+        }
     }
 
     public void addInstruction(Instruction insn) {
@@ -161,7 +155,6 @@ public class Program {
 
     public int addData(@NotNull byte[] val) {
         int addr = this.locationCounter;
-        // Fill memory in between
         for (byte b : val) {
             this.binary.put(this.locationCounter++, new MemoryData(b));
         }
