@@ -11,6 +11,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
+import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -216,6 +217,10 @@ public class MainWindow extends View {
             case SET_THEME_DARK:
                 this.setTheme(new FlatDarkLaf());
                 break;
+            case UPDATE_CHECK_COMPLETED:
+                if(UpdateController.isUpdateAvailable()) {
+                    JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("update.available.0", UpdateController.getUpstreamVersion()), PropertyBroker.getMessageFromBundle("update.available"), JOptionPane.INFORMATION_MESSAGE);
+                }
         }
         return true;
     }

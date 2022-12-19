@@ -1,5 +1,4 @@
 /**
- *
  * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
@@ -10,5 +9,7 @@ public enum Events {
     SET_THEME_LIGHT,
     SET_THEME_DARK,
     SHOW_SETTINGS_DIALOG,
-    MEMORY_CHANGED, ASSEMBLE_PROGRAM
+    UPDATE_CHECK_COMPLETED,
+    MEMORY_CHANGED,
+    ASSEMBLE_PROGRAM
 }

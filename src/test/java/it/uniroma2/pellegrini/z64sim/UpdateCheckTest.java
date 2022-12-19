@@ -10,5 +10,12 @@ public class UpdateCheckTest {
     @DisplayName("Testing Disassembler")
     public void testUpdateCheck() {
         UpdateController.init();
+        while(!UpdateController.isCheckCompleted()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
