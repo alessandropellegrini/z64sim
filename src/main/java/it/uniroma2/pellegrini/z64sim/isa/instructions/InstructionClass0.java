@@ -5,16 +5,17 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 public class InstructionClass0 extends Instruction {
 
-    OperandImmediate idn;
+    OperandImmediate ivn;
 
-    public InstructionClass0(String mnemonic, OperandImmediate idn) throws ParseException {
+    public InstructionClass0(String mnemonic, OperandImmediate ivn) throws ParseException {
         super(mnemonic, 0);
-        this.idn = idn;
+        this.ivn = ivn;
 
         // Set the size in memory
         this.setSize(8);
@@ -43,7 +44,12 @@ public class InstructionClass0 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(this.mnemonic.equals("hlt")) {
+            SimulatorController.displaceRIP(-this.size);
+        }
+        if(this.mnemonic.equals("int")) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     }
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
@@ -69,7 +75,7 @@ public class InstructionClass0 extends Instruction {
     public String toString() {
         String insn = this.mnemonic;
         if(this.mnemonic.equals("int"))
-            insn += " " + this.idn;
+            insn += " " + this.ivn;
         return insn;
     }
 }

@@ -26,7 +26,7 @@ import java.util.Map;
 public class Program {
     private static final Logger log = LoggerFactory.getLogger();
 
-    private final Map<Integer, MemoryElement> binary = new Hashtable<>();
+    final Map<Integer, MemoryElement> binary = new Hashtable<>();
 
     private Map<String, MemoryPointer> labels = new Hashtable<>();
     private Map<String, Long> equs = new Hashtable<>();
@@ -39,6 +39,10 @@ public class Program {
     public Program() {}
 
     public void finalizeProgram() throws ProgramException {
+        // Check if main was set
+        if(this._start == null)
+            throw new ProgramException("No main function found");
+
         // Perform relocation of label values
         for(RelocationEntry rel : this.relocations) {
             rel.relocate(this);
@@ -103,23 +107,17 @@ public class Program {
     }
 
     public void finalizeData() {
+        // Get the initial address of data
+        long initialAddress = this.locationCounter;
 
-        // TODO: inconsistent with relocations and data start above
-//        // Get the initial address of data
-//        long initialAddress = this.locationCounter;
-//
-//        // Align instructions to 8 bytes
-//        if ((initialAddress & 0x07) != 0) {
-//            long newAddress = initialAddress;
-//            newAddress += 8;
-//            newAddress = newAddress & 0xfffffffffffffff8L;
-//
-//            // Fill memory in between
-//            long fillSize = newAddress - initialAddress;
-//            for(int i = 0; i < fillSize; i++) {
-//                this.data.add((byte)0);
-//            }
-//        }
+        // Align instructions to 8 bytes
+        if ((initialAddress & 0x07) != 0) {
+            long newAddress = initialAddress;
+            newAddress += 8;
+            newAddress = newAddress & 0xfffffffffffffff8L;
+
+            addData(new byte[(int) (newAddress - initialAddress)]);
+        }
     }
 
     public void addInstruction(Instruction insn) {
@@ -157,11 +155,14 @@ public class Program {
 
     public int addData(@NotNull byte[] val) {
         int addr = this.locationCounter;
-        // Fill memory in between
         for (byte b : val) {
             this.binary.put(this.locationCounter++, new MemoryData(b));
         }
         return addr;
+    }
+
+    public int getLargestAddress() {
+        return this.binary.keySet().stream().max(Integer::compareTo).orElse(0);
     }
 
     /**

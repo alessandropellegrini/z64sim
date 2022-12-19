@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
@@ -36,9 +37,8 @@ public class InstructionClass1 extends Instruction {
 
         byte[] enc;
 
-        if(s instanceof OperandImmediate && s.getSize() == 64 || (s instanceof OperandMemory &&
-            ((OperandMemory) s).getDisplacement() != -1) || (d instanceof OperandMemory &&
-            ((OperandMemory) d).getDisplacement() != -1)) {
+        if(s instanceof OperandImmediate && s.getSize() == 8 ||
+            s instanceof OperandImmediate && d instanceof OperandMemory) {
             this.setSize(16);
             enc = new byte[16];
         } else {
@@ -282,7 +282,84 @@ public class InstructionClass1 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Long srcValue = SimulatorController.getOperandValue(this.source);
+
+        // TODO: migrate all these to algorithm lambdas
+        switch(mnemonic) {
+            case "mov":
+                SimulatorController.setOperandValue(this.destination, srcValue);
+                break;
+            case "movsX":
+                switch(this.source.getSize()) {
+                    case 1:
+                        boolean msb = (srcValue.byteValue() & 0x80) == 0x80;
+                        if(msb) {
+                            srcValue = srcValue | 0xFFFFFFFFFFFFFF00L;
+                        } else {
+                            srcValue = srcValue & 0x00000000000000FFL;
+                        }
+                        break;
+                    case 2:
+                        msb = (srcValue.shortValue() & 0x8000) == 0x8000;
+                        if(msb) {
+                            srcValue = srcValue | 0xFFFFFFFFFFFF0000L;
+                        } else {
+                            srcValue = srcValue & 0x000000000000FFFFL;
+                        }
+                        break;
+                    case 4:
+                        msb = (srcValue.intValue() & 0x80000000) == 0x80000000;
+                        if(msb) {
+                            srcValue = srcValue | 0xFFFFFFFF00000000L;
+                        } else {
+                            srcValue = srcValue & 0x00000000FFFFFFFFL;
+                        }
+                        break;
+                }
+                SimulatorController.setOperandValue(this.destination, srcValue);
+                break;
+            case "movzX":
+                switch(this.source.getSize()) {
+                    case 1:
+                        srcValue = srcValue & 0x00000000000000FFL;
+                        break;
+                    case 2:
+                        srcValue = srcValue & 0x000000000000FFFFL;
+                        break;
+                    case 4:
+                        srcValue = srcValue & 0x00000000FFFFFFFFL;
+                        break;
+                }
+                SimulatorController.setOperandValue(this.destination, srcValue);
+                break;
+            case "lea":
+                srcValue = SimulatorController.computeAddressingMode((OperandMemory) this.source);
+                SimulatorController.setOperandValue(this.destination, srcValue);
+                break;
+            case "push":
+                OperandRegister sp = new OperandRegister(Register.RSP, 8);
+                Long spValue = SimulatorController.getOperandValue(sp) - 8;
+                // TODO: this is a hack, fix it: SP should be 8 bytes, but we're using 4 bytes for now
+                OperandMemory spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                SimulatorController.setOperandValue(spMem, srcValue);
+                SimulatorController.setOperandValue(sp, spValue);
+                break;
+            case "pop":
+                sp = new OperandRegister(Register.RSP, 8);
+                spValue = SimulatorController.getOperandValue(sp);
+                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                srcValue = SimulatorController.getOperandValue(spMem);
+                SimulatorController.setOperandValue(sp, spValue + 8);
+                SimulatorController.setOperandValue(this.destination, srcValue);
+                break;
+            case "movs":
+            case "stos":
+            case "popf":
+            case "pushf":
+                throw new UnsupportedOperationException("Not supported yet.");
+            default:
+                throw new RuntimeException("Unknown Class 1 instruction: " + mnemonic);
+        }
     }
 
     public static String disassemble(byte[] encoding) throws DisassembleException {
@@ -480,7 +557,7 @@ public class InstructionClass1 extends Instruction {
         return instr;
     }
 
-
+    // TODO: consider moving source and destination to the parent class
     public Operand getSource() {
         return this.source;
     }

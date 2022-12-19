@@ -112,4 +112,8 @@ public abstract class Instruction implements MemoryElement {
     public byte[] getValue() {
         return this.encoding;
     }
+
+    public String getMnemonic() {
+        return this.mnemonic;
+    }
 }

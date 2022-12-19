@@ -5,8 +5,8 @@
  */
 package it.uniroma2.pellegrini.z64sim.model;
 
-import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.isa.registers.FlagsRegister;
+import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 
 import java.io.Serializable;
 
@@ -272,5 +272,80 @@ public class CpuState implements Serializable {
         long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setOF(flag);
         long newValue = FlagsRegister.getQuadword();
+    }
+
+    public Long getRegisterValue(int reg) {
+        switch(reg) {
+            case Register.RAX:
+                return getRAX();
+            case Register.RCX:
+                return getRCX();
+            case Register.RDX:
+                return getRDX();
+            case Register.RBX:
+                return getRBX();
+            case Register.RSP:
+                return getRSP();
+            case Register.RBP:
+                return getRBP();
+            case Register.RSI:
+                return getRSI();
+            case Register.RDI:
+                return getRDI();
+            case Register.R8:
+                return getR8();
+            case Register.R9:
+                return getR9();
+            case Register.R10:
+                return getR10();
+            case Register.R11:
+                return getR11();
+            case Register.R12:
+                return getR12();
+            case Register.R13:
+                return getR13();
+            case Register.R14:
+                return getR14();
+            case Register.R15:
+                return getR15();
+        }
+        return null;
+    }
+
+    public void setRegisterValue(int reg, Long srcValue) {
+        switch(reg) {
+            case Register.RAX:
+                setRAX(srcValue);
+            case Register.RCX:
+                setRCX(srcValue);
+            case Register.RDX:
+                setRDX(srcValue);
+            case Register.RBX:
+                setRBX(srcValue);
+            case Register.RSP:
+                setRSP(srcValue);
+            case Register.RBP:
+                setRBP(srcValue);
+            case Register.RSI:
+                setRSI(srcValue);
+            case Register.RDI:
+                setRDI(srcValue);
+            case Register.R8:
+                setR8(srcValue);
+            case Register.R9:
+                setR9(srcValue);
+            case Register.R10:
+                setR10(srcValue);
+            case Register.R11:
+                setR11(srcValue);
+            case Register.R12:
+                setR12(srcValue);
+            case Register.R13:
+                setR13(srcValue);
+            case Register.R14:
+                setR14(srcValue);
+            case Register.R15:
+                setR15(srcValue);
+        }
     }
 }

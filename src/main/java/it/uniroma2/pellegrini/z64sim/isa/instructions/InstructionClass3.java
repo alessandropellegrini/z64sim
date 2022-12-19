@@ -4,6 +4,7 @@
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
@@ -18,6 +19,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 public class InstructionClass3 extends Instruction {
     private static final Logger log = LoggerFactory.getLogger();
 
+    // TODO: make consistent with src and dest. Can use RCX as source when explicit places is given
     private final int places;
     private final OperandRegister reg;
 
@@ -133,7 +135,27 @@ public class InstructionClass3 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Long value = SimulatorController.getOperandValue(this.reg);
+
+        switch(mnemonic) {
+            case "sal":
+            case "shl":
+                SimulatorController.setOperandValue(this.reg, value << places);
+                break;
+            case "sar":
+                SimulatorController.setOperandValue(this.reg, value >>> places);
+                break;
+            case "shr":
+                SimulatorController.setOperandValue(this.reg, value >> places);
+                break;
+            case "rcl":
+            case "rcr":
+            case "rol":
+            case "ror":
+                throw new UnsupportedOperationException("Not supported yet.");
+            default:
+                throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
+        }
     }
 
 

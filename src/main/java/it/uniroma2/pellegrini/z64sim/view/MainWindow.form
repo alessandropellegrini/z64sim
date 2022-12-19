@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="480" height="419"/>
+      <xy x="20" y="20" width="1765" height="500"/>
     </constraints>
     <properties>
       <font swing-font="Panel.font"/>
@@ -21,12 +21,58 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="6162c" class="javax.swing.JButton" binding="button1" default-binding="true">
+          <component id="3fd2" class="javax.swing.JButton" binding="newButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/z64doc.png"/>
+              <text value=""/>
+              <toolTipText value="New file"/>
+            </properties>
+          </component>
+          <component id="3486e" class="javax.swing.JButton" binding="openButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/open.png"/>
+              <text value=""/>
+              <toolTipText value="Open file"/>
+            </properties>
+          </component>
+          <component id="aa274" class="javax.swing.JButton" binding="saveButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/save.png"/>
+              <text value=""/>
+              <toolTipText value="Save file"/>
+            </properties>
+          </component>
+          <component id="6162c" class="javax.swing.JButton" binding="assembleButton">
             <constraints/>
             <properties>
               <font swing-font="Button.font"/>
               <icon value="images/assemble_icon.png"/>
               <text value=""/>
+              <toolTipText value="Assemble program"/>
+            </properties>
+          </component>
+          <component id="9816c" class="javax.swing.JButton" binding="stepButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/step.png"/>
+              <text value=""/>
+              <toolTipText value="Step instruction"/>
+            </properties>
+          </component>
+          <component id="ec9bb" class="javax.swing.JButton" binding="runButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/run.png"/>
+              <text value=""/>
+              <toolTipText value="Run program"/>
             </properties>
           </component>
         </children>
@@ -56,7 +102,7 @@
             </properties>
             <border type="none"/>
             <children>
-              <tabbedpane id="7e21e" default-binding="true">
+              <tabbedpane id="7e21e" binding="tabbedPane">
                 <constraints>
                   <splitpane position="left"/>
                 </constraints>
@@ -65,7 +111,7 @@
                 </properties>
                 <border type="none"/>
                 <children>
-                  <grid id="4155b" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="4155b" binding="editorTab" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
                       <tabbedpane title-resource-bundle="i18n" title-key="file.tab.untitled"/>
@@ -113,25 +159,41 @@
               </scrollpane>
             </children>
           </splitpane>
-          <scrollpane id="2f25d">
+          <splitpane id="aa094">
             <constraints>
               <splitpane position="right"/>
             </constraints>
             <properties>
-              <font swing-font="Panel.font"/>
+              <orientation value="0"/>
             </properties>
             <border type="none"/>
             <children>
-              <component id="a2e80" class="javax.swing.JTextArea" binding="compilerOutput">
-                <constraints/>
+              <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/RegisterBank.form" binding="cpuView">
+                <constraints>
+                  <splitpane position="left"/>
+                </constraints>
+              </nested-form>
+              <scrollpane id="2f25d">
+                <constraints>
+                  <splitpane position="right"/>
+                </constraints>
                 <properties>
-                  <editable value="false"/>
-                  <rows value="5"/>
-                  <text value="a&#10;b&#10;c&#10;d&#10;e&#10;f&#10;g&#10;h&#10;i"/>
+                  <font swing-font="Panel.font"/>
                 </properties>
-              </component>
+                <border type="none"/>
+                <children>
+                  <component id="a2e80" class="javax.swing.JTextArea" binding="compilerOutput">
+                    <constraints/>
+                    <properties>
+                      <editable value="false"/>
+                      <rows value="5"/>
+                      <text value=""/>
+                    </properties>
+                  </component>
+                </children>
+              </scrollpane>
             </children>
-          </scrollpane>
+          </splitpane>
         </children>
       </splitpane>
     </children>
