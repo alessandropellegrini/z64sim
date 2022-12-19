@@ -9,6 +9,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import org.jetbrains.annotations.NonNls;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -42,6 +43,7 @@ public class UpdateController extends Controller {
             con.setRequestProperty("X-GitHub-Api-Version", "2022-11-28");
 
             int status = con.getResponseCode();
+            log.trace(PropertyBroker.getMessageFromBundle("update.got.response.code.0", status));
 
             StringBuilder response = new StringBuilder();
             if(status >= 200 && status < 299) {
@@ -54,8 +56,10 @@ public class UpdateController extends Controller {
                 in.close();
 
                 JSONParser parser = new JSONParser();
-                JSONObject jsonResponse = (JSONObject) parser.parse(String.valueOf(response));
+                @NonNls JSONObject jsonResponse = (JSONObject) parser.parse(String.valueOf(response));
                 upstreamVersion = (String) jsonResponse.get("name");
+
+                log.info(PropertyBroker.getMessageFromBundle("update.latest.version.upstream.0", upstreamVersion));
             }
             con.disconnect();
             log.trace(response.toString());
