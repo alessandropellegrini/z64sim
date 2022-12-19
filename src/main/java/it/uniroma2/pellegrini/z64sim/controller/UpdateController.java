@@ -44,7 +44,7 @@ public class UpdateController extends Controller {
             int status = con.getResponseCode();
 
             StringBuilder response = new StringBuilder();
-            if (status >= 200 && status < 299) {
+            if(status >= 200 && status < 299) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
                 String inputLine;
 
@@ -82,7 +82,7 @@ public class UpdateController extends Controller {
     }
 
     public static boolean isUpdateAvailable() {
-        return !PropertyBroker.getPropertyValue("z64sim.version").equals(upstreamVersion);
+        return upstreamVersion != null && !PropertyBroker.getPropertyValue("z64sim.version").equals(upstreamVersion);
     }
 
     @Override
