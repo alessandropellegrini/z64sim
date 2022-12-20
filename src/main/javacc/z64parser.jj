@@ -464,7 +464,8 @@ void Data() :
                      | <ASCII_ASSIGN> t2 = <STRING_LITERAL>
                        {
                          // Put data in memory
-                         byte[] str = t2.image.substring(1, t2.image.length() - 1).getBytes();
+                         byte[] str = t2.image.substring(1, t2.image.length()).getBytes();
+                         str[str.length - 1] = 0; // Replace last " with \0
                          addr = this.program.addData(str);
 
                         // Add the label

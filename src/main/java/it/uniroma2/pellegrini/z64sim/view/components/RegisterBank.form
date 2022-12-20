@@ -99,7 +99,7 @@
               </grid>
             </constraints>
             <properties>
-              <text value="00000000000000000000"/>
+              <text value="00002"/>
             </properties>
           </component>
         </children>

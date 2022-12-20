@@ -56,7 +56,7 @@ public class CpuState implements Serializable {
     private final Register RIP = new Register();
     private final FlagsRegister FlagsRegister = new FlagsRegister();
 
-    public Long getFLAGS() {
+    public Long getFlags() {
         return FlagsRegister.getQuadword();
     }
 

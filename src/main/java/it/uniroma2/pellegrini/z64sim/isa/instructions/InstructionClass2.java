@@ -278,39 +278,49 @@ public class InstructionClass2 extends Instruction {
 
         switch(mnemonic) {
             // TODO: take into account virtual registers
-            // FIXME: update FLAGS!
             case "add":
-                SimulatorController.setOperandValue(this.destination, srcValue + dstValue);
+                long result = srcValue + dstValue;
+                SimulatorController.setOperandValue(this.destination, result);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "sub":
-                SimulatorController.setOperandValue(this.destination, dstValue - srcValue);
+                result = dstValue - srcValue;
+                SimulatorController.setOperandValue(this.destination, result);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "adc":
             case "sbb":
                 throw new UnsupportedOperationException("Not supported yet.");
             case "cmp":
-                // TODO
+                result = dstValue - srcValue;
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "test":
-                // TODO
+                result = dstValue & srcValue;
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "neg":
-                SimulatorController.setOperandValue(this.source, (~srcValue)+1);
+                SimulatorController.setOperandValue(this.source, (~srcValue) + 1);
                 break;
             case "and":
                 SimulatorController.setOperandValue(this.destination, srcValue & dstValue);
                 break;
             case "or":
-                SimulatorController.setOperandValue(this.destination, srcValue | dstValue);
+                result = srcValue | dstValue;
+                SimulatorController.setOperandValue(this.destination, result);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "xor":
-                SimulatorController.setOperandValue(this.destination, srcValue ^ dstValue);
+                result = srcValue ^ dstValue;
+                SimulatorController.setOperandValue(this.destination, result);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "not":
                 SimulatorController.setOperandValue(this.source, ~srcValue);
                 break;
             case "bt":
-                // TODO
+                result = dstValue & (1L << srcValue);
+                SimulatorController.setCF(result != 0);
                 break;
             default:
                 throw new RuntimeException("Unknown Class 2 instruction: " + mnemonic);

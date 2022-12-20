@@ -18,16 +18,15 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 /**
- *
- *
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
-public class Memory implements TableModel {
+public class Memory extends AbstractTableModel {
     private static Memory instance = null;
     private Program program = null;
     private JTable memoryView;
 
-    private Memory() {}
+    private Memory() {
+    }
 
     public static Memory getInstance() {
         if(instance == null)

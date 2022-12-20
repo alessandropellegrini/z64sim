@@ -44,8 +44,7 @@ public class SimulatorController extends Controller {
     }
 
     private static SimulatorController getInstance() {
-        if(instance == null)
-            init();
+        if(instance == null) init();
         return instance;
     }
 
@@ -71,11 +70,11 @@ public class SimulatorController extends Controller {
         final int index = op.getIndex();
         final int scale = op.getScale();
 
-        final Long baseValue = getInstance().cpuState.getRegisterValue((int) base);
-        final Long indexValue = getInstance().cpuState.getRegisterValue(index);
+        final Long baseValue = base != -1 ? getInstance().cpuState.getRegisterValue((int) base) : 0;
+        final Long indexValue = index != -1 ? getInstance().cpuState.getRegisterValue(index) : 0;
 
-        long address = indexValue == null ? 0 : indexValue * scale;
-        address += baseValue == null ? 0 : baseValue;
+        long address = scale != -1 ? indexValue * scale : 0;
+        address += baseValue;
         address += displacement;
         return address;
     }
@@ -92,6 +91,9 @@ public class SimulatorController extends Controller {
 
             long memoryValue = 0;
             switch(op.getSize()) {
+                case -1:
+                    memoryValue = address;
+                    break;
                 case 1:
                     memoryValue = Memory.getValueAt(address);
                     break;
@@ -99,14 +101,10 @@ public class SimulatorController extends Controller {
                     memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8);
                     break;
                 case 4:
-                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8)
-                        | (Memory.getValueAt(address + 2) << 16) | (Memory.getValueAt(address + 3) << 24);
+                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8) | (Memory.getValueAt(address + 2) << 16) | (Memory.getValueAt(address + 3) << 24);
                     break;
                 case 8:
-                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8)
-                        | (Memory.getValueAt(address + 2) << 16) | (Memory.getValueAt(address + 3) << 24)
-                        | ((long) Memory.getValueAt(address + 4) << 32) | ((long) Memory.getValueAt(address + 5) << 40)
-                        | ((long) Memory.getValueAt(address + 6) << 48) | ((long) Memory.getValueAt(address + 7) << 56);
+                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8) | (Memory.getValueAt(address + 2) << 16) | (Memory.getValueAt(address + 3) << 24) | ((long) Memory.getValueAt(address + 4) << 32) | ((long) Memory.getValueAt(address + 5) << 40) | ((long) Memory.getValueAt(address + 6) << 48) | ((long) Memory.getValueAt(address + 7) << 56);
                     break;
             }
 
@@ -119,6 +117,7 @@ public class SimulatorController extends Controller {
     public static void setOperandValue(Operand destination, Long srcValue) {
         if(destination instanceof OperandRegister) {
             getInstance().cpuState.setRegisterValue(((OperandRegister) destination).getRegister(), srcValue);
+            getInstance().refreshRegisters((OperandRegister) destination);
         }
         if(destination instanceof OperandMemory) {
             long address = computeAddressingMode((OperandMemory) destination);
@@ -150,6 +149,14 @@ public class SimulatorController extends Controller {
             }
             Memory.selectAddress(address);
         }
+    }
+
+    private void refreshRegisters(OperandRegister destination) {
+        cpuView.setRegister(destination.getRegister(), cpuState.getRegisterValue(destination.getRegister()));
+    }
+
+    private void refreshFlags() {
+        cpuView.setFlags(cpuState.getFlags(), cpuState.getOF(), cpuState.getDF(), cpuState.getIF(), cpuState.getSF(), cpuState.getZF(), cpuState.getPF(), cpuState.getCF());
     }
 
     public static void setCF(boolean value) {
@@ -221,9 +228,9 @@ public class SimulatorController extends Controller {
 
         StringBuilder assemblerOutput = new StringBuilder();
         if(syntaxErrors.isEmpty()) {
-            assemblerOutput.append("Assembly successful.");
+            assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.successful"));
         } else {
-            assemblerOutput.append("Assembly failed with ").append(syntaxErrors.size()).append(" errors:\n\n");
+            assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.failed.with.0.errors", syntaxErrors.size()));
             for(String e : syntaxErrors) {
                 assemblerOutput.append(e).append("\n");
             }
@@ -234,7 +241,7 @@ public class SimulatorController extends Controller {
         Memory.setProgram(this.program);
 
         long _start = this.program._start.getTarget();
-        this.setRIP(_start);
+        setRIP(_start);
     }
 
     public static boolean step() {
@@ -251,8 +258,7 @@ public class SimulatorController extends Controller {
     // Return true if the program reached a halt instruction
     private boolean stepInstruction() {
         SimulatorController sc = getInstance();
-        if(sc.program == null)
-            return false;
+        if(sc.program == null) return true;
 
         Instruction instruction = sc.fetch();
 
@@ -281,6 +287,47 @@ public class SimulatorController extends Controller {
         getInstance().cpuState.setRIP(address);
         getInstance().cpuView.setRIP(address);
         Memory.selectAddress(address);
+    }
+
+    public static void updateFlags(long op1, long op2, long result, int size) {
+        long mask = 0;
+        switch(size) {
+            case 1:
+                mask = 0xFF;
+                break;
+            case 2:
+                mask = 0xFFFF;
+                break;
+            case 4:
+                mask = 0xFFFFFFFF;
+                break;
+            case 8:
+                mask = 0xFFFFFFFFFFFFFFFFL;
+                break;
+        }
+
+        boolean cf = (result & mask) < (op1 & mask);
+        boolean zf = (result & mask) == 0;
+        boolean sf = (result & mask) < 0;
+        boolean of = (op1 & mask) > 0 && (op2 & mask) > 0 && (result & mask) < 0 || (op1 & mask) < 0 && (op2 & mask) < 0 && (result & mask) > 0;
+        boolean pf = countSetBits(result & mask) % 2 == 0;
+
+        setCF(cf);
+        setZF(zf);
+        setSF(sf);
+        setOF(of);
+        setPF(pf);
+
+        getInstance().refreshFlags();
+    }
+
+    private static int countSetBits(long n) {
+        int count = 0;
+        while(n > 0) {
+            count += n & 1;
+            n >>= 1;
+        }
+        return count;
     }
 
     @Override

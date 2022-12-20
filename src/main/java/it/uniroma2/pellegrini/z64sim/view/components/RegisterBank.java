@@ -7,6 +7,7 @@ package it.uniroma2.pellegrini.z64sim.view.components;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.View;
 
@@ -92,7 +93,7 @@ public class RegisterBank extends View {
         multicycleCPU.add(panel5, new GridConstraints(5, 2, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         panel5.setBorder(BorderFactory.createTitledBorder(null, "RFLAGS", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         rflags = new JLabel();
-        rflags.setText("00000000000000000000");
+        rflags.setText("00002");
         panel5.add(rflags, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(148, 20), null, 0, false));
         final JPanel panel6 = new JPanel();
         panel6.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
@@ -195,10 +196,75 @@ public class RegisterBank extends View {
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
     }
 
     public void setRIP(long address) {
         this.rip.setText(String.format("%020d", address));
+    }
+
+    public void setFlags(long registerValue, boolean OF, boolean DF, boolean IF, boolean SF, boolean ZF, boolean PF, boolean CF) {
+        String flags = String.format("%05d ", registerValue) +
+            (OF ? "[OF]" : "") +
+            (DF ? "[DF]" : "") +
+            (IF ? "[IF]" : "") +
+            (SF ? "[SF]" : "") +
+            (ZF ? "[ZF]" : "") +
+            (PF ? "[PF]" : "") +
+            (CF ? "[CF]" : "");
+        this.rflags.setText(flags);
+    }
+
+    public void setRegister(int reg, Long registerValue) {
+        String registerString = String.format("%020d", registerValue);
+        switch(reg) {
+            case Register.RAX:
+                this.rax.setText(registerString);
+                break;
+            case Register.RBX:
+                this.rbx.setText(registerString);
+                break;
+            case Register.RCX:
+                this.rcx.setText(registerString);
+                break;
+            case Register.RDX:
+                this.rdx.setText(registerString);
+                break;
+            case Register.RSI:
+                this.rsi.setText(registerString);
+                break;
+            case Register.RDI:
+                this.rdi.setText(registerString);
+                break;
+            case Register.RBP:
+                this.rbp.setText(registerString);
+                break;
+            case Register.RSP:
+                this.rsp.setText(registerString);
+                break;
+            case Register.R8:
+                this.r8.setText(registerString);
+                break;
+            case Register.R9:
+                this.r9.setText(registerString);
+                break;
+            case Register.R10:
+                this.r10.setText(registerString);
+                break;
+            case Register.R11:
+                this.r11.setText(registerString);
+                break;
+            case Register.R12:
+                this.r12.setText(registerString);
+                break;
+            case Register.R13:
+                this.r13.setText(registerString);
+                break;
+            case Register.R14:
+                this.r14.setText(registerString);
+                break;
+            case Register.R15:
+                this.r15.setText(registerString);
+                break;
+        }
     }
 }
