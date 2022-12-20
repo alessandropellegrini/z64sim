@@ -151,6 +151,10 @@ public class SimulatorController extends Controller {
         }
     }
 
+    public static CpuState getCpuState() {
+        return getInstance().cpuState;
+    }
+
     private void refreshRegisters(OperandRegister destination) {
         cpuView.setRegister(destination.getRegister(), cpuState.getRegisterValue(destination.getRegister()));
     }
@@ -289,7 +293,13 @@ public class SimulatorController extends Controller {
         Memory.selectAddress(address);
     }
 
-    public static void updateFlags(long op1, long op2, long result, int size) {
+    public static void updateFlagsAndRefresh(long src, long dst, long result, int size) {
+        updateFlags(src, dst, result, size);
+        getInstance().refreshFlags();
+    }
+
+    // This function updates FLAGS based on ADDITION arithmetics
+    public static void updateFlags(long src, long dst, long result, int size) {
         long mask = 0;
         switch(size) {
             case 1:
@@ -305,20 +315,20 @@ public class SimulatorController extends Controller {
                 mask = 0xFFFFFFFFFFFFFFFFL;
                 break;
         }
+        long msbMask = mask & (~mask >> 1);
 
-        boolean cf = (result & mask) < (op1 & mask);
+        boolean cf = src > mask - dst;
         boolean zf = (result & mask) == 0;
-        boolean sf = (result & mask) < 0;
-        boolean of = (op1 & mask) > 0 && (op2 & mask) > 0 && (result & mask) < 0 || (op1 & mask) < 0 && (op2 & mask) < 0 && (result & mask) > 0;
-        boolean pf = countSetBits(result & mask) % 2 == 0;
+        boolean sf = (result & msbMask) != 0;
+        boolean of = (src & msbMask) == 0 && (dst & msbMask) == 0 && (result & msbMask) != 0
+            || (src & msbMask) != 0 && (dst & msbMask) != 0 && (result & msbMask) == 0;
+        boolean pf = countSetBits(result & mask) % 2 == 1;
 
         setCF(cf);
         setZF(zf);
         setSF(sf);
         setOF(of);
         setPF(pf);
-
-        getInstance().refreshFlags();
     }
 
     private static int countSetBits(long n) {

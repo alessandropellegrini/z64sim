@@ -137,25 +137,83 @@ public class InstructionClass3 extends Instruction {
     public void run() {
         Long value = SimulatorController.getOperandValue(this.reg);
 
+        long mask = 0;
+        switch(this.reg.getSize()) {
+            case 1:
+                mask = 0xFF;
+                break;
+            case 2:
+                mask = 0xFFFF;
+                break;
+            case 4:
+                mask = 0xFFFFFFFF;
+                break;
+            case 8:
+                mask = 0xFFFFFFFFFFFFFFFFL;
+                break;
+        }
+        long msbMask = mask & (~mask >> 1);
+        long msb = value & msbMask;
+        long lsb = value & 1;
+
+        long result;
+
         switch(mnemonic) {
             case "sal":
             case "shl":
-                SimulatorController.setOperandValue(this.reg, value << places);
+                result = value << places;
+                SimulatorController.updateFlagsAndRefresh(-1, -1, result, this.reg.getSize());
+                SimulatorController.setCF(msb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                }
                 break;
             case "sar":
-                SimulatorController.setOperandValue(this.reg, value >>> places);
+                result = value >>> places;
+                SimulatorController.updateFlagsAndRefresh(-1, -1, result, this.reg.getSize());
+                SimulatorController.setCF(lsb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(false);
+                }
                 break;
             case "shr":
-                SimulatorController.setOperandValue(this.reg, value >> places);
+                result = value >> places;
+                SimulatorController.updateFlagsAndRefresh(-1, -1, result, this.reg.getSize());
+                SimulatorController.setCF(lsb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(msb == 1);
+                }
                 break;
             case "rcl":
+                result = 0; // TODO
+                SimulatorController.setCF(msb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                }
             case "rcr":
+                result = 0; // TODO
+                SimulatorController.setCF(lsb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                }
             case "rol":
+                result = 0; // TODO
+                SimulatorController.setCF(msb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                }
             case "ror":
+                result = 0; // TODO
+                SimulatorController.setCF(lsb == 1);
+                if(places == 1) {
+                    SimulatorController.setOF(((result & msbMask) ^ (result & (msbMask >> 1))) == 1);
+                }
                 throw new UnsupportedOperationException("Not supported yet.");
             default:
                 throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
         }
+
+        SimulatorController.setOperandValue(this.reg, result);
     }
 
 

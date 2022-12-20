@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class UpdateCheckTest {
 
     @Test
-    @DisplayName("Testing Disassembler")
+    @DisplayName("Update check test")
     public void testUpdateCheck() {
         UpdateController.init();
         while(!UpdateController.isCheckCompleted()) {

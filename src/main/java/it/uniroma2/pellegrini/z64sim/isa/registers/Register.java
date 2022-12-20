@@ -12,7 +12,7 @@ package it.uniroma2.pellegrini.z64sim.isa.registers;
 public class Register {
 
     // TODO: migrate to an enum
-    // Public codes to identify registers
+    // Register encoding
     public static final int RAX = 0;
     public static final int RCX = 1;
     public static final int RDX = 2;

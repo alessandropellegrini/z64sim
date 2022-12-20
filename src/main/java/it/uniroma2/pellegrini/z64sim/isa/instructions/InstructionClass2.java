@@ -276,47 +276,75 @@ public class InstructionClass2 extends Instruction {
         Long srcValue = SimulatorController.getOperandValue(this.source);
         Long dstValue = SimulatorController.getOperandValue(this.destination);
 
+        long mask = 0;
+        switch(this.source.getSize()) {
+            case 1:
+                mask = 0xFF;
+                break;
+            case 2:
+                mask = 0xFFFF;
+                break;
+            case 4:
+                mask = 0xFFFFFFFF;
+                break;
+            case 8:
+                mask = 0xFFFFFFFFFFFFFFFFL;
+                break;
+        }
+
         switch(mnemonic) {
-            // TODO: take into account virtual registers
             case "add":
                 long result = srcValue + dstValue;
-                SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setOperandValue(this.destination, result & mask);
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "sub":
                 result = dstValue - srcValue;
-                SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setOperandValue(this.destination, result & mask);
+                SimulatorController.updateFlagsAndRefresh(-srcValue, dstValue, result, this.source.getSize());
                 break;
             case "adc":
             case "sbb":
                 throw new UnsupportedOperationException("Not supported yet.");
             case "cmp":
                 result = dstValue - srcValue;
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "test":
                 result = dstValue & srcValue;
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setCF(false);
+                SimulatorController.setOF(false);
                 break;
             case "neg":
-                SimulatorController.setOperandValue(this.source, (~srcValue) + 1);
+                result = (~srcValue) + 1;
+                SimulatorController.setOperandValue(this.source, result & mask);
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setCF(srcValue != 0);
                 break;
             case "and":
-                SimulatorController.setOperandValue(this.destination, srcValue & dstValue);
+                result = srcValue & dstValue & mask;
+                SimulatorController.setOperandValue(this.destination, result);
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setCF(false);
+                SimulatorController.setOF(false);
                 break;
             case "or":
                 result = srcValue | dstValue;
-                SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setOperandValue(this.destination, result & mask);
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setCF(false);
+                SimulatorController.setOF(false);
                 break;
             case "xor":
                 result = srcValue ^ dstValue;
                 SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.setCF(false);
+                SimulatorController.setOF(false);
                 break;
             case "not":
-                SimulatorController.setOperandValue(this.source, ~srcValue);
+                SimulatorController.setOperandValue(this.source, ~srcValue & mask);
                 break;
             case "bt":
                 result = dstValue & (1L << srcValue);
