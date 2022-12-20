@@ -20,7 +20,6 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
  */
 public class InstructionClass1 extends Instruction {
     private static final Logger log = LoggerFactory.getLogger();
-    private static final String[] opcodes = {"mov", "movs", "movz", "lea", "push", "pop", "pushf", "popf", "movs", "stos"};
 
     private final Operand source;
     private final Operand destination;
@@ -32,248 +31,11 @@ public class InstructionClass1 extends Instruction {
         this.destination = d;
         this.implicitSize = implicitSize;
 
-        byte[] enc;
-
-        if(s instanceof OperandImmediate && s.getSize() == 8 ||
-            s instanceof OperandImmediate && d instanceof OperandMemory) {
+        if(s instanceof OperandImmediate && s.getSize() == 8 || s instanceof OperandImmediate && d instanceof OperandMemory) {
             this.setSize(16);
-            enc = new byte[16];
         } else {
             this.setSize(8);
-            enc = new byte[8];
         }
-
-        boolean sour_register = s instanceof OperandRegister;
-        boolean srcMem = s instanceof OperandMemory;
-        boolean srcImm = s instanceof OperandImmediate;
-        boolean dest_register = d instanceof OperandRegister;
-        boolean dest_memory = d instanceof OperandMemory;
-
-        byte ss = 0, sd = 0, di = 0, mem = 0, Bp = 0, Ip = 0, scale = 0;
-        byte idxReg = 0, srcReg = 0, dstReg = 0;
-
-        //Popolamento campo ss
-        if(s != null) {
-            switch(s.getSize()) {
-                case 1:
-                    ss = 0b00000000;
-                    break;
-                case 2:
-                    ss = 0b01000000;
-                    break;
-                case 4:
-                    ss = (byte) 0b10000000;
-                    break;
-                case 8:
-                    ss = (byte) 0b11000000;
-                    break;
-            }
-        }
-
-        //Popolamento campo ds
-        if(d != null) {
-            switch(d.getSize()) {
-                case 1:
-                    sd = 0b00000000;
-                    break;
-                case 2:
-                    sd = 0b00010000;
-                    break;
-                case 4:
-                    sd = 0b00100000;
-                    break;
-                case 8:
-                    sd = 0b00110000;
-                    break;
-            }
-        }
-        //Popolamento campo di
-        if(!srcImm && !dest_memory) di = 0b00000000;
-        if(srcImm && !dest_memory) di = 0b00000100;
-        if(!srcImm && dest_memory && ((OperandMemory) d).getDisplacement() != -1) di = 0b00001000;
-        if(srcImm && dest_memory && ((OperandMemory) d).getDisplacement() != -1) di = 0b00001100;
-
-        //Popolamento campo mem
-        if(sour_register && dest_register) mem = 0b00000000;
-        if(sour_register && dest_memory) mem = 0b00000001;
-        if(srcMem && dest_register) mem = 0b00000010;
-
-        //Popolamento campo Bp
-        if(srcMem || dest_memory) {
-            if(srcMem) {
-                if(((OperandMemory) s).getBase() != -1) Bp = (byte) 0b10000000;
-                else Bp = 0b00000000;
-            } else {
-                if(((OperandMemory) d).getBase() != -1) Bp = (byte) 0b10000000;
-                else Bp = 0b00000000;
-            }
-        }
-
-        //Popolamento campo Ip
-        if(srcMem || dest_memory) {
-            if(srcMem) {
-                if(((OperandMemory) s).getIndex() != -1) Ip = (byte) 0b01000000;
-                else Ip = 0b00000000;
-            } else {
-                if(((OperandMemory) d).getIndex() != -1) Ip = (byte) 0b01000000;
-                else Ip = 0b00000000;
-            }
-        }
-
-        //Popolamento campo Scale e IndexRegister
-        if(srcMem) {
-            switch(((OperandMemory) s).getScale()) {
-                case 1:
-                    scale = 0b00000000;
-                    break;
-                case 2:
-                    scale = 0b00010000;
-                    break;
-                case 4:
-                    scale = 0b00100000;
-                    break;
-                case 8:
-                    scale = 0b00110000;
-                    break;
-            }
-            idxReg = (byte) ((OperandMemory) s).getIndex();
-        }
-        if(dest_memory) {
-            switch(((OperandMemory) d).getScale()) {
-                case 1:
-                    scale = 0b00000000;
-                    break;
-                case 2:
-                    scale = 0b00010000;
-                    break;
-                case 4:
-                    scale = 0b00100000;
-                    break;
-                case 8:
-                    scale = 0b00110000;
-                    break;
-            }
-            idxReg = (byte) ((OperandMemory) d).getIndex();
-        }
-
-        //Popolamento campo R/M
-        if(sour_register) {
-            assert s instanceof OperandRegister;
-            srcReg = (byte) (((OperandRegister) s).getRegister() << 4);
-        }
-        if(srcMem) srcReg = (byte) (((OperandMemory) s).getBase() << 4);
-
-        if(dest_register) {
-            assert d instanceof OperandRegister;
-            dstReg = (byte) ((OperandRegister) d).getRegister();
-        }
-        if(dest_memory) dstReg = (byte) ((OperandMemory) d).getBase();
-
-        //Popolamento Displacement e Immediate
-        boolean min32 = false;
-        boolean displ = false;
-        if(srcImm && s.getSize() <= 32) min32 = true;
-
-        if(srcMem || dest_memory) {
-            if(srcMem && ((OperandMemory) s).getDisplacement() != -1) {
-                enc[4] = (byte) (((OperandMemory) s).getDisplacement() & 0xFF);
-                enc[5] = (byte) (((((OperandMemory) s).getDisplacement()) >> 8) & 0xFF);
-                enc[6] = (byte) (((((OperandMemory) s).getDisplacement()) >> 16) & 0xFF);
-                enc[7] = (byte) ((((OperandMemory) s).getDisplacement() >> 24) & 0xFF);
-                displ = true;
-            }
-            if(dest_memory && ((OperandMemory) d).getDisplacement() != -1) {
-                enc[4] = (byte) (((OperandMemory) d).getDisplacement() & 0xFF);
-                enc[5] = (byte) (((((OperandMemory) d).getDisplacement()) >> 8) & 0xFF);
-                enc[6] = (byte) (((((OperandMemory) d).getDisplacement()) >> 16) & 0xFF);
-                enc[7] = (byte) ((((OperandMemory) d).getDisplacement() >> 24) & 0xFF);
-                displ = true;
-            }
-        }
-        if(srcImm && min32) {
-            if(displ) {
-                enc[8] = (byte) ((OperandImmediate) s).getValue();
-                enc[9] = (byte) ((((OperandImmediate) s).getValue()) >> 8);
-                enc[10] = (byte) ((((OperandImmediate) s).getValue()) >> 16);
-                enc[11] = (byte) ((((OperandImmediate) s).getValue()) >> 24);
-                enc[12] = (byte) ((((OperandImmediate) s).getValue()) >> 32);
-                enc[13] = (byte) ((((OperandImmediate) s).getValue()) >> 40);
-                enc[14] = (byte) ((((OperandImmediate) s).getValue()) >> 48);
-                enc[15] = (byte) (((OperandImmediate) s).getValue() >> 56);
-            } else {
-                enc[4] = (byte) ((OperandImmediate) s).getValue();
-                enc[5] = (byte) ((((OperandImmediate) s).getValue()) >> 8);
-                enc[6] = (byte) ((((OperandImmediate) s).getValue()) >> 16);
-                enc[7] = (byte) (((OperandImmediate) s).getValue() >> 24);
-            }
-        }
-        if(srcImm && !min32) {
-            enc[8] = (byte) ((OperandImmediate) s).getValue();
-            enc[9] = (byte) ((((OperandImmediate) s).getValue()) >> 8);
-            enc[10] = (byte) ((((OperandImmediate) s).getValue()) >> 16);
-            enc[11] = (byte) ((((OperandImmediate) s).getValue()) >> 24);
-            enc[12] = (byte) ((((OperandImmediate) s).getValue()) >> 32);
-            enc[13] = (byte) ((((OperandImmediate) s).getValue()) >> 40);
-            enc[14] = (byte) ((((OperandImmediate) s).getValue()) >> 48);
-            enc[15] = (byte) (((OperandImmediate) s).getValue() >> 56);
-        }
-
-        //MODE
-        enc[1] = (byte) (ss | sd | di | mem);
-        //SIB
-        enc[2] = (byte) (Bp | Ip | scale | idxReg);
-        //R-M
-        enc[3] = (byte) (srcReg | dstReg);
-        //Opcode
-        switch(mnemonic) {
-            case "mov":
-                this.type = 0x00;
-                break;
-            case "movsX":
-                this.type = 0x01;
-                break;
-            case "movzX":
-                this.type = 0x02;
-                break;
-            case "lea":
-                this.type = 0x03;
-                break;
-            case "push":
-                this.type = 0x04;
-                break;
-            case "pop":
-                this.type = 0x05;
-                break;
-            case "pushf":
-                this.type = 0x06;
-                break;
-            case "popf":
-                this.type = 0x07;
-                break;
-            case "movs":
-                this.type = 0x08;
-                break;
-            case "stos":
-                this.type = 0x09;
-                break;
-            default:
-                throw new ParseException("Unknown Class 1 instruction: " + mnemonic);
-        }
-
-        enc[0] = (byte) ((byte) 0b00010000 | this.type);
-        this.setEncoding(enc);
-        log.trace("Assembled INS1: {0} SS: {0} DS: {0} DI: {0} MEM: {0} Bp: {0} Ip: {0} Scale: {0} IDX: {0} srcReg: {0} dstReg: {0}",
-            enc[0],
-            ss,
-            sd,
-            di,
-            mem,
-            Bp,
-            Ip,
-            scale,
-            idxReg,
-            srcReg,
-            dstReg);
     }
 
 
@@ -282,6 +44,7 @@ public class InstructionClass1 extends Instruction {
         Long srcValue = SimulatorController.getOperandValue(this.source);
 
         // TODO: migrate all these to algorithm lambdas
+        // TODO: use an enum to identify the instruction rather than a string
         switch(mnemonic) {
             case "mov":
                 SimulatorController.setOperandValue(this.destination, srcValue);

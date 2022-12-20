@@ -24,73 +24,7 @@ public class InstructionClass5 extends Instruction {
     public InstructionClass5(String mnemonic, Operand t) {
         super(mnemonic, 5);
         this.target = t;
-
-        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        enc[0] = 0b01010000;
-        // Set the size in memory
         this.setSize(8);
-
-        byte sour = 0b00000000;
-        byte dest = 0b00000000;
-        byte sd = 0b00000000;
-
-        if(t != null) {
-            switch(t.getSize()) {
-                case 1:
-                    sd = 0b00000000;
-                    break;
-                case 2:
-                    sd = 0b00010000;
-                    break;
-                case 4:
-                    sd = 0b00100000;
-                    break;
-                case 8:
-                    sd = 0b00110000;
-                    break;
-            }
-        } else {
-            sd = 0b00000000;
-        }
-        if(t != null) {
-            if(t instanceof OperandMemory)
-                dest = (byte) (((OperandMemory) t).getBase());
-            else {
-                dest = (byte) (((OperandRegister) t).getRegister());
-            }
-        }
-
-        enc[3] = (byte) (sour | dest);
-
-        switch(mnemonic) {
-            case "jmp":
-                if(t instanceof OperandMemory) {
-                    this.type = 0x00;
-                } else {
-                    this.type = 0x01;
-                }
-                break;
-            case "call":
-                if(t instanceof OperandMemory) {
-                    this.type = 0x02;
-                } else {
-                    this.type = 0x03;
-                }
-            case "ret":
-            case "retq":
-                this.type = 0x04;
-                break;
-            case "iret":
-            case "iretq":
-                this.type = 0x05;
-                break;
-            default:
-                throw new RuntimeException("Unknown Class 5 instruction: " + mnemonic);
-        }
-
-        enc[0] = (byte) (enc[0] | this.type);
-        this.setEncoding(enc);
-
     }
 
     @Override

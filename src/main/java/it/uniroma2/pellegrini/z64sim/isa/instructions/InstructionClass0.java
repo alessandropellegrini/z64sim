@@ -18,27 +18,6 @@ public class InstructionClass0 extends Instruction {
 
         // Set the size in memory
         this.setSize(8);
-
-        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-        switch(mnemonic) {
-            case "hlt":
-                enc[0] = 0x01;
-                this.type = 0x01;
-                break;
-            case "nop":
-                enc[0] = 0x02;
-                this.type = 0x02;
-                break;
-            case "int":
-                enc[0] = 0x03;
-                this.type = 0x03;
-                break;
-            default:
-                throw new ParseException("Unknown Class 0 instruction: " + mnemonic);
-        }
-
-        this.setEncoding(enc);
     }
 
     @Override

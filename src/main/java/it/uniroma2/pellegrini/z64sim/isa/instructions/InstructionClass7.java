@@ -19,55 +19,12 @@ public class InstructionClass7 extends Instruction {
     private final int transferSize; // The size of a data transfer
     private Operand ioport; // The I/O port number in case of an explicit I/O port
 
-//    public InstructionClass7(String mnemonic, int size) throws ParseException {
-//        super(mnemonic, 7);
-//        this.transferSize = size;
-//
-//
-//        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-//        enc[0] = 0b01110000;
-//        byte di = 0b00000000;
-//        byte diImm = 0b00000000;
-//        byte mem = 0b00000000;
-//        byte ss = (byte) transferSize;
-//        byte ds = (byte) transferSize;
-//
-//        enc[1] = (byte) (ss | ds | diImm | di | mem);
-//
-//        switch(mnemonic) {
-//            case "in":
-//                this.type = 0x00;
-//                break;
-//            case "out":
-//                this.type = 0x01;
-//                break;
-//            case "ins":
-//                this.type = 0x02;
-//                break;
-//            case "outs":
-//                this.type = 0x03;
-//                break;
-//            default:
-//                throw new ParseException("Unknown Class 7 instruction: " + mnemonic);
-//        }
-//
-//        enc[0] = (byte) (enc[0] | this.type);
-//        this.setEncoding(enc);
-//
-//        this.setSize(8);
-//        this.ioport = -1;
-//    }
-
     public InstructionClass7(String mnemonic, int size, Operand ioport) throws ParseException {
         super(mnemonic, 7);
-
-        byte[] enc = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        this.setSize(8);
 
         this.transferSize = size;
         this.ioport = ioport;
-        this.setSize(8);
-
-        this.setEncoding(enc);
     }
 
     @Override

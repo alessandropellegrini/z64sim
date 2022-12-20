@@ -124,7 +124,7 @@ public class Program {
         // We must preserve the IDT
         this.binary.put(this.locationCounter, insn);
 
-        final int length = insn.getEncoding().length;
+        final int length = insn.getSize();
         this.locationCounter += length;
         log.trace("Found a {0}-byte instruction", length);
     }
