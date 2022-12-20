@@ -6,10 +6,8 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
-import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
-import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 
 
 /**
@@ -126,72 +124,6 @@ public class InstructionClass6 extends Instruction {
             default:
                 throw new RuntimeException("Unknown Class 6 instruction: " + mnemonic);
         }
-    }
-
-
-    public static String disassemble(byte[] encoding) throws DisassembleException {
-        String instr = "";
-        switch(encoding[0]) {
-            case 0x60:
-                instr += "jc";
-                break;
-            case 0x61:
-                instr += "jp";
-                break;
-            case 0x62:
-                instr += "jz";
-                break;
-            case 0x63:
-                instr += "js";
-                break;
-            case 0x64:
-                instr += "jo";
-                break;
-            case 0x65:
-                instr += "jnc";
-                break;
-            case 0x66:
-                instr += "jnp";
-                break;
-            case 0x67:
-                instr += "jnz";
-                break;
-            case 0x68:
-                instr += "jns";
-                break;
-            case 0x69:
-                instr += "jno";
-                break;
-            default:
-                throw new DisassembleException("Unkown instruction type");
-        }
-
-        int sizeInt = 0;
-
-        switch(byteToBits(encoding[1], 5, 4)) {
-            case 0:
-                sizeInt = 8;
-                break;
-            case 1:
-                sizeInt = 16;
-                break;
-            case 2:
-                sizeInt = 32;
-                break;
-            case 3:
-                sizeInt = 64;
-                break;
-            default:
-                throw new DisassembleException("Wrong value size");
-        }
-
-        int destRegister = byteToBits(encoding[3], 3, 0);
-        String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
-        instr += " " + dest_Reg;
-
-
-        return instr;
-
     }
 
     public Operand getTarget() {

@@ -26,34 +26,6 @@ public abstract class Instruction implements MemoryElement {
         this.clas = (byte) clas;
     }
 
-    public static String disassemble(byte[] encoding) throws DisassembleException {
-
-        assert (encoding.length == 16);
-
-        byte opcode = (byte) ((encoding[0] & 0b11110000) >> 4);
-
-        switch(opcode) {
-            case 0:
-                return InstructionClass0.disassemble(encoding);
-            case 1:
-                return InstructionClass1.disassemble(encoding);
-            case 2:
-                return InstructionClass2.disassemble(encoding);
-            case 3:
-                return InstructionClass3.disassemble(encoding);
-            case 4:
-                return InstructionClass4.disassemble(encoding);
-            case 5:
-                return InstructionClass5.disassemble(encoding);
-            case 6:
-                return InstructionClass6.disassemble(encoding);
-            case 7:
-                return InstructionClass7.disassemble(encoding);
-            default:
-                throw new DisassembleException("Invalid opcode");
-        }
-    }
-
     public byte getClas() {
         return this.clas;
     }

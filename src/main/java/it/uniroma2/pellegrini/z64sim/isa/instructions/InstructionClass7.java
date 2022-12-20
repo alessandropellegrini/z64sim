@@ -75,42 +75,6 @@ public class InstructionClass7 extends Instruction {
         throw new UnsupportedOperationException("I/O instructions not supported yet.");
     }
 
-    public static String disassemble(byte[] encoding) throws DisassembleException {
-        String instr = "";
-
-        switch (encoding[0]) {
-            case 0x70:
-                instr += "in";
-                break;
-            case 0x71:
-                instr += "out";
-                break;
-            case 0x72:
-                instr += "ins";
-                break;
-            case 0x73:
-                instr += "outs";
-                break;
-            default:
-                throw new DisassembleException("Unknown instruction type");
-        }
-        switch(encoding[1]) {
-            case 0x00:
-                instr = instr.concat("b");
-                break;
-            case 0x50:
-                instr = instr.concat("w");
-                break;
-            case (byte) 0xa0:
-                instr = instr.concat("l");
-                break;
-            default:
-                throw new DisassembleException("Wrong value size");
-
-        }
-        return instr;
-    }
-
     private String transferSizeToInsnSuffix() throws DisassembleException {
         switch(this.transferSize) {
             case 1:

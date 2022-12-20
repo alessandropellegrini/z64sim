@@ -5,7 +5,6 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
-import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
@@ -124,62 +123,6 @@ public class InstructionClass5 extends Instruction {
             default:
                 throw new RuntimeException("Unknown Class 5 instruction: " + mnemonic);
         }
-    }
-
-
-    public static String disassemble(byte[] encoding) throws DisassembleException {
-        String instr = "";
-
-        switch(encoding[0]) {
-            case 0x50:
-                instr += "jmp *";
-                break;
-            case 0x51:
-                instr += "jmp ";
-                break;
-            case 0x52:
-                instr += "call *";
-                break;
-            case 0x53:
-                instr += "call ";
-                break;
-            case 0x54:
-                instr += "ret ";
-                return instr;
-
-            case 0x55:
-                instr += "iret ";
-                return instr;
-
-        }
-        int sizeInt;
-
-        switch(byteToBits(encoding[1], 7, 6)) {
-            case 0:
-                sizeInt = 8;
-                break;
-            case 1:
-                sizeInt = 16;
-                break;
-            case 2:
-                sizeInt = 32;
-                break;
-            case 3:
-                sizeInt = 64;
-                break;
-            default:
-                throw new DisassembleException("Wrong value size");
-        }
-
-        int destRegister = byteToBits(encoding[3], 3, 0);
-        String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
-        instr += dest_Reg;
-
-        log.trace("disassembled: {0} {0} {0} {0} {0} {0} {0} {0}",
-            encoding[0], encoding[1], encoding[2], encoding[3], encoding[4], encoding[5], encoding[6], encoding[7]);
-
-
-        return instr;
     }
 
     public Operand getTarget() {

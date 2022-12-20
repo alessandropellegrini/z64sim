@@ -7,7 +7,6 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
-import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
@@ -216,72 +215,6 @@ public class InstructionClass3 extends Instruction {
         }
 
         SimulatorController.setOperandValue(this.reg, result);
-    }
-
-
-    public static String disassemble(byte[] encoding) throws DisassembleException {
-        String instr = "";
-        switch(encoding[0]) {
-            case 0x30:
-            case 0x31:
-                instr += "shl ";
-                break;
-            case 0x32:
-            case 0x33:
-                instr += "sar ";
-                break;
-            case 0x34:
-            case 0x35:
-                instr += "shr ";
-                break;
-            case 0x36:
-            case 0x37:
-                instr += "rcl ";
-                break;
-            case 0x38:
-            case 0x39:
-                instr += "rcr ";
-                break;
-            case 0x3a:
-            case 0x3b:
-                instr += "rol ";
-                break;
-            case 0x3c:
-            case 0x3d:
-                instr += "ror ";
-                break;
-            default:
-                throw new RuntimeException("Unknown instruction type");
-
-        }
-        int sizeInt = 0;
-
-        switch(byteToBits(encoding[1], 7, 6)) {
-            case 0:
-                sizeInt = 8;
-                break;
-            case 1:
-                sizeInt = 16;
-                break;
-            case 2:
-                sizeInt = 32;
-                break;
-            case 3:
-                sizeInt = 64;
-                break;
-            default:
-                throw new DisassembleException("Wrong value size");
-        }
-        if(byteToBits(encoding[1], 2, 2) == 1) {
-            instr += "$" + ((encoding[7] << 24) + (encoding[6] << 16) + (encoding[5] << 8) + encoding[4]) + ",";
-        }
-        int destRegister = byteToBits(encoding[3], 3, 0);
-        String dest_Reg = Register.getRegisterName(destRegister, sizeInt);
-        instr += dest_Reg;
-
-        log.trace("disassembled: {} {} {} {} {} {} {} {}",
-            encoding[0], encoding[1], encoding[2], encoding[3], encoding[4], encoding[5], encoding[6], encoding[7]);
-        return instr;
     }
 
     @Override

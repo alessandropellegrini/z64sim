@@ -6,7 +6,6 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
-import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 public class InstructionClass0 extends Instruction {
@@ -50,25 +49,6 @@ public class InstructionClass0 extends Instruction {
         if(this.mnemonic.equals("int")) {
             throw new UnsupportedOperationException("Interrupt management is not yet supported.");
         }
-    }
-
-    public static String disassemble(byte[] encoding) throws DisassembleException {
-        String instr = "";
-        switch(encoding[0]) {
-            case 0x01:
-                instr += "hlt";
-                break;
-            case 0x02:
-                instr += "nop";
-                break;
-            case 0x03:
-                instr += "int";
-                break;
-            default:
-                throw new DisassembleException("Unkown instruction type");
-
-        }
-        return instr;
     }
 
     @Override
