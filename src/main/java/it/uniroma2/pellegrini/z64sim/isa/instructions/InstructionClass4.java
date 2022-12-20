@@ -31,6 +31,61 @@ public class InstructionClass4 extends Instruction {
 
         switch(mnemonic) {
             case "clc":
+                this.type = 0;
+                break;
+            case "clp":
+                this.type = 1;
+                break;
+            case "clz":
+                this.type = 2;
+                break;
+            case "cls":
+                this.type = 3;
+                break;
+            case "cli":
+                this.type = 4;
+                break;
+            case "cld":
+                this.type = 5;
+                break;
+            case "clo":
+                this.type = 6;
+                break;
+            case "stc":
+                this.type = 8;
+                break;
+            case "stp":
+                this.type = 9;
+                break;
+            case "stz":
+                this.type = 10;
+                break;
+            case "sts":
+                this.type = 11;
+                break;
+            case "sti":
+                this.type = 12;
+                break;
+            case "std":
+                this.type = 13;
+                break;
+            case "sto":
+                this.type = 14;
+                break;
+            default:
+                throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
+        }
+
+        enc[0] = (byte) (enc[0] | this.type);
+        this.setEncoding(enc);
+
+
+    }
+
+    @Override
+    public void run() {
+        switch(mnemonic) {
+            case "clc":
                 SimulatorController.setCF(false);
                 break;
             case "clp":
@@ -76,16 +131,6 @@ public class InstructionClass4 extends Instruction {
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
 
         }
-
-        enc[0] = (byte) (enc[0] | this.type);
-        this.setEncoding(enc);
-
-
-    }
-
-    @Override
-    public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 

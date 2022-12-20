@@ -185,25 +185,27 @@ public class InstructionClass3 extends Instruction {
                 }
                 break;
             case "rcl":
-                result = 0; // TODO
+                long currentCF = SimulatorController.getCF() ? 1 : 0;
+                result = (value << 1) | currentCF;
                 SimulatorController.setCF(msb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
             case "rcr":
-                result = 0; // TODO
+                currentCF = SimulatorController.getCF() ? 1 : 0;
+                result = (value >> 1) | (currentCF << (this.reg.getSize() - 1));
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
             case "rol":
-                result = 0; // TODO
+                result = (value << 1) | (msb >> (this.reg.getSize() - 1));
                 SimulatorController.setCF(msb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
             case "ror":
-                result = 0; // TODO
+                result = (value >> 1) | (lsb << (this.reg.getSize() - 1));
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ (result & (msbMask >> 1))) == 1);

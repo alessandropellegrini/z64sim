@@ -60,6 +60,10 @@ public class CpuState implements Serializable {
         return FlagsRegister.getQuadword();
     }
 
+    public void setFlags(Long srcValue) {
+        FlagsRegister.setQuadword(srcValue);
+    }
+
     public void setRIP(Long newValue) {
         long oldValue = RIP.getQuadword();
         RIP.setQuadword(newValue);

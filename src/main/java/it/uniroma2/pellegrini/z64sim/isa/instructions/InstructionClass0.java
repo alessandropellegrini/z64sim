@@ -48,7 +48,7 @@ public class InstructionClass0 extends Instruction {
             SimulatorController.displaceRIP(-this.size);
         }
         if(this.mnemonic.equals("int")) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new UnsupportedOperationException("Interrupt management is not yet supported.");
         }
     }
 

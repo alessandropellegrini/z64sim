@@ -377,8 +377,21 @@ public class InstructionClass1 extends Instruction {
                 }
                 break;
             case "popf":
+                sp = new OperandRegister(Register.RSP, 8);
+                spValue = SimulatorController.getOperandValue(sp);
+                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                srcValue = SimulatorController.getOperandValue(spMem);
+                SimulatorController.setOperandValue(sp, spValue + 8);
+                SimulatorController.getCpuState().setFlags(srcValue);
+                break;
             case "pushf":
-                throw new UnsupportedOperationException("Not supported yet.");
+                sp = new OperandRegister(Register.RSP, 8);
+                spValue = SimulatorController.getOperandValue(sp) - 8;
+                // TODO: this is a hack, fix it: SP should be 8 bytes, but we're using 4 bytes for now
+                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                SimulatorController.setOperandValue(spMem, SimulatorController.getCpuState().getFlags());
+                SimulatorController.setOperandValue(sp, spValue);
+                break;
             default:
                 throw new RuntimeException("Unknown Class 1 instruction: " + mnemonic);
         }

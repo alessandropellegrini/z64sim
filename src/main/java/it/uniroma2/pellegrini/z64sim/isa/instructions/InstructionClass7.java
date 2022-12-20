@@ -72,7 +72,7 @@ public class InstructionClass7 extends Instruction {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("I/O instructions not supported yet.");
     }
 
     public static String disassemble(byte[] encoding) throws DisassembleException {

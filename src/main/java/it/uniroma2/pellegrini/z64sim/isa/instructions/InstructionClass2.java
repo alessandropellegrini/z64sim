@@ -12,18 +12,20 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
+import org.jetbrains.annotations.NonNls;
 
 import java.nio.ByteBuffer;
 
 
 /**
- *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass2 extends Instruction {
 
     private final Operand source;
     private final Operand destination;
+    @NonNls
+    private static final String[] opcodes = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
 
     public InstructionClass2(String mnemonic, Operand s, Operand d) throws ParseException {
         super(mnemonic, 2);
@@ -304,7 +306,15 @@ public class InstructionClass2 extends Instruction {
                 SimulatorController.updateFlagsAndRefresh(-srcValue, dstValue, result, this.source.getSize());
                 break;
             case "adc":
+                srcValue += SimulatorController.getCF() ? 1 : 0;
+                result = srcValue + dstValue;
+                SimulatorController.setOperandValue(this.destination, result & mask);
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
             case "sbb":
+                srcValue += SimulatorController.getCF() ? 0 : 1;
+                result = dstValue - srcValue;
+                SimulatorController.setOperandValue(this.destination, result & mask);
+                SimulatorController.updateFlagsAndRefresh(-srcValue, dstValue, result, this.source.getSize());
                 throw new UnsupportedOperationException("Not supported yet.");
             case "cmp":
                 result = dstValue - srcValue;
@@ -317,7 +327,7 @@ public class InstructionClass2 extends Instruction {
                 SimulatorController.setOF(false);
                 break;
             case "neg":
-                result = (~srcValue) + 1;
+                result = -srcValue;
                 SimulatorController.setOperandValue(this.source, result & mask);
                 SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
                 SimulatorController.setCF(srcValue != 0);
@@ -355,12 +365,10 @@ public class InstructionClass2 extends Instruction {
         }
     }
 
-    private static final String[] opcodes = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
-
     public static String disassemble(byte[] encoding) throws DisassembleException {
         byte[] b2 = new byte[8];
 
-        String instr = "";
+        @NonNls String instr = "";
         int index = byteToBits(encoding[0], 3, 0);
         instr += opcodes[index];
 
