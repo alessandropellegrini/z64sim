@@ -23,7 +23,7 @@ public class InstructionClass1 extends Instruction {
 
     private final Operand source;
     private final Operand destination;
-    private final int implicitSize; // For instructions such as pushf, popf,
+    private final int implicitSize; // For instructions such as pushf, popf, movs, stos
 
     public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) throws ParseException {
         super(mnemonic, 1);
@@ -114,26 +114,30 @@ public class InstructionClass1 extends Instruction {
                 break;
             case "movs":
                 Long rcx = SimulatorController.getOperandValue(new OperandRegister(Register.RCX, 8));
-                Long rsi = SimulatorController.getOperandValue(new OperandRegister(Register.RDI, 8));
-                Long rdi = SimulatorController.getOperandValue(new OperandRegister(Register.RSI, 8));
-                for(int i = 0; i < rcx * this.source.getSize(); i++) {
+                Long rsi = SimulatorController.getOperandValue(new OperandRegister(Register.RSI, 8));
+                Long rdi = SimulatorController.getOperandValue(new OperandRegister(Register.RDI, 8));
+                for(int i = 0; i < rcx * this.implicitSize; i++) {
                     OperandMemory srcMem = new OperandMemory(-1, -1, -1, -1, rsi.intValue() + i, 1);
                     OperandMemory dstMem = new OperandMemory(-1, -1, -1, -1, rdi.intValue() + i, 1);
                     srcValue = SimulatorController.getOperandValue(srcMem);
                     SimulatorController.setOperandValue(dstMem, srcValue);
                     SimulatorController.setOperandValue(new OperandRegister(Register.RCX, 8), rcx - 1);
-                    SimulatorController.setOperandValue(new OperandRegister(Register.RDI, 8), rdi + this.source.getSize());
-                    SimulatorController.setOperandValue(new OperandRegister(Register.RSI, 8), rsi + this.source.getSize());
+                    SimulatorController.setOperandValue(new OperandRegister(Register.RDI, 8), rdi + 1);
+                    SimulatorController.setOperandValue(new OperandRegister(Register.RSI, 8), rsi + 1);
                 }
+                break;
             case "stos":
                 Long rax = SimulatorController.getOperandValue(new OperandRegister(Register.RAX, 8));
                 rcx = SimulatorController.getOperandValue(new OperandRegister(Register.RCX, 8));
                 rdi = SimulatorController.getOperandValue(new OperandRegister(Register.RDI, 8));
-                for(int i = 0; i < rcx * this.destination.getSize(); i++) {
-                    OperandMemory dstMem = new OperandMemory(-1, -1, -1, -1, rdi.intValue() + i, 1);
-                    SimulatorController.setOperandValue(dstMem, rax);
+                for(int i = 0; i < rcx; i++) {
+                    for(int j = 0; j < this.implicitSize; j++) {
+                        OperandMemory dstMem = new OperandMemory(-1, -1, -1, -1, rdi.intValue() + i * this.implicitSize + j, 1);
+                        long byteValue = (rax >> (j * 8)) & 0xFF;
+                        SimulatorController.setOperandValue(dstMem, byteValue);
+                    }
                     SimulatorController.setOperandValue(new OperandRegister(Register.RCX, 8), rcx - 1);
-                    SimulatorController.setOperandValue(new OperandRegister(Register.RDI, 8), rdi + this.destination.getSize());
+                    SimulatorController.setOperandValue(new OperandRegister(Register.RDI, 8), rdi + this.implicitSize);
                 }
                 break;
             case "popf":

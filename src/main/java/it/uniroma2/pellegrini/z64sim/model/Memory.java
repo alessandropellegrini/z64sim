@@ -13,7 +13,6 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
@@ -49,11 +48,12 @@ public class Memory extends AbstractTableModel {
 
     public static void setProgram(Program program) {
         getInstance().program = program;
+        getInstance().fireTableDataChanged();
     }
 
     public static void setValueAt(long address, byte srcValue) {
-        getInstance().program.binary.put((int)address, new MemoryData(srcValue));
-        ((AbstractTableModel)(TableModel)getInstance()).fireTableRowsUpdated((int)address, (int)address);
+        getInstance().program.binary.put((int) address, new MemoryData(srcValue));
+        getInstance().fireTableRowsUpdated((int) address / 8, (int) address / 8);
     }
 
     @Override

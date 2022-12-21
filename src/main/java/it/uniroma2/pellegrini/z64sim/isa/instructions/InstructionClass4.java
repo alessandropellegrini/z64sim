@@ -65,8 +65,8 @@ public class InstructionClass4 extends Instruction {
                 break;
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
-
         }
+        SimulatorController.refreshUIFlags();
     }
 
     @Override

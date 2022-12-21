@@ -278,8 +278,8 @@ public class SimulatorController extends Controller {
                 return true;
             }
         } catch(RuntimeException e) {
-            String error = e.getMessage().equals("") ? e.getClass().getSimpleName() : e.getMessage();
-            String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, rip);
+            String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, Long.toHexString(rip));
             JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
 
@@ -310,7 +310,7 @@ public class SimulatorController extends Controller {
         getInstance().refreshFlags();
     }
 
-    // This function updates FLAGS based on ADDITION arithmetics
+    // This function updates FLAGS based on ADDITION arithmetics. If used for subtraction, src should be negated.
     public static void updateFlags(long src, long dst, long result, int size) {
         long mask = 0;
         switch(size) {
