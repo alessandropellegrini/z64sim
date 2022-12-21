@@ -58,7 +58,7 @@ public class Memory extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return this.program == null ? 200 : this.program.getLargestAddress() / 8;
+        return this.program == null ? 200 : this.program.getLargestAddress() / 8 + 1;
     }
 
     @Override

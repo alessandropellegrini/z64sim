@@ -21,6 +21,7 @@ public class InstructionClass6 extends Instruction {
     public InstructionClass6(String mnemonic, OperandMemory t) throws ParseException {
         super(mnemonic, 6);
         this.target = t;
+        this.setSize(8);
     }
 
     @Override
