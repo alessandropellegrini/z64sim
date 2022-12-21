@@ -73,48 +73,54 @@ public class InstructionClass2 extends Instruction {
                 result = srcValue + dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
                 SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                break;
             case "sbb":
                 srcValue += SimulatorController.getCF() ? 0 : 1;
                 result = dstValue - srcValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
                 SimulatorController.updateFlagsAndRefresh(-srcValue, dstValue, result, this.source.getSize());
-                throw new UnsupportedOperationException("Not supported yet.");
+                break;
             case "cmp":
                 result = dstValue - srcValue;
                 SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
                 break;
             case "test":
                 result = dstValue & srcValue;
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
+                SimulatorController.refreshUIFlags();
                 break;
             case "neg":
                 result = -srcValue;
                 SimulatorController.setOperandValue(this.source, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 SimulatorController.setCF(srcValue != 0);
+                SimulatorController.refreshUIFlags();
                 break;
             case "and":
                 result = srcValue & dstValue & mask;
                 SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
+                SimulatorController.refreshUIFlags();
                 break;
             case "or":
                 result = srcValue | dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
+                SimulatorController.refreshUIFlags();
                 break;
             case "xor":
                 result = srcValue ^ dstValue;
                 SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
+                SimulatorController.refreshUIFlags();
                 break;
             case "not":
                 SimulatorController.setOperandValue(this.source, ~srcValue & mask);
@@ -122,6 +128,7 @@ public class InstructionClass2 extends Instruction {
             case "bt":
                 result = dstValue & (1L << srcValue);
                 SimulatorController.setCF(result != 0);
+                SimulatorController.refreshUIFlags();
                 break;
             default:
                 throw new RuntimeException("Unknown Class 2 instruction: " + mnemonic);

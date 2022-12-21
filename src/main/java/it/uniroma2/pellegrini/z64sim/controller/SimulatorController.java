@@ -12,6 +12,7 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
+import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.model.Program;
@@ -247,6 +248,8 @@ public class SimulatorController extends Controller {
 
         long _start = this.program._start.getTarget();
         setRIP(_start);
+        getInstance().cpuState.setRSP((long) this.program.getLargestAddress());
+        getInstance().cpuView.setRegister(Register.RSP, (long) this.program.getLargestAddress());
     }
 
     public static boolean step() {
@@ -299,6 +302,11 @@ public class SimulatorController extends Controller {
 
     public static void updateFlagsAndRefresh(long src, long dst, long result, int size) {
         updateFlags(src, dst, result, size);
+        getInstance().refreshFlags();
+    }
+
+    // TODO: exposing this is a violation of MVC pattern
+    public static void refreshUIFlags() {
         getInstance().refreshFlags();
     }
 

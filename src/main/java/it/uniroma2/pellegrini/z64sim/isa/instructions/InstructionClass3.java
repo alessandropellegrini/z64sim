@@ -58,27 +58,30 @@ public class InstructionClass3 extends Instruction {
             case "sal":
             case "shl":
                 result = value << places;
-                SimulatorController.updateFlagsAndRefresh(-1, -1, result, this.reg.getSize());
+                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize());
                 SimulatorController.setCF(msb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
+                SimulatorController.refreshUIFlags();
                 break;
             case "sar":
                 result = value >>> places;
-                SimulatorController.updateFlagsAndRefresh(-1, -1, result, this.reg.getSize());
+                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize());
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(false);
                 }
+                SimulatorController.refreshUIFlags();
                 break;
             case "shr":
                 result = value >> places;
-                SimulatorController.updateFlagsAndRefresh(-1, -1, result, this.reg.getSize());
+                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize());
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(msb == 1);
                 }
+                SimulatorController.refreshUIFlags();
                 break;
             case "rcl":
                 long currentCF = SimulatorController.getCF() ? 1 : 0;
@@ -87,6 +90,7 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
+                SimulatorController.refreshUIFlags();
             case "rcr":
                 currentCF = SimulatorController.getCF() ? 1 : 0;
                 result = (value >> 1) | (currentCF << (this.reg.getSize() - 1));
@@ -94,18 +98,21 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
+                SimulatorController.refreshUIFlags();
             case "rol":
                 result = (value << 1) | (msb >> (this.reg.getSize() - 1));
                 SimulatorController.setCF(msb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
                 }
+                SimulatorController.refreshUIFlags();
             case "ror":
                 result = (value >> 1) | (lsb << (this.reg.getSize() - 1));
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ (result & (msbMask >> 1))) == 1);
                 }
+                SimulatorController.refreshUIFlags();
                 throw new UnsupportedOperationException("Not supported yet.");
             default:
                 throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);

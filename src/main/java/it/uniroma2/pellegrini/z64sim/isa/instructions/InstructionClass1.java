@@ -110,7 +110,7 @@ public class InstructionClass1 extends Instruction {
                 spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
                 srcValue = SimulatorController.getOperandValue(spMem);
                 SimulatorController.setOperandValue(sp, spValue + 8);
-                SimulatorController.setOperandValue(this.destination, srcValue);
+                SimulatorController.setOperandValue(this.source, srcValue);
                 break;
             case "movs":
                 Long rcx = SimulatorController.getOperandValue(new OperandRegister(Register.RCX, 8));

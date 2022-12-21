@@ -302,36 +302,52 @@ public class CpuState implements Serializable {
         switch(reg) {
             case Register.RAX:
                 setRAX(srcValue);
+                break;
             case Register.RCX:
                 setRCX(srcValue);
+                break;
             case Register.RDX:
                 setRDX(srcValue);
+                break;
             case Register.RBX:
                 setRBX(srcValue);
+                break;
             case Register.RSP:
                 setRSP(srcValue);
+                break;
             case Register.RBP:
                 setRBP(srcValue);
+                break;
             case Register.RSI:
                 setRSI(srcValue);
+                break;
             case Register.RDI:
                 setRDI(srcValue);
+                break;
             case Register.R8:
                 setR8(srcValue);
+                break;
             case Register.R9:
                 setR9(srcValue);
+                break;
             case Register.R10:
                 setR10(srcValue);
+                break;
             case Register.R11:
                 setR11(srcValue);
+                break;
             case Register.R12:
                 setR12(srcValue);
+                break;
             case Register.R13:
                 setR13(srcValue);
+                break;
             case Register.R14:
                 setR14(srcValue);
+                break;
             case Register.R15:
                 setR15(srcValue);
+                break;
         }
     }
 }

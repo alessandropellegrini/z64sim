@@ -48,6 +48,9 @@ public class Program {
             rel.relocate(this);
         }
 
+        // Add stack space
+        this.addData(new byte[0x400]); // 1KB of stack should be enough for most programs
+
         // This program does not need anymore intermediate assembling information
         this.labels.clear();
         this.labels = null;
