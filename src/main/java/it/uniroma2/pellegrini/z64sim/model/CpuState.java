@@ -65,7 +65,6 @@ public class CpuState implements Serializable {
     }
 
     public void setRIP(Long newValue) {
-        long oldValue = RIP.getQuadword();
         RIP.setQuadword(newValue);
     }
 
@@ -138,9 +137,6 @@ public class CpuState implements Serializable {
     }
 
     private void updateRegister(Register r, Long v, String property) {
-        long oldValue = r.getQuadword();
-
-        long newValue = v;
         r.setQuadword(v);
     }
 
@@ -237,45 +233,31 @@ public class CpuState implements Serializable {
     }
 
     public void setCF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setCF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public void setPF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setPF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public void setZF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setZF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public void setSF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setSF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public void setIF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setIF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public void setDF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setDF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public void setOF(boolean flag) {
-        long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setOF(flag);
-        long newValue = FlagsRegister.getQuadword();
     }
 
     public Long getRegisterValue(int reg) {
