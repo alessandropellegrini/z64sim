@@ -147,7 +147,8 @@ public class SimulatorController extends Controller {
                     Memory.setValueAt(address + 7, (byte) (srcValue >> 56));
                     break;
             }
-            Memory.selectAddress(address);
+            // TODO: highlight in a different color the memory cells that have been modified
+//            Memory.selectAddress(address);
         }
     }
 
@@ -253,7 +254,7 @@ public class SimulatorController extends Controller {
     }
 
     public static void run() {
-        boolean hlt = false;
+        boolean hlt;
         do {
             hlt = getInstance().stepInstruction();
         } while(!hlt);
@@ -264,6 +265,7 @@ public class SimulatorController extends Controller {
         SimulatorController sc = getInstance();
         if(sc.program == null) return true;
 
+        long rip = sc.cpuState.getRIP();
         Instruction instruction = sc.fetch();
 
         try {
@@ -273,7 +275,9 @@ public class SimulatorController extends Controller {
                 return true;
             }
         } catch(RuntimeException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+            String error = e.getMessage().equals("") ? e.getClass().getSimpleName() : e.getMessage();
+            String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, rip);
+            JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
 
         return false;
