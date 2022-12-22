@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim;
 
 import org.jetbrains.annotations.NonNls;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ public class ReuseCheckTest {
 
     @Test
     @DisplayName("REUSE check")
+    @Disabled
     public void reuseCheck() throws IOException, InterruptedException {
         @NonNls Process p = Runtime.getRuntime().exec("reuse lint");
         try (InputStream inputStream = p.getInputStream();
