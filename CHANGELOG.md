@@ -1,12 +1,11 @@
 # Release Notes
 
-This is still an Alpha version, so part of the logic is still missing, and proper testing was not carried out yet.
+This is the first public version.
 
 Major changes in this version:
-- Several fixes into the grammar.
-- CPU register view has been introduced.
-- The assembler is attached to the GUI.
-- Program loading implemented.
-- Memory view implemented.
-- Preliminary implementation of instruction run algorithms. Still incomplete.
-- Update checker: the application will check for updates at startup.
+
+- Several fixes to the grammar.
+- Instruction algorithms have all been implemented, except for the I/O part.
+- FLAGS update algorithm has been implemented.
+- A lot of dead/unnecessary code has been removed.
+- Error reporting to the user has been somewhat improved.
