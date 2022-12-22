@@ -36,7 +36,10 @@ public class Program {
     public MemoryPointer text = new MemoryPointer(0);
     public MemoryPointer _start = null;
 
-    public Program() {}
+    public Program() {
+        // Initialize an empty IDT
+        this.addData(new byte[0x800]);
+    }
 
     public void finalizeProgram() throws ProgramException {
         // Check if main was set

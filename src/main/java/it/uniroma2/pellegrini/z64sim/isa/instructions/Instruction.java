@@ -4,6 +4,7 @@
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
 import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -32,7 +33,7 @@ public abstract class Instruction implements MemoryElement {
         return this.size;
     }
 
-    public abstract void run();
+    public abstract void run() throws SimulatorException;
 
     @Override
     public byte[] getValue() {

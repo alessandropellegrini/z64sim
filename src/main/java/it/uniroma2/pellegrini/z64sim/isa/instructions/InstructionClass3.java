@@ -6,6 +6,7 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -30,7 +31,7 @@ public class InstructionClass3 extends Instruction {
     }
 
     @Override
-    public void run() {
+    public void run() throws SimulatorException {
         Long value = SimulatorController.getOperandValue(this.reg);
 
         long mask = 0;

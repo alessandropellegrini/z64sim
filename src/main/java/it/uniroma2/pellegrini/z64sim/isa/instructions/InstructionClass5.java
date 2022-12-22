@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
 
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
@@ -28,7 +29,7 @@ public class InstructionClass5 extends Instruction {
     }
 
     @Override
-    public void run() {
+    public void run() throws SimulatorException {
         Long dest = SimulatorController.getOperandValue(this.target);
 
         switch(mnemonic) {
@@ -43,6 +44,7 @@ public class InstructionClass5 extends Instruction {
                 SimulatorController.setOperandValue(spMem, SimulatorController.getRIP());
                 SimulatorController.setOperandValue(sp, spValue);
                 SimulatorController.setRIP(dest);
+                break;
             case "ret":
             case "retq":
                 sp = new OperandRegister(Register.RSP, 8);

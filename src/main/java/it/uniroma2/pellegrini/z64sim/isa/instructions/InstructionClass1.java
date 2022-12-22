@@ -7,6 +7,7 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
@@ -40,7 +41,7 @@ public class InstructionClass1 extends Instruction {
 
 
     @Override
-    public void run() {
+    public void run() throws SimulatorException {
         Long srcValue = SimulatorController.getOperandValue(this.source);
 
         // TODO: migrate all these to algorithm lambdas

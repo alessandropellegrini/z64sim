@@ -701,14 +701,14 @@ Instruction Instruction() :
             insn = new InstructionClass6( stripSuffix(t.image), (OperandMemory)op1);
         }
       |
-        t = <INSN_JC> { size = getSuffixSize( t.image ); }
+        t = <INSN_JC> { size = /*getSuffixSize( t.image )*/-1; }
         ( ( <TIMES> op1 = FormatG() ) | op1 = FormatM(size) )
         {
 
-            if(size == -1) // Size is given by the operand
-                size = op1.getSize();
-            else if(op1 != null && op1.getSize() != size) // Sanity check
-                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
+//            if(size == -1) // Size is given by the operand
+//                size = op1.getSize();
+//            else if(op1 != null && op1.getSize() != size) // Sanity check
+//                throw new ParseException("Line " + t.beginLine + ": Operand size and instruction suffix mismatch.");
 
             // They all belong to class 5
             insn = new InstructionClass5( stripSuffix(t.image), op1);
@@ -751,6 +751,8 @@ Instruction Instruction() :
             mnemonic = stripSuffix(stripSuffix(t.image)); // This instruction has two suffixes
 
             // Sanity check
+            if(op1 == null || op2 == null)
+                throw new ParseException("Line " + t.beginLine + ": Invalid operands.");
             if(op1.getSize() != size || op2.getSize() != sizeExt)
                 throw new ParseException("Line " + t.beginLine + ": Operand size mismatch.");
 
@@ -766,6 +768,8 @@ Instruction Instruction() :
             mnemonic = stripSuffix(t.image);
 
             // Sanity check
+            if(op1 == null || op2 == null)
+                throw new ParseException("Line " + t.beginLine + ": Invalid operands.");
             if(size == -1) { // Size is given by the destination operand
                 size = op2.getSize();
                 op1.setSize(size);

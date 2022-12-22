@@ -37,7 +37,7 @@ public class Memory extends AbstractTableModel {
         int row = (int) (address / 8);
         getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
         getInstance().memoryView.scrollRectToVisible(getInstance().memoryView.getCellRect(row, 0, true));
-        // TODO: probably overkill
+        // TODO: probably overkill and leaky
         getInstance().memoryView.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent e) {
                 getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
@@ -48,7 +48,7 @@ public class Memory extends AbstractTableModel {
 
     public static void setProgram(Program program) {
         getInstance().program = program;
-        getInstance().fireTableDataChanged();
+        getInstance().fireTableChanged(null);
     }
 
     public static void setValueAt(long address, byte srcValue) {
@@ -115,13 +115,13 @@ public class Memory extends AbstractTableModel {
             }
             return sb.toString();
         } else {
-            throw new IllegalStateException("Unexpected column request");
+            throw new IllegalStateException("Internal error: unexpected column request");
         }
     }
 
     @Override
     public void setValueAt(Object o, int row, int col) {
-        throw new IllegalStateException("Cannot set cell value");
+        throw new IllegalStateException("Internal error: cannot set cell value");
     }
 
     @Override

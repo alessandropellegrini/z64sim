@@ -7,6 +7,7 @@ package it.uniroma2.pellegrini.z64sim.controller;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.assembler.Assembler;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
+import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
@@ -80,7 +81,7 @@ public class SimulatorController extends Controller {
         return address;
     }
 
-    public static Long getOperandValue(Operand op) {
+    public static Long getOperandValue(Operand op) throws SimulatorException {
         if(op instanceof OperandRegister) {
             return getInstance().cpuState.getRegisterValue(((OperandRegister) op).getRegister());
         }
@@ -91,22 +92,42 @@ public class SimulatorController extends Controller {
             long address = computeAddressingMode((OperandMemory) op);
 
             long memoryValue = 0;
-            switch(op.getSize()) {
-                case -1:
-                    memoryValue = address;
-                    break;
-                case 1:
-                    memoryValue = Memory.getValueAt(address);
-                    break;
-                case 2:
-                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8);
-                    break;
-                case 4:
-                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8) | (Memory.getValueAt(address + 2) << 16) | (Memory.getValueAt(address + 3) << 24);
-                    break;
-                case 8:
-                    memoryValue = Memory.getValueAt(address) | (Memory.getValueAt(address + 1) << 8) | (Memory.getValueAt(address + 2) << 16) | (Memory.getValueAt(address + 3) << 24) | ((long) Memory.getValueAt(address + 4) << 32) | ((long) Memory.getValueAt(address + 5) << 40) | ((long) Memory.getValueAt(address + 6) << 48) | ((long) Memory.getValueAt(address + 7) << 56);
-                    break;
+
+            try {
+                switch(op.getSize()) {
+                    case -1:
+                        memoryValue = address;
+                        break;
+                    case 1:
+                        memoryValue = Memory.getValueAt(address) & 0xFF;
+                        break;
+                    case 2:
+                        long b0 = Memory.getValueAt(address) & 0xFF;
+                        long b1 = Memory.getValueAt(address + 1) & 0xFF;
+                        memoryValue = b0 | (b1 << 8);
+                        break;
+                    case 4:
+                        b0 = Memory.getValueAt(address) & 0xFF;
+                        b1 = Memory.getValueAt(address + 1) & 0xFF;
+                        long b2 = Memory.getValueAt(address + 2) & 0xFF;
+                        long b3 = Memory.getValueAt(address + 3) & 0xFF;
+                        memoryValue = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+                        break;
+                    case 8:
+                        b0 = Memory.getValueAt(address) & 0xFF;
+                        b1 = Memory.getValueAt(address + 1) & 0xFF;
+                        b2 = Memory.getValueAt(address + 2) & 0xFF;
+                        b3 = Memory.getValueAt(address + 3) & 0xFF;
+                        long b4 = Memory.getValueAt(address + 4) & 0xFF;
+                        long b5 = Memory.getValueAt(address + 5) & 0xFF;
+                        long b6 = Memory.getValueAt(address + 6) & 0xFF;
+                        long b7 = Memory.getValueAt(address + 7) & 0xFF;
+                        memoryValue = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24) | (b4 << 32) | (b5 << 40) | (b6 << 48) | (b7 << 56);
+                        break;
+                }
+            } catch(NullPointerException e) {
+                log.error("Memory access violation at address " + address);
+                throw new SimulatorException("Memory access violation at address " + address);
             }
 
             return memoryValue;
@@ -228,6 +249,8 @@ public class SimulatorController extends Controller {
         try {
             a.Program();
         } catch(ParseException ignored) {
+        } catch(RuntimeException e) {
+            JOptionPane.showMessageDialog(null, PropertyBroker.getMessageFromBundle("internal.error.0", e.getClass().getSimpleName()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
 
         List<String> syntaxErrors = new ArrayList<>(a.getSyntaxErrors());
@@ -281,6 +304,8 @@ public class SimulatorController extends Controller {
             String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
             String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, Long.toHexString(rip));
             JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+        } catch(SimulatorException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage() + " [RIP: " + rip + "]", PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
 
         return false;
