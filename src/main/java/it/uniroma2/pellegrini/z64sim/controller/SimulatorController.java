@@ -356,7 +356,7 @@ public class SimulatorController extends Controller {
 
         boolean cf = src > mask - dst;
         boolean zf = (result & mask) == 0;
-        boolean sf = (result & msbMask) != 0;
+        boolean sf = result < 0;
         boolean of = (src & msbMask) == 0 && (dst & msbMask) == 0 && (result & msbMask) != 0
             || (src & msbMask) != 0 && (dst & msbMask) != 0 && (result & msbMask) == 0;
         boolean pf = countSetBits(result & mask) % 2 == 1;

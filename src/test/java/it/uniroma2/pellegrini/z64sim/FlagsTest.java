@@ -63,7 +63,7 @@ public class FlagsTest {
     @DisplayName("Overflow Flag")
     public void testOF() {
         SimulatorController.updateFlags(127, 2, 129, 1);
-        Assertions.assertEquals(OF | SF | oneF, SimulatorController.getCpuState().getFlags());
+        Assertions.assertEquals(OF | oneF, SimulatorController.getCpuState().getFlags());
         resetFlags();
         SimulatorController.updateFlags(161, 160, 321, 1);
         Assertions.assertEquals(OF | CF | oneF, SimulatorController.getCpuState().getFlags());
@@ -72,6 +72,6 @@ public class FlagsTest {
         Assertions.assertEquals(oneF, SimulatorController.getCpuState().getFlags());
         resetFlags();
         SimulatorController.updateFlags(135, 253, 388, 1);
-        Assertions.assertEquals(SF | CF | oneF, SimulatorController.getCpuState().getFlags());
+        Assertions.assertEquals(CF | oneF, SimulatorController.getCpuState().getFlags());
     }
 }
