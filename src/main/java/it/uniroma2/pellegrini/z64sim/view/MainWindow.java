@@ -89,7 +89,9 @@ public class MainWindow extends View {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
-                MainWindow.setDirty();
+                if (!e.isControlDown()) {
+                    MainWindow.setDirty();
+                }
             }
         });
 
@@ -100,6 +102,12 @@ public class MainWindow extends View {
         runButton.addActionListener(actionEvent -> {
             SimulatorController.run();
         });
+
+        mainPanel.registerKeyboardAction(
+            e -> saveFile(), 
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), 
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
     }
 
     private void newFile() {
