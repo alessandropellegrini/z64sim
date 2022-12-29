@@ -173,7 +173,13 @@ public class SettingsController extends Controller {
         getInstance().settings.setWindowSizeX(dimension.width);
         getInstance().settings.setWindowSizeY(dimension.height);
     }
+    public static String getFileLastDir() {
+        return getInstance().settings.getFileLastDir();
+    }
 
+    public static void setFileLastDir(String value) {
+        getInstance().settings.setFileLastDir(value);
+    }
 
     private static class Settings {
         static final String configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim" ;
@@ -186,9 +192,10 @@ public class SettingsController extends Controller {
         private String logLevel;
         private boolean logShowDateTime;
         private String logOutFile;
-        private List<String> openFiles;
+        private List<String> openFiles; // TODO: unused setting
         private int windowSizeX;
         private int windowSizeY;
+        private String fileLastDir;
 
         private Settings() {
             // Configuration defaults
@@ -200,6 +207,7 @@ public class SettingsController extends Controller {
             this.openFiles = new ArrayList<>();
             this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
+            this.fileLastDir = null;
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
@@ -302,6 +310,14 @@ public class SettingsController extends Controller {
 
         public void setWindowSizeY(int windowSizeY) {
             this.windowSizeY = windowSizeY;
+        }
+
+        public String getFileLastDir() {
+            return fileLastDir;
+        }
+
+        public void setFileLastDir(String fileLastDir) {
+            this.fileLastDir = fileLastDir;
         }
     }
 }

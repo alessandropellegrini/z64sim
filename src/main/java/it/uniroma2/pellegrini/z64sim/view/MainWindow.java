@@ -112,13 +112,22 @@ public class MainWindow extends View {
 
     private void saveFile() {
         if(this.openFile == null) {
-            String filePath = (new JFileDialog(".asm", PropertyBroker.getMessageFromBundle("file.assembly"), JFileDialog.MODE_SAVE)).getFilePath();
+            String filePath = new JFileDialog(
+                ".asm",
+                PropertyBroker.getMessageFromBundle("file.assembly"),
+                JFileDialog.MODE_SAVE,
+                SettingsController.getFileLastDir()
+            ).getFilePath();
+            if(filePath == null) {
+                return;
+            }
             this.openFile = new File(filePath);
         }
         try {
             Files.writeString(this.openFile.toPath(), this.editor.getText());
             this.isDirty = false;
             this.tabbedPane.setTitleAt(0, this.openFile.getName());
+            SettingsController.setFileLastDir(this.openFile.getParent());
         } catch(IOException e) {
             JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.saving.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
@@ -127,9 +136,18 @@ public class MainWindow extends View {
     private void openFile() {
         if(!this.changesToDiscard())
             return;
-        String filePath = (new JFileDialog(".asm", PropertyBroker.getMessageFromBundle("file.assembly"), JFileDialog.MODE_OPEN)).getFilePath();
+        String filePath = new JFileDialog(
+            ".asm",
+            PropertyBroker.getMessageFromBundle("file.assembly"),
+            JFileDialog.MODE_OPEN,
+            SettingsController.getFileLastDir()
+        ).getFilePath();
+        if(filePath == null) {
+            return;
+        }
         try {
             this.doOpenFile(filePath);
+            SettingsController.setFileLastDir(this.openFile.getParent());
         } catch(IOException e) {
             JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.opening.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
