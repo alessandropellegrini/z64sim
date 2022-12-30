@@ -177,8 +177,8 @@ public class SettingsController extends Controller {
 
 
     private static class Settings {
-        static String configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim" ;
-        static String configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
+        static String configurationDirectoryPath ;
+        static String configurationFilePath;
         static final ObjectMapper objectMapper = new ObjectMapper();
 
         // Configuration options
