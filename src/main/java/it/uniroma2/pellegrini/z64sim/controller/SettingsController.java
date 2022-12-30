@@ -14,6 +14,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import org.apache.commons.lang3.SystemUtils;
 
 import java.awt.*;
 import java.io.File;
@@ -176,8 +177,8 @@ public class SettingsController extends Controller {
 
 
     private static class Settings {
-        static final String configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim" ;
-        static final String configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
+        static String configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim" ;
+        static String configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
         static final ObjectMapper objectMapper = new ObjectMapper();
 
         // Configuration options
@@ -198,7 +199,7 @@ public class SettingsController extends Controller {
                 configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim";
             }
             configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
-            
+
             // Configuration defaults
             this.uiLang = PropertyBroker.getPropertyValue("z64sim.ui.defaultLanguage");
             this.theme = PropertyBroker.getPropertyValue("z64sim.ui.defaultTheme");
