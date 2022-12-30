@@ -104,8 +104,36 @@ public class MainWindow extends View {
         });
 
         mainPanel.registerKeyboardAction(
-            e -> saveFile(), 
-            KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), 
+            e -> this.saveFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> this.newFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> this.openFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> {
+                SimulatorController.step();
+                },
+            KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> {
+                SimulatorController.run();
+            },
+            KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
     }
