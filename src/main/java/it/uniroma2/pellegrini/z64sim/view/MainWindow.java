@@ -136,6 +136,12 @@ public class MainWindow extends View {
             KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
+
+        mainPanel.registerKeyboardAction(
+            e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
     }
 
     private void newFile() {
