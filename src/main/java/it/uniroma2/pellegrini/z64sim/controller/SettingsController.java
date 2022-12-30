@@ -191,6 +191,14 @@ public class SettingsController extends Controller {
         private int windowSizeY;
 
         private Settings() {
+            // Following XDG standard if on *NIX-like
+            if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_UNIX) {
+                configurationDirectoryPath = System.getProperty("user.home") + "/.config/z64sim";
+            } else {
+                configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim";
+            }
+            configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
+            
             // Configuration defaults
             this.uiLang = PropertyBroker.getPropertyValue("z64sim.ui.defaultLanguage");
             this.theme = PropertyBroker.getPropertyValue("z64sim.ui.defaultTheme");
