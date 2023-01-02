@@ -18,6 +18,10 @@ import it.uniroma2.pellegrini.z64sim.view.Splash;
 public class z64sim {
 
     public static void main(String[] args) {
+        // enable text anti-aliasing
+        System.setProperty("awt.useSystemAAFontSettings","on");
+        System.setProperty("swing.aatext", "true");
+
         Splash splashScreen = new Splash(4);
 
         splashScreen.step("Loading settings");
@@ -38,6 +42,7 @@ public class z64sim {
         UpdateController.init();
 
         splashScreen.close();
+
         MainWindow.showMainWindow(args.length > 0 ? args[0] : null);
     }
 }
