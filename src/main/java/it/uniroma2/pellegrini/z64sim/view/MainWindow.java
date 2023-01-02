@@ -104,7 +104,8 @@ public class MainWindow extends View {
                 Element root = editor.getDocument().getDefaultRootElement();
                 int line = root.getElementIndex(e.getDot());
                 int col = e.getDot() - root.getElement(line).getStartOffset();
-                editorPositionLabel.setText(line + ":" + col);
+                // both are starting to 1
+                editorPositionLabel.setText((line + 1) + ":" + (col + 1));
             }
         });
         SimulatorController.setCpuView(this.cpuView);
