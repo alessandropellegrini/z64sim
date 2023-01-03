@@ -1,11 +1,9 @@
 # Release Notes
 
-This is the first public version.
+New features:
 
-Major changes in this version:
+- The GUI now shows the current caret position (thanks to @luca-yinxing).
 
-- Several fixes to the grammar.
-- Instruction algorithms have all been implemented, except for the I/O part.
-- FLAGS update algorithm has been implemented.
-- A lot of dead/unnecessary code has been removed.
-- Error reporting to the user has been somewhat improved.
+Fixes:
+
+- SF is correctly updated when working with quadwords.
