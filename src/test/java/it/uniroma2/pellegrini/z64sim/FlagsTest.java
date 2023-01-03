@@ -55,7 +55,7 @@ public class FlagsTest {
     @Test
     @DisplayName("Sign Flag")
     public void testSF() {
-        SimulatorController.updateFlags(-1, 0, -1, 1);
+        SimulatorController.updateFlags(-1, 0, -1, 8);
         Assertions.assertEquals(SF | oneF, SimulatorController.getCpuState().getFlags());
     }
 

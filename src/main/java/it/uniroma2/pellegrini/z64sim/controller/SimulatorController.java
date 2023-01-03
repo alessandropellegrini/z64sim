@@ -338,21 +338,25 @@ public class SimulatorController extends Controller {
     // This function updates FLAGS based on ADDITION arithmetics. If used for subtraction, src should be negated.
     public static void updateFlags(long src, long dst, long result, int size) {
         long mask = 0;
+        long msbMask = 0;
         switch(size) {
             case 1:
                 mask = 0xFF;
+                msbMask = 1 << 7;
                 break;
             case 2:
                 mask = 0xFFFF;
+                msbMask = 1 << 15;
                 break;
             case 4:
                 mask = 0xFFFFFFFF;
+                msbMask = 1L << 31;
                 break;
             case 8:
                 mask = 0xFFFFFFFFFFFFFFFFL;
+                msbMask = 1L << 63;
                 break;
         }
-        long msbMask = mask & (~mask >> 1);
 
         boolean cf = src > mask - dst;
         boolean zf = (result & mask) == 0;
