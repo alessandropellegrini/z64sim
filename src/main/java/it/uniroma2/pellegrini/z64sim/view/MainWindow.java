@@ -8,6 +8,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
@@ -21,6 +22,9 @@ import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -48,6 +52,7 @@ public class MainWindow extends View {
     private JButton stepButton;
     private RegisterBank cpuView;
     private JButton runButton;
+    private JLabel editorPositionLabel;
 
     private File openFile = null;
     private boolean isDirty = false;
@@ -92,7 +97,17 @@ public class MainWindow extends View {
                 MainWindow.setDirty();
             }
         });
-
+        editor.addCaretListener(new CaretListener() {
+            @Override
+            public void caretUpdate(CaretEvent e) {
+                // update the line number view
+                Element root = editor.getDocument().getDefaultRootElement();
+                int line = root.getElementIndex(e.getDot());
+                int col = e.getDot() - root.getElement(line).getStartOffset();
+                // both are starting to 1
+                editorPositionLabel.setText((line + 1) + ":" + (col + 1));
+            }
+        });
         SimulatorController.setCpuView(this.cpuView);
         stepButton.addActionListener(actionEvent -> {
             SimulatorController.step();
@@ -311,7 +326,7 @@ public class MainWindow extends View {
         if(tabbedPaneFont != null) tabbedPane.setFont(tabbedPaneFont);
         splitPane2.setLeftComponent(tabbedPane);
         editorTab = new JPanel();
-        editorTab.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        editorTab.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         Font editorTabFont = UIManager.getFont("TabbedPane.smallFont");
         if(editorTabFont != null) editorTab.setFont(editorTabFont);
         tabbedPane.addTab(this.$$$getMessageFromBundle$$$("i18n", "file.tab.untitled"), editorTab);
@@ -323,6 +338,14 @@ public class MainWindow extends View {
         Font editorFont = UIManager.getFont("EditorPane.font");
         if(editorFont != null) editor.setFont(editorFont);
         scrollPane1.setViewportView(editor);
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        editorTab.add(panel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        editorPositionLabel = new JLabel();
+        editorPositionLabel.setText(" ");
+        panel1.add(editorPositionLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer1 = new Spacer();
+        panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final JScrollPane scrollPane2 = new JScrollPane();
         splitPane2.setRightComponent(scrollPane2);
         memoryView = new JTable();
