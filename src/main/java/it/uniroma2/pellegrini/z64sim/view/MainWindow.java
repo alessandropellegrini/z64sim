@@ -8,6 +8,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
@@ -21,6 +22,9 @@ import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -48,6 +52,7 @@ public class MainWindow extends View {
     private JButton stepButton;
     private RegisterBank cpuView;
     private JButton runButton;
+    private JLabel editorPositionLabel;
 
     private File openFile = null;
     private boolean isDirty = false;
@@ -92,7 +97,17 @@ public class MainWindow extends View {
                 MainWindow.setDirty();
             }
         });
-
+        editor.addCaretListener(new CaretListener() {
+            @Override
+            public void caretUpdate(CaretEvent e) {
+                // update the line number view
+                Element root = editor.getDocument().getDefaultRootElement();
+                int line = root.getElementIndex(e.getDot());
+                int col = e.getDot() - root.getElement(line).getStartOffset();
+                // both are starting to 1
+                editorPositionLabel.setText((line + 1) + ":" + (col + 1));
+            }
+        });
         SimulatorController.setCpuView(this.cpuView);
         stepButton.addActionListener(actionEvent -> {
             SimulatorController.step();
