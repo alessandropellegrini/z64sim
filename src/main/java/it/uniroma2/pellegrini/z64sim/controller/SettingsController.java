@@ -14,7 +14,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
-import org.apache.commons.lang3.SystemUtils;
+import it.uniroma2.pellegrini.z64sim.util.sys.OS;
 
 import java.awt.*;
 import java.io.File;
@@ -177,8 +177,8 @@ public class SettingsController extends Controller {
 
 
     private static class Settings {
-        static String configurationDirectoryPath ;
-        static String configurationFilePath;
+        static final String configurationDirectoryPath = OS.getConfigDir();
+        static final String configurationFilePath = OS.getConfigFilePath();
         static final ObjectMapper objectMapper = new ObjectMapper();
 
         // Configuration options
@@ -205,14 +205,9 @@ public class SettingsController extends Controller {
 
         protected static Settings loadConfiguration() throws SettingsException {
             Settings settings;
-            
-            // Following XDG standard if on *NIX-like
-            if(SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_UNIX) {
-                configurationDirectoryPath = System.getProperty("user.home") + "/.config/z64sim";
-            } else {
-                configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim";
+            if (configurationDirectoryPath.isEmpty()) {
+                throw new SettingsException("Unable to find a configuration directory for: " + OS.getNameOS());
             }
-            configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
 
             try {
                 Files.createDirectories(Paths.get(configurationDirectoryPath));
@@ -229,6 +224,7 @@ public class SettingsController extends Controller {
 
             return settings;
         }
+
 
         protected static Settings getDefaultConfiguration() {
             return new Settings();
