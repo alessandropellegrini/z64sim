@@ -1,14 +1,8 @@
 /**
- *
- * SPDX-FileCopyrightText: 2015-2022 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.util.log;
-
-import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
-import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass5;
-
-import java.util.Objects;
 
 public class LoggerFactory {
     private static ClassContextSecurityManager SECURITY_MANAGER;
