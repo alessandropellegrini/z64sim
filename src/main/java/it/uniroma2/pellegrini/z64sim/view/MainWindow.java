@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.awt.Toolkit;
 
 public class MainWindow extends View {
     private static final Logger log = LoggerFactory.getLogger();
@@ -85,11 +86,13 @@ public class MainWindow extends View {
         saveButton.addActionListener(actionEvent -> this.saveFile());
         assembleButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM));
 
+        Toolkit tk = Toolkit.getDefaultToolkit();
+
         editor.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
-                if (!e.isControlDown()) {
+                if (e.getKeyCode() != tk.getMenuShortcutKeyMaskEx()) {
                     MainWindow.setDirty();
                 }
             }
@@ -105,19 +108,19 @@ public class MainWindow extends View {
 
         mainPanel.registerKeyboardAction(
             e -> this.saveFile(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, tk.getMenuShortcutKeyMaskEx()),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
             e -> this.newFile(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK),
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, tk.getMenuShortcutKeyMaskEx()),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
             e -> this.openFile(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK),
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, tk.getMenuShortcutKeyMaskEx()),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
@@ -125,7 +128,7 @@ public class MainWindow extends View {
             e -> {
                 SimulatorController.step();
                 },
-            KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0),
+            KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
@@ -139,7 +142,7 @@ public class MainWindow extends View {
 
         mainPanel.registerKeyboardAction(
             e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
-            KeyStroke.getKeyStroke(KeyEvent.VK_B, 0),
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, tk.getMenuShortcutKeyMaskEx()),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
     }
