@@ -27,7 +27,7 @@
               <font swing-font="Button.font"/>
               <icon value="images/z64doc.png"/>
               <text value=""/>
-              <toolTipText resource-bundle="i18n" key="new.file"/>
+              <toolTipText resource-bundle="i18n" key="gui.new.file"/>
             </properties>
           </component>
           <component id="3486e" class="javax.swing.JButton" binding="openButton">
@@ -36,7 +36,7 @@
               <font swing-font="Button.font"/>
               <icon value="images/open.png"/>
               <text value=""/>
-              <toolTipText resource-bundle="i18n" key="open.file"/>
+              <toolTipText resource-bundle="i18n" key="gui.open.file"/>
             </properties>
           </component>
           <component id="aa274" class="javax.swing.JButton" binding="saveButton">
@@ -45,7 +45,7 @@
               <font swing-font="Button.font"/>
               <icon value="images/save.png"/>
               <text value=""/>
-              <toolTipText resource-bundle="i18n" key="save.file"/>
+              <toolTipText resource-bundle="i18n" key="gui.save.file"/>
             </properties>
           </component>
           <component id="6162c" class="javax.swing.JButton" binding="assembleButton">
@@ -54,7 +54,7 @@
               <font swing-font="Button.font"/>
               <icon value="images/assemble_icon.png"/>
               <text value=""/>
-              <toolTipText resource-bundle="i18n" key="assemble.program"/>
+              <toolTipText resource-bundle="i18n" key="gui.assemble.program"/>
             </properties>
           </component>
           <component id="9816c" class="javax.swing.JButton" binding="stepButton">
@@ -63,7 +63,7 @@
               <font swing-font="Button.font"/>
               <icon value="images/step.png"/>
               <text value=""/>
-              <toolTipText resource-bundle="i18n" key="step.instruction"/>
+              <toolTipText resource-bundle="i18n" key="gui.step.instruction"/>
             </properties>
           </component>
           <component id="ec9bb" class="javax.swing.JButton" binding="runButton">
@@ -72,7 +72,7 @@
               <font swing-font="Button.font"/>
               <icon value="images/run.png"/>
               <text value=""/>
-              <toolTipText resource-bundle="i18n" key="run.program"/>
+              <toolTipText resource-bundle="i18n" key="gui.run.program"/>
             </properties>
           </component>
         </children>
