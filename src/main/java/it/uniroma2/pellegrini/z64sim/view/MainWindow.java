@@ -87,12 +87,13 @@ public class MainWindow extends View {
         assembleButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM));
 
         Toolkit tk = Toolkit.getDefaultToolkit();
+        final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
         editor.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
-                if (e.getKeyCode() != tk.getMenuShortcutKeyMaskEx()) {
+                if (e.getModifiersEx() != modKeyMask) {
                     MainWindow.setDirty();
                 }
             }
@@ -108,26 +109,26 @@ public class MainWindow extends View {
 
         mainPanel.registerKeyboardAction(
             e -> this.saveFile(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_S, tk.getMenuShortcutKeyMaskEx()),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
             e -> this.newFile(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_N, tk.getMenuShortcutKeyMaskEx()),
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
             e -> this.openFile(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_O, tk.getMenuShortcutKeyMaskEx()),
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
             e -> {
                 SimulatorController.step();
-                },
+            },
             KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
@@ -142,7 +143,7 @@ public class MainWindow extends View {
 
         mainPanel.registerKeyboardAction(
             e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
-            KeyStroke.getKeyStroke(KeyEvent.VK_B, tk.getMenuShortcutKeyMaskEx()),
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, modKeyMask),
             JComponent.WHEN_IN_FOCUSED_WINDOW
         );
     }
