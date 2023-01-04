@@ -5,6 +5,7 @@
 package it.uniroma2.pellegrini.z64sim.view.components;
 
 import javax.swing.*;
+import java.io.File;
 
 public class JFileDialog extends JPanel {
     private final JFileChooser fileChooser;
@@ -13,8 +14,14 @@ public class JFileDialog extends JPanel {
     public static final int MODE_OPEN = 1;
     public static final int MODE_SAVE = 2;
 
-    public JFileDialog(String extension, String description, int mode) {
+    public JFileDialog(String extension, String description, int mode, String current_dir) {
         this.fileChooser = new JFileChooser();
+        if (current_dir != null) {
+            File cd = new File(current_dir);
+            if(cd.exists()) {
+                this.fileChooser.setCurrentDirectory(cd);
+            }
+        }
         FileTypeFilter filter = new FileTypeFilter(extension, description);
         this.fileChooser.addChoosableFileFilter(filter);
         this.fileChooser.setFileFilter(filter);
