@@ -1,3 +1,7 @@
+/**
+ * SPDX-FileCopyrightText: 2023 Luca Gasperini <luca.gasperini@xsoftware.it>
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
 package it.uniroma2.pellegrini.z64sim.util.sys;
 
 import org.jetbrains.annotations.Contract;
