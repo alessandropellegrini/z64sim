@@ -192,7 +192,7 @@ public class SettingsController extends Controller {
         private String logLevel;
         private boolean logShowDateTime;
         private String logOutFile;
-        private List<String> openFiles; // TODO: unused setting
+        private List<String> openFiles;
         private int windowSizeX;
         private int windowSizeY;
         private String fileLastDir;
