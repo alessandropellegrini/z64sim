@@ -17,9 +17,11 @@ public class JFileDialog extends JPanel {
 
     public JFileDialog(String extension, String description, int mode, String current_dir) {
         this.fileChooser = new JFileChooser();
-        File cd = new File(current_dir);
-        if(cd.exists()) {
-            this.fileChooser.setCurrentDirectory(cd);
+        if (current_dir != null) {
+            File cd = new File(current_dir);
+            if(cd.exists()) {
+                this.fileChooser.setCurrentDirectory(cd);
+            }
         }
         FileTypeFilter filter = new FileTypeFilter(extension, description);
         this.fileChooser.addChoosableFileFilter(filter);
