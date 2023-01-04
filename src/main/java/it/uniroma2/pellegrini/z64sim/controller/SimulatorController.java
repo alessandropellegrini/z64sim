@@ -258,14 +258,16 @@ public class SimulatorController extends Controller {
         StringBuilder assemblerOutput = new StringBuilder();
         if(syntaxErrors.isEmpty()) {
             assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.successful"));
+            MainWindow.compileResult(assemblerOutput.toString());
         } else {
             assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.failed.with.0.errors", syntaxErrors.size()));
             for(String e : syntaxErrors) {
                 assemblerOutput.append(e).append("\n");
             }
+            MainWindow.compileResult(assemblerOutput.toString());
+            return;
         }
 
-        MainWindow.compileResult(assemblerOutput.toString());
         this.program = a.getProgram();
         Memory.setProgram(this.program);
 
