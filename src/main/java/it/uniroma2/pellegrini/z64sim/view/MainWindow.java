@@ -62,7 +62,8 @@ public class MainWindow extends View {
 
         this.memoryView.setModel(Memory.getInstance());
         Memory.getInstance().setView(this.memoryView);
-        this.compilerOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        this.compilerOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, SettingsController.getFontSizeCompiler()));
+        this.editor.setFont(new Font(Font.MONOSPACED, Font.PLAIN, SettingsController.getFontSizeEditor()));
 
         this.mainFrame = new JFrame(PropertyBroker.getPropertyValue("z64sim.name"));
         this.mainFrame.setContentPane(this.mainPanel);
