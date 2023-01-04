@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.awt.Toolkit;
 
 public class MainWindow extends View {
     private static final Logger log = LoggerFactory.getLogger();
@@ -90,11 +91,16 @@ public class MainWindow extends View {
         saveButton.addActionListener(actionEvent -> this.saveFile());
         assembleButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM));
 
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
+
         editor.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
-                MainWindow.setDirty();
+                if (e.getModifiersEx() != modKeyMask) {
+                    MainWindow.setDirty();
+                }
             }
         });
         editor.addCaretListener(new CaretListener() {
@@ -115,6 +121,46 @@ public class MainWindow extends View {
         runButton.addActionListener(actionEvent -> {
             SimulatorController.run();
         });
+
+        mainPanel.registerKeyboardAction(
+            e -> this.saveFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> this.newFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> this.openFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> {
+                SimulatorController.step();
+            },
+            KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> {
+                SimulatorController.run();
+            },
+            KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+            e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
     }
 
     private void newFile() {
@@ -271,42 +317,42 @@ public class MainWindow extends View {
         if(newButtonFont != null) newButton.setFont(newButtonFont);
         newButton.setIcon(new ImageIcon(getClass().getResource("/images/z64doc.png")));
         newButton.setText("");
-        newButton.setToolTipText("New file");
+        newButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.new.file"));
         toolBar1.add(newButton);
         openButton = new JButton();
         Font openButtonFont = UIManager.getFont("Button.font");
         if(openButtonFont != null) openButton.setFont(openButtonFont);
         openButton.setIcon(new ImageIcon(getClass().getResource("/images/open.png")));
         openButton.setText("");
-        openButton.setToolTipText("Open file");
+        openButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.open.file"));
         toolBar1.add(openButton);
         saveButton = new JButton();
         Font saveButtonFont = UIManager.getFont("Button.font");
         if(saveButtonFont != null) saveButton.setFont(saveButtonFont);
         saveButton.setIcon(new ImageIcon(getClass().getResource("/images/save.png")));
         saveButton.setText("");
-        saveButton.setToolTipText("Save file");
+        saveButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.save.file"));
         toolBar1.add(saveButton);
         assembleButton = new JButton();
         Font assembleButtonFont = UIManager.getFont("Button.font");
         if(assembleButtonFont != null) assembleButton.setFont(assembleButtonFont);
         assembleButton.setIcon(new ImageIcon(getClass().getResource("/images/assemble_icon.png")));
         assembleButton.setText("");
-        assembleButton.setToolTipText("Assemble program");
+        assembleButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.assemble.program"));
         toolBar1.add(assembleButton);
         stepButton = new JButton();
         Font stepButtonFont = UIManager.getFont("Button.font");
         if(stepButtonFont != null) stepButton.setFont(stepButtonFont);
         stepButton.setIcon(new ImageIcon(getClass().getResource("/images/step.png")));
         stepButton.setText("");
-        stepButton.setToolTipText("Step instruction");
+        stepButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.step.instruction"));
         toolBar1.add(stepButton);
         runButton = new JButton();
         Font runButtonFont = UIManager.getFont("Button.font");
         if(runButtonFont != null) runButton.setFont(runButtonFont);
         runButton.setIcon(new ImageIcon(getClass().getResource("/images/run.png")));
         runButton.setText("");
-        runButton.setToolTipText("Run program");
+        runButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.run.program"));
         toolBar1.add(runButton);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
