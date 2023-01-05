@@ -13,6 +13,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import it.uniroma2.pellegrini.z64sim.util.sys.OS;
 
 import java.awt.*;
 import java.io.File;
@@ -181,8 +182,8 @@ public class SettingsController extends Controller {
     }
 
     private static class Settings {
-        static final String configurationDirectoryPath = System.getProperty("user.home") + System.getProperty("file.separator") + ".z64sim" ;
-        static final String configurationFilePath = configurationDirectoryPath + System.getProperty("file.separator") + "z64sim.cnf" ;
+        static final String configurationDirectoryPath = OS.getConfigDir();
+        static final String configurationFilePath = OS.getConfigFilePath();
         static final ObjectMapper objectMapper = new ObjectMapper();
 
         // Configuration options
@@ -211,6 +212,9 @@ public class SettingsController extends Controller {
 
         protected static Settings loadConfiguration() throws SettingsException {
             Settings settings;
+            if (configurationDirectoryPath.isEmpty()) {
+                throw new SettingsException("Unable to find a configuration directory for: " + OS.getNameOS());
+            }
 
             try {
                 Files.createDirectories(Paths.get(configurationDirectoryPath));
@@ -227,6 +231,7 @@ public class SettingsController extends Controller {
 
             return settings;
         }
+
 
         protected static Settings getDefaultConfiguration() {
             return new Settings();
