@@ -32,7 +32,7 @@ public class InstructionClass1 extends Instruction {
         this.destination = d;
         this.implicitSize = implicitSize;
 
-        if(s instanceof OperandImmediate && s.getSize() == 8 || s instanceof OperandImmediate && d instanceof OperandMemory) {
+        if(s instanceof OperandImmediate && s.getSize() == 8 || s instanceof OperandImmediate && d instanceof OperandMemory && d.getSize() == 8) {
             this.setSize(16);
         } else {
             this.setSize(8);
