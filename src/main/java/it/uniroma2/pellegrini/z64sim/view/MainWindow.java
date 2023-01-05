@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.awt.Toolkit;
 
 public class MainWindow extends View {
     private static final Logger log = LoggerFactory.getLogger();
@@ -98,7 +97,7 @@ public class MainWindow extends View {
             @Override
             public void keyTyped(KeyEvent e) {
                 super.keyTyped(e);
-                if (e.getModifiersEx() != modKeyMask) {
+                if(e.getModifiersEx() != modKeyMask) {
                     MainWindow.setDirty();
                 }
             }

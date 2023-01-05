@@ -4,8 +4,6 @@
  */
 package it.uniroma2.pellegrini.z64sim.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.SettingsException;
 import it.uniroma2.pellegrini.z64sim.util.log.LogLevel;
@@ -16,10 +14,7 @@ import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.util.sys.OS;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -173,6 +168,7 @@ public class SettingsController extends Controller {
         getInstance().settings.setWindowSizeX(dimension.width);
         getInstance().settings.setWindowSizeY(dimension.height);
     }
+
     public static String getFileLastDir() {
         return getInstance().settings.getFileLastDir();
     }
@@ -181,10 +177,12 @@ public class SettingsController extends Controller {
         getInstance().settings.setFileLastDir(value);
     }
 
-    private static class Settings {
+    private static class Settings implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
         static final String configurationDirectoryPath = OS.getConfigDir();
         static final String configurationFilePath = OS.getConfigFilePath();
-        static final ObjectMapper objectMapper = new ObjectMapper();
 
         // Configuration options
         private String uiLang;
@@ -223,9 +221,11 @@ public class SettingsController extends Controller {
             }
 
             try {
-                File configFile = new File(configurationFilePath);
-                settings = objectMapper.readValue(configFile, Settings.class);
-            } catch (IOException e) {
+                FileInputStream fileInputStream = new FileInputStream(configurationFilePath);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+                settings = (Settings) objectInputStream.readObject();
+                objectInputStream.close();
+            } catch(IOException | ClassNotFoundException e) {
                 throw new SettingsException("Unable to load configuration file " + configurationFilePath + ": " + e.getMessage());
             }
 
@@ -239,11 +239,12 @@ public class SettingsController extends Controller {
 
         protected void persist() throws SettingsException {
             try {
-                PrintStream out = new PrintStream(configurationFilePath);
-                String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-                out.println(json);
-                out.close();
-            } catch (FileNotFoundException | JsonProcessingException e) {
+                FileOutputStream fileOutputStream = new FileOutputStream(configurationFilePath);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                objectOutputStream.writeObject(this);
+                objectOutputStream.flush();
+                objectOutputStream.close();
+            } catch(IOException e) {
                 throw new SettingsException("Unable to store configuration in: " + configurationFilePath + ": " + e.getMessage());
             }
         }
