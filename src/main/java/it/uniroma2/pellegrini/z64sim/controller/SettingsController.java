@@ -17,9 +17,7 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 public class SettingsController extends Controller {
@@ -190,7 +188,6 @@ public class SettingsController extends Controller {
         private String logLevel;
         private boolean logShowDateTime;
         private String logOutFile;
-        private List<String> openFiles;
         private int windowSizeX;
         private int windowSizeY;
         private String fileLastDir;
@@ -202,7 +199,6 @@ public class SettingsController extends Controller {
             this.logLevel = PropertyBroker.getPropertyValue("z64sim.log.level");
             this.logShowDateTime = Boolean.parseBoolean(PropertyBroker.getPropertyValue("z64sim.log.showDateTime"));
             this.logOutFile = null;
-            this.openFiles = new ArrayList<>();
             this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
             this.fileLastDir = null;
@@ -263,14 +259,6 @@ public class SettingsController extends Controller {
 
         public void setTheme(String theme) {
             this.theme = theme;
-        }
-
-        public List<String> getOpenFiles() {
-            return openFiles;
-        }
-
-        public void setOpenFiles(List<String> openFiles) {
-            this.openFiles = openFiles;
         }
 
         public String getLogLevel() {
