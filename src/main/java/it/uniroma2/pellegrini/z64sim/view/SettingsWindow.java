@@ -176,12 +176,12 @@ public class SettingsWindow extends JDialog {
         ResourceBundle bundle;
         try {
             Class<?> thisClass = this.getClass();
-            if($$$cachedGetBundleMethod$$$ == null) {
+            if ($$$cachedGetBundleMethod$$$ == null) {
                 Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
                 $$$cachedGetBundleMethod$$$ = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
             }
             bundle = (ResourceBundle) $$$cachedGetBundleMethod$$$.invoke(null, path, thisClass);
-        } catch(Exception e) {
+        } catch (Exception e) {
             bundle = ResourceBundle.getBundle(path);
         }
         return bundle.getString(key);
@@ -195,11 +195,11 @@ public class SettingsWindow extends JDialog {
         boolean haveMnemonic = false;
         char mnemonic = '\0';
         int mnemonicIndex = -1;
-        for(int i = 0; i < text.length(); i++) {
-            if(text.charAt(i) == '&') {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&') {
                 i++;
-                if(i == text.length()) break;
-                if(!haveMnemonic && text.charAt(i) != '&') {
+                if (i == text.length()) break;
+                if (!haveMnemonic && text.charAt(i) != '&') {
                     haveMnemonic = true;
                     mnemonic = text.charAt(i);
                     mnemonicIndex = result.length();
@@ -208,7 +208,7 @@ public class SettingsWindow extends JDialog {
             result.append(text.charAt(i));
         }
         component.setText(result.toString());
-        if(haveMnemonic) {
+        if (haveMnemonic) {
             component.setDisplayedMnemonic(mnemonic);
             component.setDisplayedMnemonicIndex(mnemonicIndex);
         }
@@ -222,11 +222,11 @@ public class SettingsWindow extends JDialog {
         boolean haveMnemonic = false;
         char mnemonic = '\0';
         int mnemonicIndex = -1;
-        for(int i = 0; i < text.length(); i++) {
-            if(text.charAt(i) == '&') {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&') {
                 i++;
-                if(i == text.length()) break;
-                if(!haveMnemonic && text.charAt(i) != '&') {
+                if (i == text.length()) break;
+                if (!haveMnemonic && text.charAt(i) != '&') {
                     haveMnemonic = true;
                     mnemonic = text.charAt(i);
                     mnemonicIndex = result.length();
@@ -235,7 +235,7 @@ public class SettingsWindow extends JDialog {
             result.append(text.charAt(i));
         }
         component.setText(result.toString());
-        if(haveMnemonic) {
+        if (haveMnemonic) {
             component.setMnemonic(mnemonic);
             component.setDisplayedMnemonicIndex(mnemonicIndex);
         }

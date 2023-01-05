@@ -203,19 +203,19 @@ public class RegisterBank extends View {
 
     public void setFlags(long registerValue, boolean OF, boolean DF, boolean IF, boolean SF, boolean ZF, boolean PF, boolean CF) {
         String flags = String.format("%05d ", registerValue) +
-            (OF ? "[OF]" : "") +
-            (DF ? "[DF]" : "") +
-            (IF ? "[IF]" : "") +
-            (SF ? "[SF]" : "") +
-            (ZF ? "[ZF]" : "") +
-            (PF ? "[PF]" : "") +
-            (CF ? "[CF]" : "");
+                (OF ? "[OF]" : "") +
+                (DF ? "[DF]" : "") +
+                (IF ? "[IF]" : "") +
+                (SF ? "[SF]" : "") +
+                (ZF ? "[ZF]" : "") +
+                (PF ? "[PF]" : "") +
+                (CF ? "[CF]" : "");
         this.rflags.setText(flags);
     }
 
     public void setRegister(int reg, Long registerValue) {
         String registerString = String.format("%020d", registerValue);
-        switch(reg) {
+        switch (reg) {
             case Register.RAX:
                 this.rax.setText(registerString);
                 break;

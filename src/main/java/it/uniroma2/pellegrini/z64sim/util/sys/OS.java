@@ -13,6 +13,7 @@ public enum OS {
     UNIX,
     WINDOWS,
     MAC;
+
     @NotNull
     public static String getConfigFilePath() {
         String configDir = getConfigDir();
@@ -24,18 +25,22 @@ public enum OS {
         // else return config file path
         return configDir + getSeparator() + getConfigFileName();
     }
+
     @NotNull
     public static String getNameOS() {
         return System.getProperty("os.name");
     }
+
     @NotNull
     public static String getHomeDir() {
         return System.getProperty("user.home");
     }
+
     @NotNull
     public static String getUserName() {
         return System.getProperty("user.name");
     }
+
     @NotNull
     public static String getSeparator() {
         return System.getProperty("file.separator");
@@ -69,6 +74,7 @@ public enum OS {
     public static String getConfigFileName() {
         return "z64sim.cnf";
     }
+
     @NotNull
     public static String getConfigDir() {
 
