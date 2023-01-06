@@ -189,11 +189,20 @@ public class Assembler {
         return data;
     }
 
-    private byte[] getFilledMemoryArea(int size, byte value) {
-        byte[] fill = new byte[size];
-        for(int i = 0; i < size; i++) {
-            fill[i] = value;
+    private byte[] getFilledMemoryArea(int repeat, byte size, long value) throws ParseException {
+        byte[] fill = new byte[repeat*size];
+        // convert value to bytes
+        try {
+            byte[] valueBytes = dataToByte(size, value);
+            for(int i = 0; i < repeat; i++) {
+                for (int j = 0; j < size; j++) {
+                    fill[(i * size) + j] = valueBytes[j];
         }
+            }
+        }  catch (ParseException ex) {
+            throw new ParseException("Parser cannot fill memory area: A valid size must be 1,2,4,8");
+        }
+
         return fill;
     }
 }
@@ -482,7 +491,7 @@ void Data() :
                               size = 1;
 
                           // Create 'repeat' DataElements set to value
-                          addr = this.program.addData(getFilledMemoryArea((int)(size * repeat), (byte)value));
+                          addr = this.program.addData(getFilledMemoryArea((int)repeat, (byte)size, value));
 
                           // Add the label
                           this.program.newLabel(t1.image, new MemoryPointer(addr));
@@ -491,7 +500,7 @@ void Data() :
                 | <COMM_ASSIGN> t1 = <LABEL_NAME> "," size = Expression()
                   {
                     // .comm assigns to zero
-                    addr = this.program.addData( getFilledMemoryArea((int)size, (byte)0) );
+                    addr = this.program.addData(getFilledMemoryArea((int)size, (byte)1, 0) );
                     this.program.newLabel(t1.image, new MemoryPointer(addr));
                   }
             )+
@@ -597,9 +606,9 @@ void LocationCounter() :
 
             // if t2 != null, we have a fill assignment
             if(t2 != null) {
-                byte value = (byte)stringToInt( t2.image );
+                long value = stringToInt( t2.image );
                 long size = newLocationCounter - this.program.getLocationCounter();
-                this.program.addData(getFilledMemoryArea((int)size, value));
+                this.program.addData(getFilledMemoryArea((int)size, (byte)1, value));
 
             } else {
                 try {
