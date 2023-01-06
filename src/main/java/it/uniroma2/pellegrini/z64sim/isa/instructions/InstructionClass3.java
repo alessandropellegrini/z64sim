@@ -59,7 +59,7 @@ public class InstructionClass3 extends Instruction {
             case "sal":
             case "shl":
                 result = value << places;
-                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize());
+                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize(), false);
                 SimulatorController.setCF(msb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
@@ -68,7 +68,7 @@ public class InstructionClass3 extends Instruction {
                 break;
             case "sar":
                 result = value >>> places;
-                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize());
+                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize(), false);
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(false);
@@ -77,7 +77,7 @@ public class InstructionClass3 extends Instruction {
                 break;
             case "shr":
                 result = value >> places;
-                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize());
+                SimulatorController.updateFlags(-1, -1, result, this.reg.getSize(), false);
                 SimulatorController.setCF(lsb == 1);
                 if(places == 1) {
                     SimulatorController.setOF(msb == 1);

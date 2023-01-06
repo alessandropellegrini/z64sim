@@ -62,32 +62,32 @@ public class InstructionClass2 extends Instruction {
             case "add":
                 long result = srcValue + dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), false);
                 break;
             case "sub":
                 result = dstValue - srcValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(-srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), true);
                 break;
             case "adc":
                 srcValue += SimulatorController.getCF() ? 1 : 0;
                 result = srcValue + dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), false);
                 break;
             case "sbb":
                 srcValue += SimulatorController.getCF() ? 0 : 1;
                 result = dstValue - srcValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(-srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), true);
                 break;
             case "cmp":
                 result = dstValue - srcValue;
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), true);
                 break;
             case "test":
                 result = dstValue & srcValue;
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
                 SimulatorController.refreshUIFlags();
@@ -95,14 +95,14 @@ public class InstructionClass2 extends Instruction {
             case "neg":
                 result = -srcValue;
                 SimulatorController.setOperandValue(this.source, result & mask);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(srcValue != 0);
                 SimulatorController.refreshUIFlags();
                 break;
             case "and":
                 result = srcValue & dstValue & mask;
                 SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
                 SimulatorController.refreshUIFlags();
@@ -110,7 +110,7 @@ public class InstructionClass2 extends Instruction {
             case "or":
                 result = srcValue | dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
                 SimulatorController.refreshUIFlags();
@@ -118,7 +118,7 @@ public class InstructionClass2 extends Instruction {
             case "xor":
                 result = srcValue ^ dstValue;
                 SimulatorController.setOperandValue(this.destination, result);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize());
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
                 SimulatorController.refreshUIFlags();

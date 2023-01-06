@@ -34,44 +34,63 @@ public class FlagsTest {
     @Test
     @DisplayName("Carry Flag")
     public void testCF() {
-        SimulatorController.updateFlags(255, 7, 262, 1);
+        SimulatorController.updateFlags(255, 7, 262, 1, false);
         Assertions.assertEquals(oneF | CF, SimulatorController.getCpuState().getFlags());
     }
 
     @Test
     @DisplayName("Parity flag")
     public void testPF() {
-        SimulatorController.updateFlags(0, 1, 1, 1);
+        SimulatorController.updateFlags(0, 1, 1, 1, false);
         Assertions.assertEquals(PF | oneF, SimulatorController.getCpuState().getFlags());
     }
 
     @Test
     @DisplayName("Zero Flag")
     public void testZF() {
-        SimulatorController.updateFlags(0, 0, 0, 1);
+        SimulatorController.updateFlags(0, 0, 0, 1, false);
         Assertions.assertEquals(ZF | oneF, SimulatorController.getCpuState().getFlags());
     }
 
     @Test
     @DisplayName("Sign Flag")
     public void testSF() {
-        SimulatorController.updateFlags(-1, 0, -1, 8);
-        Assertions.assertEquals(SF | oneF, SimulatorController.getCpuState().getFlags());
+        SimulatorController.updateFlags(1, 0, -1, 8, true);
+        Assertions.assertEquals(CF | SF | oneF, SimulatorController.getCpuState().getFlags());
     }
 
     @Test
     @DisplayName("Overflow Flag")
     public void testOF() {
-        SimulatorController.updateFlags(127, 2, 129, 1);
+        SimulatorController.updateFlags(127, 2, 129, 1, false);
         Assertions.assertEquals(OF | SF | oneF, SimulatorController.getCpuState().getFlags());
         resetFlags();
-        SimulatorController.updateFlags(161, 160, 321, 1);
+        SimulatorController.updateFlags(161, 160, 321, 1, false);
         Assertions.assertEquals(OF | CF | oneF, SimulatorController.getCpuState().getFlags());
         resetFlags();
-        SimulatorController.updateFlags(8, 2, 10, 1);
+        SimulatorController.updateFlags(8, 2, 10, 1, false);
         Assertions.assertEquals(oneF, SimulatorController.getCpuState().getFlags());
         resetFlags();
-        SimulatorController.updateFlags(135, 253, 388, 1);
+        SimulatorController.updateFlags(135, 253, 388, 1, false);
         Assertions.assertEquals(SF | CF | oneF, SimulatorController.getCpuState().getFlags());
+    }
+
+    @Test
+    @DisplayName("Carry Flag for CMP")
+    public void testCFforCmp() {
+        for(int i = 1; i <= 8; i *= 2) {
+            // DST == SRC
+            SimulatorController.updateFlags(0, 0, 0, i, true);
+            Assertions.assertEquals(0, (SimulatorController.getCpuState().getFlags() & CF));
+            resetFlags();
+            // DST > SRC
+            SimulatorController.updateFlags(0, 1, 1, i, true);
+            Assertions.assertEquals(0, (SimulatorController.getCpuState().getFlags() & CF));
+            resetFlags();
+            // DST < SRC
+            SimulatorController.updateFlags(1, 0, -1, i, true);
+            Assertions.assertEquals(CF, (SimulatorController.getCpuState().getFlags() & CF));
+            resetFlags();
+        }
     }
 }

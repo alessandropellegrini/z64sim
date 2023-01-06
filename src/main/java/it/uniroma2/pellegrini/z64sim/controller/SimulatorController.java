@@ -24,6 +24,7 @@ import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -327,8 +328,8 @@ public class SimulatorController extends Controller {
         Memory.selectAddress(address);
     }
 
-    public static void updateFlagsAndRefresh(long src, long dst, long result, int size) {
-        updateFlags(src, dst, result, size);
+    public static void updateFlagsAndRefresh(long src, long dst, long result, int size, boolean subtract) {
+        updateFlags(src, dst, result, size, subtract);
         getInstance().refreshFlags();
     }
 
@@ -337,8 +338,7 @@ public class SimulatorController extends Controller {
         getInstance().refreshFlags();
     }
 
-    // This function updates FLAGS based on ADDITION arithmetics. If used for subtraction, src should be negated.
-    public static void updateFlags(long src, long dst, long result, int size) {
+    public static void updateFlags(long src, long dst, long result, int size, boolean subtract) {
         long mask = 0;
         long msbMask = 0;
         switch(size) {
@@ -360,7 +360,21 @@ public class SimulatorController extends Controller {
                 break;
         }
 
-        boolean cf = src > mask - dst;
+        // CF is both a carry and borrow flag
+        boolean cf = false;
+        if(subtract) {
+            if((dst & mask) < (src & mask)) {
+                cf = true;
+            }
+            src *= -1;
+        } else {
+            BigInteger bSrc = toUnsignedBigInteger(src & mask);
+            BigInteger bDst = toUnsignedBigInteger(dst & mask);
+            BigInteger bMask = toUnsignedBigInteger(mask);
+
+            cf = bSrc.compareTo(bMask.subtract(bDst)) > 0 || bDst.compareTo(bMask.subtract(bSrc)) > 0;
+        }
+
         boolean zf = (result & mask) == 0;
         boolean sf = (result & msbMask) != 0;
         boolean of = (src & msbMask) == 0 && (dst & msbMask) == 0 && (result & msbMask) != 0
@@ -372,6 +386,19 @@ public class SimulatorController extends Controller {
         setSF(sf);
         setOF(of);
         setPF(pf);
+    }
+
+    private static BigInteger toUnsignedBigInteger(long i) {
+        if(i >= 0L) {
+            return BigInteger.valueOf(i);
+        } else {
+            int upper = (int) (i >>> 32);
+            int lower = (int) i;
+
+            return BigInteger.valueOf(Integer.toUnsignedLong(upper))
+                .shiftLeft(32)
+                .add(BigInteger.valueOf(Integer.toUnsignedLong(lower)));
+        }
     }
 
     private static int countSetBits(long n) {
