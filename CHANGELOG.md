@@ -2,4 +2,4 @@
 
 Fixes:
 
-- Fixed the way the CF is updated.
+- Fix the way the .fill directive is implemented (thanks to @luca-yinxing).
