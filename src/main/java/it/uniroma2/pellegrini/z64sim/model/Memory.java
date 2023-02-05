@@ -98,6 +98,7 @@ public class Memory extends AbstractTableModel {
     }
 
     public String getData(int row) {
+        // if program is not set, then just fill with zeroes
         if(this.program == null) {
             return "00 00 00 00 00 00 00 00";
         }
