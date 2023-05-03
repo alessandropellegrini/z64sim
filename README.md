@@ -4,7 +4,7 @@
 [![REUSE Compliance](https://github.com/alessandropellegrini/z64sim/actions/workflows/reuse.yml/badge.svg)](https://github.com/alessandropellegrini/z64sim/actions/workflows/reuse.yml)
 [![GitHub issues](https://img.shields.io/github/issues/alessandropellegrini/z64sim)](https://github.com/alessandropellegrini/z64sim/issues)
 [![GitHub license](https://img.shields.io/github/license/alessandropellegrini/z64sim)](https://github.com/alessandropellegrini/z64sim)
-
+[![Github all releases](https://img.shields.io/github/downloads/alessandropellegrini/z64sim/total.svg)](https://github.com/alessandropellegrini/z64sim/releases/)
 ---
 
 This is a simulator for the z64 CPU, a fictional CPU designed for educational purposes.
