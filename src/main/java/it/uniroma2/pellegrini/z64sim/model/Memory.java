@@ -6,6 +6,7 @@ package it.uniroma2.pellegrini.z64sim.model;
 
 
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass1;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass2;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
@@ -84,39 +85,52 @@ public class Memory extends AbstractTableModel {
     @Override
     public Object getValueAt(int row, int col) {
         if(col == 0) {
-            return String.format("%#016x", row * 8); // 64-bit address
+            return getAddress(row);
         } else if(col == 1) {
-            StringBuilder sb = new StringBuilder();
-            for(int i = 0; i < 8; i++) {
-                if(this.program == null) {
-                    sb.append("00 ");
-                } else {
-                    final MemoryElement memoryElement = this.program.getMemoryElementAt(row * 8L + i);
-                    if(memoryElement == null) {
-                        // Check for 16-byte instructions
-                        // TODO: all this should be made safer!
-                        final MemoryElement memoryElement2 = this.program.getMemoryElementAt((row - 1) * 8L);
-                        if(memoryElement2 instanceof InstructionClass1) {
-                            final OperandImmediate source = (OperandImmediate) ((InstructionClass1) memoryElement2).getSource();
-                            sb.append(source.toBytesString());
-                            i += 8;
-                        } else if(memoryElement2 instanceof InstructionClass2) {
-                            final OperandImmediate source = (OperandImmediate) ((InstructionClass2) memoryElement2).getSource();
-                            sb.append(source.toBytesString());
-                            i += 8;
-                        } else {
-                            sb.append("00 ");
-                        }
-                    } else {
-                        sb.append(memoryElement).append(" ");
-                        i += memoryElement.getSize() - 1;
-                    }
-                }
-            }
-            return sb.toString();
+            return getData(row);
         } else {
             throw new IllegalStateException("Internal error: unexpected column request");
         }
+    }
+
+    public String getAddress(int row) {
+        return String.format("%#016x", row * 8); // 64-bit address
+    }
+
+    public String getData(int row) {
+        // if program is not set, then just fill with zeroes
+        if(this.program == null) {
+            return "00 00 00 00 00 00 00 00";
+        }
+
+        final MemoryElement firstMemoryElement = this.program.getMemoryElementAt(row * 8L);
+        // If first element is null, then check if previous first element was an immediate instruction
+        if(firstMemoryElement == null) {
+            final MemoryElement immediate = this.program.getMemoryElementAt((row - 1) * 8L);
+            if(immediate instanceof InstructionClass1) {
+                final OperandImmediate source = (OperandImmediate) ((InstructionClass1) immediate).getSource();
+                return source.toBytesString();
+            } else if(immediate instanceof InstructionClass2) {
+                final OperandImmediate source = (OperandImmediate) ((InstructionClass2) immediate).getSource();
+                return source.toBytesString();
+            } else {
+                throw new IllegalStateException("Internal error: null memory element request");
+            }
+        }
+
+        // if first element is an instruction, then print it
+        if(firstMemoryElement instanceof Instruction) {
+            return firstMemoryElement.toString();
+        }
+
+        // if not previous, try to write all single byte value of this row
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < 8; i++) {
+            final MemoryElement memoryElement = this.program.getMemoryElementAt(row * 8L + i);
+            sb.append(memoryElement).append(" ");
+        }
+
+        return sb.toString();
     }
 
     @Override
