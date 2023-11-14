@@ -13,7 +13,6 @@ import it.uniroma2.pellegrini.z64sim.view.View;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.math.BigInteger;
 
 public class RegisterBank extends View {
 
