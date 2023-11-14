@@ -13,6 +13,7 @@ import it.uniroma2.pellegrini.z64sim.view.View;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.math.BigInteger;
 
 public class RegisterBank extends View {
 
@@ -198,7 +199,7 @@ public class RegisterBank extends View {
     }
 
     public void setRIP(long address) {
-        this.rip.setText(String.format("%020d", address));
+        this.rip.setText(String.format("0x%016x", address));
     }
 
     public void setFlags(long registerValue, boolean OF, boolean DF, boolean IF, boolean SF, boolean ZF, boolean PF, boolean CF) {
@@ -214,7 +215,7 @@ public class RegisterBank extends View {
     }
 
     public void setRegister(int reg, Long registerValue) {
-        String registerString = String.format("%020d", registerValue);
+        String registerString = String.format("0x%016x", registerValue);
         switch(reg) {
             case Register.RAX:
                 this.rax.setText(registerString);
