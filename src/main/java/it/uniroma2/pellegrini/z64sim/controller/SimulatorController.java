@@ -187,6 +187,19 @@ public class SimulatorController extends Controller {
         cpuView.setFlags(cpuState.getFlags(), cpuState.getOF(), cpuState.getDF(), cpuState.getIF(), cpuState.getSF(), cpuState.getZF(), cpuState.getPF(), cpuState.getCF());
     }
 
+    private void refreshRIP() {
+        cpuView.setRIP(cpuState.getRIP());
+    }
+
+    public static void refreshAllRegisters() {
+        // Using register encoding to refresh them
+        for(int i = 0; i < 16; i++) {
+            getInstance().cpuView.setRegister(i, getInstance().cpuState.getRegisterValue(i));
+        }
+        getInstance().refreshFlags();
+        getInstance().refreshRIP();
+    }
+
     public static void setCF(boolean value) {
         getInstance().cpuState.setCF(value);
     }
