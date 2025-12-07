@@ -19,12 +19,15 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
+import it.uniroma2.pellegrini.z64sim.view.components.LineNumbers;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.text.Element;
+import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -32,6 +35,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -53,11 +57,15 @@ public class MainWindow extends View {
     private RegisterBank cpuView;
     private JButton runButton;
     private JLabel editorPositionLabel;
+    private LineNumbers lineNumbers;
 
     private File openFile = null;
     private boolean isDirty = false;
 
+    private static final Font EDITOR_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 13);
+
     private MainWindow() {
+        createUIComponents();
         $$$setupUI$$$();
 
         this.memoryView.setModel(Memory.getInstance());
@@ -93,6 +101,7 @@ public class MainWindow extends View {
         Toolkit tk = Toolkit.getDefaultToolkit();
         final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
+        editor.setFont(EDITOR_FONT);
         editor.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -100,6 +109,13 @@ public class MainWindow extends View {
                 if (e.getModifiersEx() != modKeyMask) {
                     MainWindow.setDirty();
                 }
+
+                int lineCount = (int) editor.getText()
+                    .chars()
+                    .filter(c -> c == '\n')
+                    .count() + 1;
+
+                lineNumbers.updateLineNumbers(lineCount);
             }
         });
         editor.addCaretListener(new CaretListener() {
@@ -122,44 +138,52 @@ public class MainWindow extends View {
         });
 
         mainPanel.registerKeyboardAction(
-                e -> this.saveFile(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
+            e -> this.saveFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
-                e -> this.newFile(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
+            e -> this.newFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
-                e -> this.openFile(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
+            e -> this.openFile(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
-                e -> {
-                    SimulatorController.step();
-                },
-                KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
+            e -> {
+                SimulatorController.step();
+            },
+            KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
-                e -> {
-                    SimulatorController.run();
-                },
-                KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
+            e -> {
+                SimulatorController.run();
+            },
+            KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
-                e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
-                KeyStroke.getKeyStroke(KeyEvent.VK_B, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
+            e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, modKeyMask),
+            JComponent.WHEN_IN_FOCUSED_WINDOW
         );
+    }
+
+    private void createUIComponents() {
+        lineNumbers = new LineNumbers(new String[]{"1"}, EDITOR_FONT);
+    }
+
+    private void patchTheme() {
+        lineNumbers.patchTheme();
     }
 
     private void newFile() {
@@ -197,10 +221,10 @@ public class MainWindow extends View {
         if (!this.changesToDiscard())
             return;
         String filePath = new JFileDialog(
-                ".asm",
-                PropertyBroker.getMessageFromBundle("file.assembly"),
-                JFileDialog.MODE_OPEN,
-                SettingsController.getFileLastDir()
+            ".asm",
+            PropertyBroker.getMessageFromBundle("file.assembly"),
+            JFileDialog.MODE_OPEN,
+            SettingsController.getFileLastDir()
         ).getFilePath();
         if (filePath == null) {
             return;
@@ -307,6 +331,10 @@ public class MainWindow extends View {
         try {
             UIManager.setLookAndFeel(theme);
             SwingUtilities.updateComponentTreeUI(this.mainFrame);
+
+            // Needed to refresh custom background and font after theme change
+            this.patchTheme();
+
             this.mainFrame.pack();
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
@@ -321,6 +349,7 @@ public class MainWindow extends View {
      * @noinspection ALL
      */
     private void $$$setupUI$$$() {
+        createUIComponents();
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         Font mainPanelFont = UIManager.getFont("Panel.font");
@@ -382,7 +411,7 @@ public class MainWindow extends View {
         splitPane2.setDividerSize(5);
         Font splitPane2Font = UIManager.getFont("Panel.font");
         if (splitPane2Font != null) splitPane2.setFont(splitPane2Font);
-        splitPane2.setResizeWeight(1.0);
+        splitPane2.setResizeWeight(0.5);
         splitPane1.setLeftComponent(splitPane2);
         tabbedPane = new JTabbedPane();
         Font tabbedPaneFont = UIManager.getFont("Panel.font");
@@ -396,19 +425,23 @@ public class MainWindow extends View {
         final JScrollPane scrollPane1 = new JScrollPane();
         Font scrollPane1Font = UIManager.getFont("Panel.font");
         if (scrollPane1Font != null) scrollPane1.setFont(scrollPane1Font);
-        editorTab.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        editor = new JEditorPane();
-        Font editorFont = UIManager.getFont("EditorPane.font");
-        if (editorFont != null) editor.setFont(editorFont);
-        scrollPane1.setViewportView(editor);
+        editorTab.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final JPanel panel1 = new JPanel();
-        panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-        editorTab.add(panel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), 0, 0));
+        scrollPane1.setViewportView(panel1);
+        editor = new JEditorPane();
+        Font editorFont = this.$$$getFont$$$("Monospaced", -1, 13, editor.getFont());
+        if (editorFont != null) editor.setFont(editorFont);
+        panel1.add(editor, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel1.add(lineNumbers, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(1, -1), null, 0, false));
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        editorTab.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         editorPositionLabel = new JLabel();
         editorPositionLabel.setText(" ");
-        panel1.add(editorPositionLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(editorPositionLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        panel2.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final JScrollPane scrollPane2 = new JScrollPane();
         splitPane2.setRightComponent(scrollPane2);
         memoryView = new JTable();
@@ -428,6 +461,28 @@ public class MainWindow extends View {
         compilerOutput.setRows(5);
         compilerOutput.setText("");
         scrollPane3.setViewportView(compilerOutput);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+        if (currentFont == null) return null;
+        String resultName;
+        if (fontName == null) {
+            resultName = currentFont.getName();
+        } else {
+            Font testFont = new Font(fontName, Font.PLAIN, 10);
+            if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+                resultName = fontName;
+            } else {
+                resultName = currentFont.getName();
+            }
+        }
+        Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+        boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+        Font fontWithFallback = isMac ? new Font(font.getFamily(), font.getStyle(), font.getSize()) : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+        return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
     }
 
     private static Method $$$cachedGetBundleMethod$$$ = null;

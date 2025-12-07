@@ -150,6 +150,14 @@ public class SettingsController extends Controller {
         return Arrays.asList(themes).indexOf(getTheme());
     }
 
+    public static boolean getLineNumbers() {
+        return getInstance().settings.getLineNumbers();
+    }
+
+    public static void setLineNumbers(boolean lineNumbers) {
+        getInstance().settings.setLineNumbers(lineNumbers);
+    }
+
     public static void setThemeIdx(int idx) {
         getInstance().settings.setTheme(themes[idx]);
         if(idx == 0)
@@ -191,6 +199,7 @@ public class SettingsController extends Controller {
         private int windowSizeX;
         private int windowSizeY;
         private String fileLastDir;
+        private boolean lineNumbers;
 
         private Settings() {
             // Configuration defaults
@@ -198,6 +207,7 @@ public class SettingsController extends Controller {
             this.theme = PropertyBroker.getPropertyValue("z64sim.ui.defaultTheme");
             this.logLevel = PropertyBroker.getPropertyValue("z64sim.log.level");
             this.logShowDateTime = Boolean.parseBoolean(PropertyBroker.getPropertyValue("z64sim.log.showDateTime"));
+            this.lineNumbers = Boolean.parseBoolean(PropertyBroker.getPropertyValue("z64sim.ui.showLineNumbers"));
             this.logOutFile = null;
             this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
@@ -281,6 +291,12 @@ public class SettingsController extends Controller {
             return logShowDateTime;
         }
 
+        public boolean getLineNumbers() {return lineNumbers;}
+
+        public void setLineNumbers(boolean lineNumbers) {
+            this.lineNumbers = lineNumbers;
+        }
+
         public String getLogOutFile() {
             return logOutFile;
         }
@@ -312,5 +328,7 @@ public class SettingsController extends Controller {
         public void setFileLastDir(String fileLastDir) {
             this.fileLastDir = fileLastDir;
         }
+
+
     }
 }
