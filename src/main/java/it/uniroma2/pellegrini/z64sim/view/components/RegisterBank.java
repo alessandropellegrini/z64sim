@@ -6,6 +6,7 @@ package it.uniroma2.pellegrini.z64sim.view.components;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import it.uniroma2.pellegrini.z64sim.isa.registers.FlagsRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
 import it.uniroma2.pellegrini.z64sim.util.queue.Events;
@@ -127,7 +128,7 @@ public class RegisterBank extends View implements PropertyChangeListener {
                     this.r15.setText(String.format("%020d", (Long) evt.getNewValue()));
                     break;
             }
-        } else if (source instanceof it.uniroma2.pellegrini.z64sim.isa.registers.FlagsRegister) {
+        } else if (source instanceof FlagsRegister) {
             // A flag bit changed - update the flags display
             // We need CpuState reference, get it from SimulatorController
             // For simplicity, just update based on the new register value

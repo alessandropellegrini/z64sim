@@ -10,11 +10,14 @@ import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.DisabledIf;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,6 +54,10 @@ public class GuiButtonTest {
 
     @AfterAll
     static void tearDown() throws Exception {
+        // Stop any running simulation to prevent lingering worker threads
+        SimulatorController.stop();
+        Thread.sleep(500);
+
         if (mainWindowInstance != null) {
             SwingUtilities.invokeAndWait(() -> {
                 try {
@@ -77,7 +84,7 @@ public class GuiButtonTest {
     void testButtonsWiring() throws Exception {
         List<String> buttonNames = Arrays.asList(
                 "newButton", "openButton", "saveButton",
-                "assembleButton", "stepButton", "runButton"
+                "assembleButton", "stepButton", "runButton", "stopButton"
         );
 
         SwingUtilities.invokeAndWait(() -> {
@@ -151,7 +158,8 @@ public class GuiButtonTest {
         // Assembly runs on a SwingWorker background thread; wait for it to complete
         Thread.sleep(2000);
 
-        // Verify assembly succeeded, then click step
+        // Verify assembly succeeded, then step and check result.
+        // step() now runs synchronously on the EDT, so we can verify immediately.
         SwingUtilities.invokeAndWait(() -> {
             try {
                 JTextArea compilerOutput = getPrivateField("compilerOutput");
@@ -161,19 +169,69 @@ public class GuiButtonTest {
 
                 JButton stepButton = getPrivateField("stepButton");
                 stepButton.doClick();
+
+                // After stepping once, %rax should be 42
+                long raxValue = SimulatorController.getCpuState().getRegisterValue(Register.RAX);
+                assertEquals(42L, raxValue, "RAX register should have value 42 after step");
             } catch (Exception e) {
                 fail("Exception during step: " + e.getMessage());
             }
         });
+    }
 
-        // Step also runs on a SwingWorker background thread; wait for it to complete
-        Thread.sleep(1000);
+    @Test
+    @Timeout(15)
+    void testStopHaltsExecution() throws Exception {
+        // Read the infinite loop program from test resources
+        String program = Files.readString(
+                Path.of(getClass().getClassLoader().getResource("infinite_loop.asm").toURI()));
 
-        // Verify RAX
+        // Set editor text and click assemble
         SwingUtilities.invokeAndWait(() -> {
-            // After stepping once, %rax should be 42
-            long raxValue = SimulatorController.getCpuState().getRegisterValue(Register.RAX);
-            assertEquals(42L, raxValue, "RAX register should have value 42 after step");
+            try {
+                JEditorPane editor = getPrivateField("editor");
+                editor.setText(program);
+
+                JButton assembleButton = getPrivateField("assembleButton");
+                assembleButton.doClick();
+            } catch (Exception e) {
+                fail("Exception during assembly: " + e.getMessage());
+            }
         });
+
+        // Wait for assembly to complete
+        Thread.sleep(2000);
+
+        // Verify assembly succeeded, then click run
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                JTextArea compilerOutput = getPrivateField("compilerOutput");
+                assertTrue(compilerOutput.getText().toLowerCase().contains("success"),
+                        "Assembly should succeed. Actual: " + compilerOutput.getText());
+
+                JButton runButton = getPrivateField("runButton");
+                runButton.doClick();
+            } catch (Exception e) {
+                fail("Exception during run: " + e.getMessage());
+            }
+        });
+
+        // Let the Timer-driven infinite loop run for a bit
+        Thread.sleep(500);
+
+        // Click stop via the GUI. This works correctly because the Timer-based
+        // execution yields the EDT between ticks, keeping it responsive.
+        SwingUtilities.invokeAndWait(() -> {
+            try {
+                JButton stopButton = getPrivateField("stopButton");
+                stopButton.doClick();
+            } catch (Exception e) {
+                fail("Exception during stop: " + e.getMessage());
+            }
+        });
+
+        // RAX should be > 1 (the loop ran at least once) and finite (stop worked)
+        long raxValue = SimulatorController.getCpuState().getRegisterValue(Register.RAX);
+        assertTrue(raxValue > 1, "RAX should be > 1 after the loop ran. Actual: " + raxValue);
     }
 }

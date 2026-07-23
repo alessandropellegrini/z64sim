@@ -75,6 +75,15 @@
               <toolTipText resource-bundle="i18n" key="gui.run.program"/>
             </properties>
           </component>
+          <component id="b7f3a" class="javax.swing.JButton" binding="stopButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/stop.png"/>
+              <text value=""/>
+              <toolTipText resource-bundle="i18n" key="gui.stop.program"/>
+            </properties>
+          </component>
         </children>
       </toolbar>
       <splitpane id="abeb1">

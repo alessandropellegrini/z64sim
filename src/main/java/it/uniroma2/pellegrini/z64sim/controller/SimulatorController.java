@@ -39,8 +39,9 @@ public class SimulatorController extends Controller {
     private Program program;
     private RegisterBank cpuView;
 
-    // Active SwingWorker for cancellable simulation runs
-    private SwingWorker<Void, Void> simulationWorker;
+    // Timer-driven simulation: each tick executes one instruction on the EDT,
+    // yielding between ticks so the GUI stays responsive.
+    private Timer simulationTimer;
 
     private SimulatorController() {
     }
@@ -303,64 +304,46 @@ public class SimulatorController extends Controller {
     }
 
     /**
-     * Execute a single instruction step on a background thread.
+     * Execute a single instruction step directly on the EDT.
+     * A single instruction executes fast enough to not block the event dispatch thread.
      */
     public static void step() {
-        new SwingWorker<Boolean, Void>() {
-            @Override
-            protected Boolean doInBackground() {
-                return getInstance().stepInstruction();
-            }
-
-            @Override
-            protected void done() {
-                // Update memory selection on the EDT after step completes
-                try {
-                    Boolean halted = get();
-                    if (!halted) {
-                        Memory.selectAddress(getInstance().cpuState.getRIP());
-                    }
-                } catch (Exception ignored) {}
-            }
-        }.execute();
+        SimulatorController sc = getInstance();
+        boolean halted = sc.stepInstruction();
+        if (!halted) {
+            Memory.selectAddress(sc.cpuState.getRIP());
+        }
     }
 
     /**
-     * Run the program continuously on a background thread with cooperative cancellation.
-     * The GUI remains responsive during execution. Use stop() to cancel.
+     * Run the program continuously using a Swing Timer.
+     * Each timer tick executes one instruction on the EDT, then yields so the GUI
+     * can process other events (button clicks, repaints, etc.). This keeps the
+     * interface responsive and allows stop() to work via a normal button click.
      */
     public static void run() {
         SimulatorController sc = getInstance();
         if (sc.program == null) return;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
 
-        sc.simulationWorker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() {
-                boolean hlt;
-                do {
-                    if (isCancelled()) break;
-                    hlt = sc.stepInstruction();
-                } while(!hlt);
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                // Final state update on the EDT
+        sc.simulationTimer = new Timer(0, e -> {
+            boolean hlt = sc.stepInstruction();
+            if (hlt) {
+                sc.simulationTimer.stop();
                 Memory.selectAddress(sc.cpuState.getRIP());
-                sc.simulationWorker = null;
             }
-        };
-        sc.simulationWorker.execute();
+        });
+        sc.simulationTimer.start();
     }
 
     /**
-     * Stop a running simulation via cooperative cancellation.
+     * Stop a running simulation by stopping the timer.
      */
     public static void stop() {
         SimulatorController sc = getInstance();
-        if (sc.simulationWorker != null) {
-            sc.simulationWorker.cancel(false);
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.stop();
+            Memory.selectAddress(sc.cpuState.getRIP());
         }
     }
 
@@ -381,13 +364,9 @@ public class SimulatorController extends Controller {
         } catch(RuntimeException e) {
             String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
             String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, Long.toHexString(rip));
-            SwingUtilities.invokeLater(() ->
-                JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE)
-            );
+            JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         } catch(SimulatorException e) {
-            SwingUtilities.invokeLater(() ->
-                JOptionPane.showMessageDialog(null, e.getMessage() + " [RIP: " + rip + "]", PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE)
-            );
+            JOptionPane.showMessageDialog(null, e.getMessage() + " [RIP: " + rip + "]", PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
         }
 
         return false;
@@ -408,16 +387,6 @@ public class SimulatorController extends Controller {
         if(getInstance().cpuView != null) {
             Memory.selectAddress(address);
         }
-    }
-
-    public static void updateFlagsAndRefresh(long src, long dst, long result, int size, boolean subtract) {
-        updateFlags(src, dst, result, size, subtract);
-        // No manual refresh needed — FlagsRegister fires PropertyChangeEvents
-    }
-
-    // TODO: exposing this is a violation of MVC pattern
-    public static void refreshUIFlags() {
-        // No-op: flags are now updated reactively via PropertyChangeListener
     }
 
     public static void updateFlags(long src, long dst, long result, int size, boolean subtract) {

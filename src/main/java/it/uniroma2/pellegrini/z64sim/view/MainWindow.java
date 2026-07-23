@@ -52,6 +52,7 @@ public class MainWindow extends View {
     private JButton stepButton;
     private RegisterBank cpuView;
     private JButton runButton;
+    private JButton stopButton;
     private JLabel editorPositionLabel;
 
     private File openFile = null;
@@ -116,6 +117,7 @@ public class MainWindow extends View {
         SimulatorController.setCpuView(this.cpuView);
         stepButton.addActionListener(actionEvent -> SimulatorController.step());
         runButton.addActionListener(actionEvent -> SimulatorController.run());
+        stopButton.addActionListener(actionEvent -> SimulatorController.stop());
 
         mainPanel.registerKeyboardAction(
                 e -> this.saveFile(),
@@ -150,6 +152,12 @@ public class MainWindow extends View {
         mainPanel.registerKeyboardAction(
                 e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
                 KeyStroke.getKeyStroke(KeyEvent.VK_B, modKeyMask),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+        );
+
+        mainPanel.registerKeyboardAction(
+                e -> SimulatorController.stop(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_F5, InputEvent.SHIFT_DOWN_MASK),
                 JComponent.WHEN_IN_FOCUSED_WINDOW
         );
     }
@@ -383,6 +391,13 @@ public class MainWindow extends View {
         runButton.setText("");
         runButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.run.program"));
         toolBar1.add(runButton);
+        stopButton = new JButton();
+        Font stopButtonFont = UIManager.getFont("Button.font");
+        if (stopButtonFont != null) stopButton.setFont(stopButtonFont);
+        stopButton.setIcon(new ImageIcon(getClass().getResource("/images/stop.png")));
+        stopButton.setText("");
+        stopButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.stop.program"));
+        toolBar1.add(stopButton);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
         Font splitPane1Font = UIManager.getFont("Panel.font");
@@ -444,6 +459,9 @@ public class MainWindow extends View {
 
     private static Method $$$cachedGetBundleMethod$$$ = null;
 
+    /**
+     * @noinspection ALL
+     */
     private String $$$getMessageFromBundle$$$(String path, String key) {
         ResourceBundle bundle;
         try {
