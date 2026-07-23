@@ -6,7 +6,7 @@ package it.uniroma2.pellegrini.z64sim;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-import it.uniroma2.pellegrini.z64sim.controller.MainController;
+
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
@@ -32,7 +32,6 @@ public class z64sim {
         Logger.init(); // *Must* come after settings initialization
 
         splashScreen.step("Initializing controllers");
-        MainController.init();
         SimulatorController.init();
 
         splashScreen.step("Initializing UI");

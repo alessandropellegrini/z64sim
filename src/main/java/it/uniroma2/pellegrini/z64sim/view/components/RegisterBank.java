@@ -9,7 +9,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import it.uniroma2.pellegrini.z64sim.isa.registers.FlagsRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import it.uniroma2.pellegrini.z64sim.view.View;
 
 import javax.swing.*;
@@ -40,10 +40,7 @@ public class RegisterBank extends View implements PropertyChangeListener {
     private JLabel rdx;
     private JLabel rbx;
 
-    @Override
-    public boolean dispatch(Events command) {
-        return false;
-    }
+
 
     /**
      * Bind this RegisterBank to a CpuState instance, listening for property changes

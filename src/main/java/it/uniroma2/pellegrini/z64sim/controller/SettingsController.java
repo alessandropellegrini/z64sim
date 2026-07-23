@@ -9,11 +9,12 @@ import it.uniroma2.pellegrini.z64sim.controller.exceptions.SettingsException;
 import it.uniroma2.pellegrini.z64sim.util.log.LogLevel;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import it.uniroma2.pellegrini.z64sim.util.sys.OS;
 
 import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,6 +24,7 @@ import java.util.Locale;
 public class SettingsController extends Controller {
     private static final Logger log = LoggerFactory.getLogger();
     private static SettingsController instance = null;
+    private static final PropertyChangeSupport pcs = new PropertyChangeSupport(SettingsController.class);
 
     // To validate configuration file and to match JComboBoxes in SettingsWindow
     // WARNING: The model in the JComboBox *must* match the order in these arrays!
@@ -77,9 +79,12 @@ public class SettingsController extends Controller {
         }
     }
 
-    @Override
-    public boolean dispatch(Events command) {
-        return false;
+    public static void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(propertyName, listener);
+    }
+
+    public static void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(propertyName, listener);
     }
 
     private static SettingsController getInstance() {
@@ -151,11 +156,9 @@ public class SettingsController extends Controller {
     }
 
     public static void setThemeIdx(int idx) {
+        String oldTheme = getInstance().settings.getTheme();
         getInstance().settings.setTheme(themes[idx]);
-        if(idx == 0)
-            Dispatcher.dispatch(Events.SET_THEME_LIGHT);
-        else
-            Dispatcher.dispatch(Events.SET_THEME_DARK);
+        pcs.firePropertyChange("theme", oldTheme, themes[idx]);
     }
 
     public static Dimension getWindowSize() {

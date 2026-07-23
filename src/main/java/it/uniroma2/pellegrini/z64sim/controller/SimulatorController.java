@@ -19,7 +19,7 @@ import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.model.Program;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
@@ -246,7 +246,7 @@ public class SimulatorController extends Controller {
      * Assembles the program from the editor on a background thread using SwingWorker.
      * The editor text is captured on the EDT before dispatching to background.
      */
-    private void assembleProgram() {
+    public static void assembleProgram() {
         String code = MainWindow.getCode();
 
         new SwingWorker<Void, Void>() {
@@ -461,13 +461,5 @@ public class SimulatorController extends Controller {
         return count;
     }
 
-    @Override
-    public boolean dispatch(Events command) {
-        switch(command) {
-            case ASSEMBLE_PROGRAM:
-                assembleProgram();
-                break;
-        }
-        return false;
-    }
+
 }
