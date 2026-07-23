@@ -24,8 +24,8 @@ public class UpdateController extends Controller {
     private static final Logger log = LoggerFactory.getLogger();
     private static UpdateController instance = null;
 
-    private static boolean checkCompleted = false;
-    private static String upstreamVersion = null;
+    private static volatile boolean checkCompleted = false;
+    private static volatile String upstreamVersion = null;
 
     private static final String connectionUrl = "https://api.github.com/repos/alessandropellegrini/z64sim/releases/latest";
 

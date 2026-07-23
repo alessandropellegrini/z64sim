@@ -8,17 +8,22 @@ import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
-import java.util.ArrayList;
+import javax.swing.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Dispatcher {
     private static final Logger log = LoggerFactory.getLogger();
-    private static final Dispatcher instance = null;
 
-    private static final List<EventDispatchable> destinations = new ArrayList<>();
+    private static final List<EventDispatchable> destinations = new CopyOnWriteArrayList<>();
 
     private Dispatcher() {}
 
+    /**
+     * Dispatch an event to all registered handlers.
+     * If called from outside the EDT, the dispatch is marshalled onto the EDT
+     * via SwingUtilities.invokeLater to ensure Swing thread safety.
+     */
     public static void dispatch(Events command) {
         if (command == Events.QUIT) {
             // TODO: move to main controller
@@ -26,7 +31,15 @@ public class Dispatcher {
             System.exit(0);
         }
 
-        for(EventDispatchable eventDispatchable : destinations) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            doDispatch(command);
+        } else {
+            SwingUtilities.invokeLater(() -> doDispatch(command));
+        }
+    }
+
+    private static void doDispatch(Events command) {
+        for (EventDispatchable eventDispatchable : destinations) {
             eventDispatchable.dispatch(command);
         }
     }

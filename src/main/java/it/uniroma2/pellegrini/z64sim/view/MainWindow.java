@@ -114,12 +114,8 @@ public class MainWindow extends View {
             }
         });
         SimulatorController.setCpuView(this.cpuView);
-        stepButton.addActionListener(actionEvent -> {
-            SimulatorController.step();
-        });
-        runButton.addActionListener(actionEvent -> {
-            SimulatorController.run();
-        });
+        stepButton.addActionListener(actionEvent -> SimulatorController.step());
+        runButton.addActionListener(actionEvent -> SimulatorController.run());
 
         mainPanel.registerKeyboardAction(
                 e -> this.saveFile(),
@@ -140,17 +136,13 @@ public class MainWindow extends View {
         );
 
         mainPanel.registerKeyboardAction(
-                e -> {
-                    SimulatorController.step();
-                },
+                e -> SimulatorController.step(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW
         );
 
         mainPanel.registerKeyboardAction(
-                e -> {
-                    SimulatorController.run();
-                },
+                e -> SimulatorController.run(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW
         );
@@ -183,14 +175,27 @@ public class MainWindow extends View {
             }
             this.openFile = new File(filePath);
         }
-        try {
-            Files.writeString(this.openFile.toPath(), this.editor.getText());
-            this.isDirty = false;
-            this.tabbedPane.setTitleAt(0, this.openFile.getName());
-            SettingsController.setFileLastDir(this.openFile.getParent());
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.saving.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        }
+        final File fileToSave = this.openFile;
+        final String content = this.editor.getText();
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                Files.writeString(fileToSave.toPath(), content);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get(); // Check for exceptions
+                    MainWindow.this.isDirty = false;
+                    MainWindow.this.tabbedPane.setTitleAt(0, fileToSave.getName());
+                    SettingsController.setFileLastDir(fileToSave.getParent());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.saving.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     private void openFile() {
@@ -205,18 +210,29 @@ public class MainWindow extends View {
         if (filePath == null) {
             return;
         }
-        try {
-            this.doOpenFile(filePath);
-            SettingsController.setFileLastDir(this.openFile.getParent());
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.opening.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        }
+        this.doOpenFile(filePath);
     }
 
-    private void doOpenFile(String filePath) throws IOException {
-        this.editor.setText(Files.readString(Path.of(filePath)));
-        this.openFile = new File(filePath);
-        this.tabbedPane.setTitleAt(0, this.openFile.getName());
+    private void doOpenFile(String filePath) {
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                return Files.readString(Path.of(filePath));
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String content = get();
+                    MainWindow.this.editor.setText(content);
+                    MainWindow.this.openFile = new File(filePath);
+                    MainWindow.this.tabbedPane.setTitleAt(0, MainWindow.this.openFile.getName());
+                    SettingsController.setFileLastDir(MainWindow.this.openFile.getParent());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.opening.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     // Return false if the user canceled the action
@@ -247,11 +263,7 @@ public class MainWindow extends View {
     public static void showMainWindow(String fileToOpen) {
         MainWindow instance = getInstance();
         if (fileToOpen != null) {
-            try {
-                instance.doOpenFile(fileToOpen);
-            } catch (IOException e) {
-                log.error(PropertyBroker.getMessageFromBundle("file.error.while.opening"), e);
-            }
+            instance.doOpenFile(fileToOpen);
         }
         instance.show();
     }

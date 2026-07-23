@@ -14,9 +14,16 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import it.uniroma2.pellegrini.z64sim.view.Splash;
 
+import javax.swing.*;
+
 public class z64sim {
 
     public static void main(String[] args) {
+        // Capture the application classloader from the main thread.
+        // On JBR 11, the EDT may have a different context classloader which
+        // prevents UIDefaults from finding FlatLaf's UI delegate classes in fat JARs.
+        final ClassLoader appClassLoader = z64sim.class.getClassLoader();
+
         Splash splashScreen = new Splash(4);
 
         splashScreen.step("Loading settings");
@@ -29,14 +36,20 @@ public class z64sim {
         SimulatorController.init();
 
         splashScreen.step("Initializing UI");
-        if(SettingsController.getTheme().equals("light"))
-            FlatLightLaf.setup();
-        else
-            FlatDarkLaf.setup();
-
-        UpdateController.init();
-
         splashScreen.close();
-        MainWindow.showMainWindow(args.length > 0 ? args[0] : null);
+
+        SwingUtilities.invokeLater(() -> {
+            // Ensure the EDT uses the same classloader as the main thread
+            Thread.currentThread().setContextClassLoader(appClassLoader);
+
+            if(SettingsController.getTheme().equals("light"))
+                FlatLightLaf.setup();
+            else
+                FlatDarkLaf.setup();
+
+            MainWindow.showMainWindow(args.length > 0 ? args[0] : null);
+
+            UpdateController.init();
+        });
     }
 }

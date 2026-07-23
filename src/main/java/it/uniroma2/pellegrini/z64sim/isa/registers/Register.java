@@ -4,6 +4,9 @@
  */
 package it.uniroma2.pellegrini.z64sim.isa.registers;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 /**
  *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
@@ -40,7 +43,18 @@ public class Register {
     };
 
     // The current value of a register
-    protected Long value;
+    protected volatile Long value;
+
+    // Observable support for model-view decoupling
+    protected final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.removePropertyChangeListener(listener);
+    }
 
     // Constructor of the register
     public Register() {
@@ -88,6 +102,7 @@ public class Register {
     public long setQuadword(long val) {
         long oldValue = this.value;
         this.value = val;
+        pcs.firePropertyChange("value", oldValue, val);
         return oldValue;
     }
 
@@ -96,6 +111,7 @@ public class Register {
         long oldValue = this.value;
         // We mask val as it gets sign extended to long before the bitwise or
         this.value = (oldValue & 0xFFFFFFFF00000000L) | (val & 0xFFFFFFFFL);
+        pcs.firePropertyChange("value", oldValue, this.value);
         return oldValue;
     }
 
@@ -104,6 +120,7 @@ public class Register {
         long oldValue = this.value;
         // We mask val as it gets sign extended to long before the bitwise or
         this.value = (oldValue & 0xFFFFFFFFFFFF0000L) | (val & 0xFFFFL);
+        pcs.firePropertyChange("value", oldValue, this.value);
         return oldValue;
     }
 
@@ -112,6 +129,7 @@ public class Register {
         long oldValue = this.value;
         // We mask val as it gets sign extended to long before the bitwise or
         this.value = (oldValue & 0xFFFFFFFFFFFFFF00L) | (val & 0xFFL);
+        pcs.firePropertyChange("value", oldValue, this.value);
         return oldValue;
     }
 

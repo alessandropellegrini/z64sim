@@ -7,6 +7,8 @@ package it.uniroma2.pellegrini.z64sim.model;
 import it.uniroma2.pellegrini.z64sim.isa.registers.FlagsRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 
 /**
@@ -24,7 +26,7 @@ public class CpuState implements Serializable {
     public static final String PROP_RBP = "RBP";
     public static final String PROP_RSI = "RSI";
     public static final String PROP_RDI = "RDI";
-    public static final String PROP_R8 = "R9";
+    public static final String PROP_R8 = "R8";
     public static final String PROP_R9 = "R9";
     public static final String PROP_R10 = "R10";
     public static final String PROP_R11 = "R11";
@@ -34,6 +36,22 @@ public class CpuState implements Serializable {
     public static final String PROP_R15 = "R15";
     public static final String PROP_RIP = "RIP";
     public static final String PROP_FLAGS = "FLAGS";
+    public static final String PROP_HALTED = "HALTED";
+
+    // Observable support for model-view decoupling
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.removePropertyChangeListener(listener);
+    }
+
+    public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        this.pcs.addPropertyChangeListener(propertyName, listener);
+    }
 
     // Fields
     private final Register RAX = new Register();
@@ -55,6 +73,18 @@ public class CpuState implements Serializable {
     private final Register RIP = new Register();
     private final FlagsRegister FlagsRegister = new FlagsRegister();
 
+    private volatile boolean halted = false;
+
+    public boolean isHalted() {
+        return halted;
+    }
+
+    public void setHalted(boolean halted) {
+        boolean oldValue = this.halted;
+        this.halted = halted;
+        pcs.firePropertyChange(PROP_HALTED, oldValue, halted);
+    }
+
     public Long getFlags() {
         return FlagsRegister.getQuadword();
     }
@@ -64,7 +94,9 @@ public class CpuState implements Serializable {
     }
 
     public void setRIP(Long newValue) {
+        Long oldValue = RIP.getQuadword();
         RIP.setQuadword(newValue);
+        pcs.firePropertyChange(PROP_RIP, oldValue, newValue);
     }
 
     public Long getRIP() {
@@ -136,7 +168,9 @@ public class CpuState implements Serializable {
     }
 
     private void updateRegister(Register r, Long v, String property) {
+        Long oldValue = r.getQuadword();
         r.setQuadword(v);
+        pcs.firePropertyChange(property, oldValue, v);
     }
 
     public void setRAX(Long v) {
@@ -257,6 +291,10 @@ public class CpuState implements Serializable {
 
     public void setOF(boolean flag) {
         FlagsRegister.setOF(flag);
+    }
+
+    public FlagsRegister getFlagsRegister() {
+        return FlagsRegister;
     }
 
     public Long getRegisterValue(int reg) {
