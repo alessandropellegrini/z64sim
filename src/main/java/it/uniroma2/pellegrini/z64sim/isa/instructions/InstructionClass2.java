@@ -95,7 +95,7 @@ public class InstructionClass2 extends Instruction {
             case "neg":
                 result = -srcValue;
                 SimulatorController.setOperandValue(this.source, result & mask);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
+                SimulatorController.updateFlags(srcValue, 0, result, this.source.getSize(), true);
                 SimulatorController.setCF(srcValue != 0);
                 SimulatorController.refreshUIFlags();
                 break;
