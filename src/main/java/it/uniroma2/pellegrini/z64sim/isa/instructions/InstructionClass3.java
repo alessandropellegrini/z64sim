@@ -34,6 +34,7 @@ public class InstructionClass3 extends Instruction {
     public void run() throws SimulatorException {
         Long value = SimulatorController.getOperandValue(this.reg);
 
+        int bitWidth = this.reg.getSize() * 8;
         long mask = 0;
         switch(this.reg.getSize()) {
             case 1:
@@ -49,7 +50,7 @@ public class InstructionClass3 extends Instruction {
                 mask = 0xFFFFFFFFFFFFFFFFL;
                 break;
         }
-        long msbMask = mask & (~mask >> 1);
+        long msbMask = mask & (~mask >>> 1);
         long msb = value & msbMask;
         long lsb = value & 1;
 
@@ -58,63 +59,92 @@ public class InstructionClass3 extends Instruction {
         switch(mnemonic) {
             case "sal":
             case "shl":
-                result = value << places;
+                result = (value << places) & mask;
                 SimulatorController.updateFlags(-1, -1, result, this.reg.getSize(), false);
-                SimulatorController.setCF(msb == 1);
+                SimulatorController.setCF(msb != 0);
                 if(places == 1) {
-                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                    SimulatorController.setOF(((result & msbMask) ^ msb) != 0);
                 }
                 SimulatorController.refreshUIFlags();
                 break;
             case "sar":
-                result = value >>> places;
+                // SAR = Shift Arithmetic Right: preserves sign bit
+                result = (value >> places) & mask;
                 SimulatorController.updateFlags(-1, -1, result, this.reg.getSize(), false);
-                SimulatorController.setCF(lsb == 1);
+                SimulatorController.setCF(lsb != 0);
                 if(places == 1) {
                     SimulatorController.setOF(false);
                 }
                 SimulatorController.refreshUIFlags();
                 break;
             case "shr":
-                result = value >> places;
+                // SHR = Shift Logical Right: fills with zeros
+                result = (value >>> places) & mask;
                 SimulatorController.updateFlags(-1, -1, result, this.reg.getSize(), false);
-                SimulatorController.setCF(lsb == 1);
+                SimulatorController.setCF(lsb != 0);
                 if(places == 1) {
-                    SimulatorController.setOF(msb == 1);
+                    SimulatorController.setOF(msb != 0);
                 }
                 SimulatorController.refreshUIFlags();
                 break;
-            case "rcl":
-                long currentCF = SimulatorController.getCF() ? 1 : 0;
-                result = (value << 1) | currentCF;
-                SimulatorController.setCF(msb == 1);
+            case "rcl": {
+                // RCL = Rotate through Carry Left
+                result = value;
+                boolean cf = SimulatorController.getCF();
+                for(int i = 0; i < places; i++) {
+                    boolean oldMsb = (result & msbMask) != 0;
+                    result = ((result << 1) & mask) | (cf ? 1 : 0);
+                    cf = oldMsb;
+                }
+                SimulatorController.setCF(cf);
                 if(places == 1) {
-                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                    SimulatorController.setOF(((result & msbMask) != 0) != cf);
                 }
                 SimulatorController.refreshUIFlags();
-            case "rcr":
-                currentCF = SimulatorController.getCF() ? 1 : 0;
-                result = (value >> 1) | (currentCF << (this.reg.getSize() - 1));
-                SimulatorController.setCF(lsb == 1);
+                break;
+            }
+            case "rcr": {
+                // RCR = Rotate through Carry Right
+                result = value;
+                boolean cf = SimulatorController.getCF();
+                for(int i = 0; i < places; i++) {
+                    boolean oldLsb = (result & 1) != 0;
+                    result = ((result >>> 1) & mask) | (cf ? msbMask : 0);
+                    cf = oldLsb;
+                }
+                SimulatorController.setCF(cf);
                 if(places == 1) {
-                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                    long resultMsb = result & msbMask;
+                    long resultMsb1 = result & (msbMask >>> 1);
+                    SimulatorController.setOF((resultMsb != 0) != (resultMsb1 != 0));
                 }
                 SimulatorController.refreshUIFlags();
-            case "rol":
-                result = (value << 1) | (msb >> (this.reg.getSize() - 1));
-                SimulatorController.setCF(msb == 1);
+                break;
+            }
+            case "rol": {
+                // ROL = Rotate Left
+                int count = places % bitWidth;
+                result = ((value << count) | (value >>> (bitWidth - count))) & mask;
+                SimulatorController.setCF((result & 1) != 0);
                 if(places == 1) {
-                    SimulatorController.setOF(((result & msbMask) ^ msb) == 1);
+                    SimulatorController.setOF(((result & msbMask) != 0) != ((result & 1) != 0));
                 }
                 SimulatorController.refreshUIFlags();
-            case "ror":
-                result = (value >> 1) | (lsb << (this.reg.getSize() - 1));
-                SimulatorController.setCF(lsb == 1);
+                break;
+            }
+            case "ror": {
+                // ROR = Rotate Right
+                int count = places % bitWidth;
+                result = ((value >>> count) | (value << (bitWidth - count))) & mask;
+                SimulatorController.setCF((result & msbMask) != 0);
                 if(places == 1) {
-                    SimulatorController.setOF(((result & msbMask) ^ (result & (msbMask >> 1))) == 1);
+                    long resultMsb = result & msbMask;
+                    long resultMsb1 = result & (msbMask >>> 1);
+                    SimulatorController.setOF((resultMsb != 0) != (resultMsb1 != 0));
                 }
                 SimulatorController.refreshUIFlags();
-                throw new UnsupportedOperationException("Not supported yet.");
+                break;
+            }
             default:
                 throw new RuntimeException("Unknown Class 3 instruction: " + mnemonic);
         }

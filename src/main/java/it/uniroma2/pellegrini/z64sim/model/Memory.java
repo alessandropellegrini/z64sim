@@ -34,6 +34,7 @@ public class Memory extends AbstractTableModel {
     }
 
     public static void selectAddress(long address) {
+        if(getInstance().memoryView == null) return;
         int row = (int) (address / 8);
         getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
         getInstance().memoryView.scrollRectToVisible(getInstance().memoryView.getCellRect(row, 0, true));
