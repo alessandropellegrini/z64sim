@@ -17,7 +17,6 @@ public class ReuseCheckTest {
 
     @Test
     @DisplayName("REUSE check")
-    @Disabled
     public void reuseCheck() throws IOException, InterruptedException {
         @NonNls Process p = Runtime.getRuntime().exec("reuse lint");
         try (InputStream inputStream = p.getInputStream();
