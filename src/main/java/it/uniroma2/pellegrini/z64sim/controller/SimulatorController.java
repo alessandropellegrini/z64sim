@@ -184,6 +184,7 @@ public class SimulatorController extends Controller {
         return getInstance().cpuState;
     }
 
+
     public static void setCF(boolean value) {
         getInstance().cpuState.setCF(value);
     }
@@ -403,8 +404,10 @@ public class SimulatorController extends Controller {
 
     public static void setRIP(long address) {
         getInstance().cpuState.setRIP(address);
-        // Memory selection is now EDT-safe
-        Memory.selectAddress(address);
+        // Memory selection is now EDT-safe; skip in headless (no GUI) mode
+        if(getInstance().cpuView != null) {
+            Memory.selectAddress(address);
+        }
     }
 
     public static void updateFlagsAndRefresh(long src, long dst, long result, int size, boolean subtract) {

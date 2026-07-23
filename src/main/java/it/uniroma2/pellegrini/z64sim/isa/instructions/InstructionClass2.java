@@ -40,7 +40,7 @@ public class InstructionClass2 extends Instruction {
     @Override
     public void run() throws SimulatorException {
         Long srcValue = SimulatorController.getOperandValue(this.source);
-        Long dstValue = SimulatorController.getOperandValue(this.destination);
+        Long dstValue = this.destination != null ? SimulatorController.getOperandValue(this.destination) : 0L;
 
         long mask = 0;
         switch(this.source.getSize()) {
@@ -95,7 +95,7 @@ public class InstructionClass2 extends Instruction {
             case "neg":
                 result = -srcValue;
                 SimulatorController.setOperandValue(this.source, result & mask);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
+                SimulatorController.updateFlags(srcValue, 0, result, this.source.getSize(), true);
                 SimulatorController.setCF(srcValue != 0);
                 SimulatorController.refreshUIFlags();
                 break;

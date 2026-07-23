@@ -46,6 +46,7 @@ public class Memory extends AbstractTableModel {
     }
 
     public static void selectAddress(long address) {
+        if(getInstance().memoryView == null) return;
         int row = (int) (address / 8);
         // Ensure JTable operations happen on the EDT
         if (SwingUtilities.isEventDispatchThread()) {
