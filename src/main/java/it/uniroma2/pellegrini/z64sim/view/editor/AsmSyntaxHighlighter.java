@@ -8,7 +8,7 @@ import it.uniroma2.pellegrini.z64sim.assembler.AssemblerConstants;
 import it.uniroma2.pellegrini.z64sim.assembler.AssemblerTokenManager;
 import it.uniroma2.pellegrini.z64sim.assembler.JavaCharStream;
 import it.uniroma2.pellegrini.z64sim.assembler.Token;
-import it.uniroma2.pellegrini.z64sim.assembler.TokenMgrError;
+import it.uniroma2.pellegrini.z64sim.assembler.TokenMgrException;
 
 import javax.swing.text.*;
 import java.awt.*;
@@ -202,7 +202,7 @@ public class AsmSyntaxHighlighter {
             while (true) {
                 try {
                     token = tokenManager.getNextToken();
-                } catch (TokenMgrError e) {
+                } catch (TokenMgrException e) {
                     // Malformed input — stop highlighting but don't crash
                     break;
                 }
