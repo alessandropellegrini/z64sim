@@ -213,7 +213,7 @@ public class Program {
             }
             long target = labelAddress.getTarget();
             for(int i = 0; i < 8; i++) { // TODO: 8 bytes are common, but relocation should be more flexible
-                byte currByte = (byte)((target >> ((8 - i) * 8)) & 0xFF);
+                byte currByte = (byte)((target >> (i * 8)) & 0xFF);
                 program.binary.put(dataOffset + i, new MemoryData(currByte));
             }
         }
