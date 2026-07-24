@@ -42,6 +42,7 @@ public class SimulatorController extends Controller {
     // Timer-driven simulation: each tick executes one instruction on the EDT,
     // yielding between ticks so the GUI stays responsive.
     private Timer simulationTimer;
+    private int timerDelayMs = 0;
 
     private SimulatorController() {
     }
@@ -326,7 +327,7 @@ public class SimulatorController extends Controller {
         if (sc.program == null) return;
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
 
-        sc.simulationTimer = new Timer(0, e -> {
+        sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
             boolean hlt = sc.stepInstruction();
             if (hlt) {
                 sc.simulationTimer.stop();
@@ -334,6 +335,20 @@ public class SimulatorController extends Controller {
             }
         });
         sc.simulationTimer.start();
+    }
+
+    /**
+     * Update the timer delay (in milliseconds) controlling simulation speed.
+     * If a simulation is currently running, the delay is applied immediately.
+     *
+     * @param delayMs delay between steps, 0 = maximum speed
+     */
+    public static void setTimerDelay(int delayMs) {
+        SimulatorController sc = getInstance();
+        sc.timerDelayMs = delayMs;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.setDelay(delayMs);
+        }
     }
 
     /**
