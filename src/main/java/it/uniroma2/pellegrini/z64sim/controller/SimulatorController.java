@@ -16,6 +16,7 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
+import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
 import it.uniroma2.pellegrini.z64sim.model.Program;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -42,6 +43,7 @@ public class SimulatorController extends Controller {
     // Timer-driven simulation: each tick executes one instruction on the EDT,
     // yielding between ticks so the GUI stays responsive.
     private Timer simulationTimer;
+    private int timerDelayMs = 0;
 
     private SimulatorController() {
     }
@@ -323,10 +325,16 @@ public class SimulatorController extends Controller {
      */
     public static void step() {
         SimulatorController sc = getInstance();
-        boolean halted = sc.stepInstruction();
-        if (!halted) {
-            Memory.selectAddress(sc.cpuState.getRIP());
+        try {
+            sc.stepInstruction();
+        } catch (SimulatorException e) {
+            showRuntimeError(e.getMessage());
+        } catch (RuntimeException e) {
+            String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            showRuntimeError(PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error,
+                    Long.toHexString(sc.cpuState.getRIP())));
         }
+        Memory.selectAddress(sc.cpuState.getRIP());
     }
 
     /**
@@ -340,14 +348,40 @@ public class SimulatorController extends Controller {
         if (sc.program == null) return;
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
 
-        sc.simulationTimer = new Timer(0, e -> {
-            boolean hlt = sc.stepInstruction();
-            if (hlt) {
+        sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
+            try {
+                boolean hlt = sc.stepInstruction();
+                Memory.selectAddress(sc.cpuState.getRIP());
+                if (hlt) {
+                    sc.simulationTimer.stop();
+                }
+            } catch (SimulatorException ex) {
                 sc.simulationTimer.stop();
                 Memory.selectAddress(sc.cpuState.getRIP());
+                showRuntimeError(ex.getMessage());
+            } catch (RuntimeException ex) {
+                sc.simulationTimer.stop();
+                Memory.selectAddress(sc.cpuState.getRIP());
+                String error = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+                showRuntimeError(PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error,
+                        Long.toHexString(sc.cpuState.getRIP())));
             }
         });
         sc.simulationTimer.start();
+    }
+
+    /**
+     * Update the timer delay (in milliseconds) controlling simulation speed.
+     * If a simulation is currently running, the delay is applied immediately.
+     *
+     * @param delayMs delay between steps, 0 = maximum speed
+     */
+    public static void setTimerDelay(int delayMs) {
+        SimulatorController sc = getInstance();
+        sc.timerDelayMs = delayMs;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.setDelay(delayMs);
+        }
     }
 
     /**
@@ -357,38 +391,36 @@ public class SimulatorController extends Controller {
         SimulatorController sc = getInstance();
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
             sc.simulationTimer.stop();
-            Memory.selectAddress(sc.cpuState.getRIP());
         }
     }
 
-    // Return true if the program reached a halt instruction
-    private boolean stepInstruction() {
-        SimulatorController sc = getInstance();
-        if(sc.program == null) return true;
-
-        long rip = sc.cpuState.getRIP();
-        Instruction instruction = sc.fetch();
-
-        try {
-            instruction.run();
-
-            if(instruction.getMnemonic().equals("hlt")) {
-                return true;
-            }
-        } catch(RuntimeException e) {
-            String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
-            String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, Long.toHexString(rip));
-            JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        } catch(SimulatorException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage() + " [RIP: " + rip + "]", PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        }
-
-        return false;
+    private static void showRuntimeError(String message) {
+        JOptionPane.showMessageDialog(null, message,
+                PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
     }
 
-    private Instruction fetch() {
+    /**
+     * Execute a single instruction.
+     *
+     * @return true if the program halted (hlt instruction)
+     * @throws SimulatorException if an error occurs (e.g. RIP points to data)
+     */
+    boolean stepInstruction() throws SimulatorException {
+        if(this.program == null) return true;
+
+        Instruction instruction = this.fetch();
+        instruction.run();
+
+        return instruction.getMnemonic().equals("hlt");
+    }
+
+    private Instruction fetch() throws SimulatorException {
         long rip = this.cpuState.getRIP();
-        Instruction instruction = (Instruction) this.program.getMemoryElementAt(rip);
+        MemoryElement element = this.program.getMemoryElementAt(rip);
+        if (!(element instanceof Instruction)) {
+            throw new SimulatorException("Cannot execute data at address 0x" + Long.toHexString(rip));
+        }
+        Instruction instruction = (Instruction) element;
         // This fires PropertyChangeEvent → RegisterBank updates RIP reactively
         this.cpuState.setRIP(rip + instruction.getSize());
 
