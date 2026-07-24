@@ -40,7 +40,7 @@ public class InstructionClass2 extends Instruction {
     @Override
     public void run() throws SimulatorException {
         Long srcValue = SimulatorController.getOperandValue(this.source);
-        Long dstValue = SimulatorController.getOperandValue(this.destination);
+        Long dstValue = this.destination != null ? SimulatorController.getOperandValue(this.destination) : 0L;
 
         long mask = 0;
         switch(this.source.getSize()) {

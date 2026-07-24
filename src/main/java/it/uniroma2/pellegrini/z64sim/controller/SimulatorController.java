@@ -180,11 +180,13 @@ public class SimulatorController extends Controller {
     }
 
     private void refreshRegisters(OperandRegister destination) {
-        cpuView.setRegister(destination.getRegister(), cpuState.getRegisterValue(destination.getRegister()));
+        if(cpuView != null)
+            cpuView.setRegister(destination.getRegister(), cpuState.getRegisterValue(destination.getRegister()));
     }
 
     private void refreshFlags() {
-        cpuView.setFlags(cpuState.getFlags(), cpuState.getOF(), cpuState.getDF(), cpuState.getIF(), cpuState.getSF(), cpuState.getZF(), cpuState.getPF(), cpuState.getCF());
+        if(cpuView != null)
+            cpuView.setFlags(cpuState.getFlags(), cpuState.getOF(), cpuState.getDF(), cpuState.getIF(), cpuState.getSF(), cpuState.getZF(), cpuState.getPF(), cpuState.getCF());
     }
 
     public static void setCF(boolean value) {
@@ -324,8 +326,10 @@ public class SimulatorController extends Controller {
 
     public static void setRIP(long address) {
         getInstance().cpuState.setRIP(address);
-        getInstance().cpuView.setRIP(address);
-        Memory.selectAddress(address);
+        if(getInstance().cpuView != null) {
+            getInstance().cpuView.setRIP(address);
+            Memory.selectAddress(address);
+        }
     }
 
     public static void updateFlagsAndRefresh(long src, long dst, long result, int size, boolean subtract) {
