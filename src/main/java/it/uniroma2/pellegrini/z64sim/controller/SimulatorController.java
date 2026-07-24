@@ -13,7 +13,6 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
-import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
@@ -291,7 +290,8 @@ public class SimulatorController extends Controller {
                     this.assembledProgram = a.getProgram();
                     this.success = true;
                 } else {
-                    assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.failed.with.0.errors", syntaxErrors.size()));
+                    assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.failed.with.0.errors", syntaxErrors.size()))
+                                   .append("\n\n");
                     for(String e : syntaxErrors) {
                         assemblerOutput.append(e).append("\n");
                     }

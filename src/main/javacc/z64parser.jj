@@ -69,7 +69,7 @@ public class Assembler {
      * @param kind The token to be reached so as to continue parsing
      */
     private void error_recover(ParseException ex, int kind) {
-        syntaxErrors.add(ex.getMessage());
+        syntaxErrors.add(ParseErrorFormatter.format(ex));
         Token t;
         do {
             t = getNextToken();
