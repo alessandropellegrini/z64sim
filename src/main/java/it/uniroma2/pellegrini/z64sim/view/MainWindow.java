@@ -23,6 +23,8 @@ import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.*;
@@ -94,13 +96,19 @@ public class MainWindow extends View {
         final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
 
-        editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        editor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { MainWindow.setDirty(); }
+            public void insertUpdate(DocumentEvent e) {
+                MainWindow.setDirty();
+            }
+
             @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { MainWindow.setDirty(); }
+            public void removeUpdate(DocumentEvent e) {
+                MainWindow.setDirty();
+            }
+
             @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { /* attribute changes, not content */ }
+            public void changedUpdate(DocumentEvent e) { /* attribute changes, not content */ }
         });
         editor.addCaretListener(new CaretListener() {
             @Override
@@ -124,17 +132,26 @@ public class MainWindow extends View {
 
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask), "save");
         am.put("save", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) { MainWindow.this.saveFile(); }
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainWindow.this.saveFile();
+            }
         });
 
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask), "new");
         am.put("new", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) { MainWindow.this.newFile(); }
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainWindow.this.newFile();
+            }
         });
 
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask), "open");
         am.put("open", new AbstractAction() {
-            @Override public void actionPerformed(ActionEvent e) { MainWindow.this.openFile(); }
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainWindow.this.openFile();
+            }
         });
 
         im.put((KeyStroke) AppActions.ASSEMBLE.getValue(Action.ACCELERATOR_KEY), "assemble");

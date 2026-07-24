@@ -50,6 +50,20 @@ public class SimulatorController extends Controller {
         instance = new SimulatorController();
     }
 
+    /**
+     * Load a program for execution without GUI interaction.
+     * Sets the program in memory, initialises RIP to _start and RSP to the end of memory.
+     *
+     * @param program the assembled program
+     */
+    public static void loadProgram(Program program) {
+        SimulatorController sc = getInstance();
+        sc.program = program;
+        Memory.setProgram(program);
+        sc.cpuState.setRIP(program._start.getTarget());
+        sc.cpuState.setRSP((long) program.getLargestAddress());
+    }
+
     private static SimulatorController getInstance() {
         if(instance == null) init();
         return instance;
