@@ -4,6 +4,7 @@
  */
 package it.uniroma2.pellegrini.z64sim.view;
 
+import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.AppActions;
 
 import javax.swing.*;
@@ -24,11 +25,14 @@ public class MainWindowMenu extends JMenuBar {
         this.add(menuFile);
 
         /* EDIT */
-        JMenu menu2 = new JMenu("Edit");
-        JMenu smenu = new JMenu("Sub menu");
-        JMenuItem e2 = new JMenuItem("Settings");
-        smenu.add(e2);
+        JMenu menuEdit = new JMenu(PropertyBroker.getMessageFromBundle("menu.edit"));
 
-        this.add(menu2);
+        JMenuItem undoMenu = new JMenuItem(AppActions.UNDO);
+        menuEdit.add(undoMenu);
+
+        JMenuItem redoMenu = new JMenuItem(AppActions.REDO);
+        menuEdit.add(redoMenu);
+
+        this.add(menuEdit);
     }
 }

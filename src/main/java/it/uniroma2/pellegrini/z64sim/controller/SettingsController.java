@@ -178,6 +178,16 @@ public class SettingsController extends Controller {
         getInstance().settings.setFileLastDir(value);
     }
 
+    public static boolean getShowLineNumbers() {
+        return getInstance().settings.getShowLineNumbers();
+    }
+
+    public static void setShowLineNumbers(boolean show) {
+        boolean old = getInstance().settings.getShowLineNumbers();
+        getInstance().settings.setShowLineNumbers(show);
+        pcs.firePropertyChange("showLineNumbers", old, show);
+    }
+
     private static class Settings implements Serializable {
 
         private static final long serialVersionUID = 1L;
@@ -194,6 +204,7 @@ public class SettingsController extends Controller {
         private int windowSizeX;
         private int windowSizeY;
         private String fileLastDir;
+        private boolean showLineNumbers;
 
         private Settings() {
             // Configuration defaults
@@ -205,6 +216,7 @@ public class SettingsController extends Controller {
             this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
             this.fileLastDir = null;
+            this.showLineNumbers = true;
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
@@ -229,6 +241,24 @@ public class SettingsController extends Controller {
             }
 
             return settings;
+        }
+
+        /**
+         * Custom deserialization to handle fields added in newer versions.
+         * When loading an old configuration file that lacks a field, GetField.get()
+         * returns the specified default rather than the type's zero value.
+         */
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            ObjectInputStream.GetField fields = in.readFields();
+            this.uiLang = (String) fields.get("uiLang", null);
+            this.theme = (String) fields.get("theme", null);
+            this.logLevel = (String) fields.get("logLevel", null);
+            this.logShowDateTime = fields.get("logShowDateTime", false);
+            this.logOutFile = (String) fields.get("logOutFile", null);
+            this.windowSizeX = fields.get("windowSizeX", 0);
+            this.windowSizeY = fields.get("windowSizeY", 0);
+            this.fileLastDir = (String) fields.get("fileLastDir", null);
+            this.showLineNumbers = fields.get("showLineNumbers", true);
         }
 
 
@@ -310,6 +340,14 @@ public class SettingsController extends Controller {
 
         public String getFileLastDir() {
             return fileLastDir;
+        }
+
+        public boolean getShowLineNumbers() {
+            return showLineNumbers;
+        }
+
+        public void setShowLineNumbers(boolean showLineNumbers) {
+            this.showLineNumbers = showLineNumbers;
         }
 
         public void setFileLastDir(String fileLastDir) {
