@@ -84,6 +84,23 @@
               <toolTipText resource-bundle="i18n" key="gui.stop.program"/>
             </properties>
           </component>
+          <component id="sep01" class="javax.swing.JToolBar$Separator">
+            <constraints/>
+            <properties/>
+          </component>
+          <component id="71ae2" class="javax.swing.JLabel" binding="speedLabel">
+            <constraints/>
+            <properties>
+              <text resource-bundle="i18n" key="gui.simulation.speed"/>
+            </properties>
+          </component>
+          <component id="4c0cc" class="javax.swing.JSlider" binding="speedSlider" custom-create="true">
+            <constraints/>
+            <properties/>
+          </component>
+          <hspacer id="44755">
+            <constraints/>
+          </hspacer>
         </children>
       </toolbar>
       <splitpane id="abeb1">
