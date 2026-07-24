@@ -74,7 +74,6 @@ public class MainWindow extends View {
         this.mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.mainFrame.setJMenuBar(new MainWindowMenu());
         this.mainFrame.setMinimumSize(new Dimension(Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX")), Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"))));
-        this.mainFrame.setSize(SettingsController.getWindowSize());
         this.mainFrame.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent evt) {
                 Component c = (Component) evt.getSource();
@@ -90,6 +89,8 @@ public class MainWindow extends View {
 
         this.setApplicationIcon();
         this.mainFrame.pack();
+        // Apply saved window size after pack(), so it is not overridden
+        this.mainFrame.setSize(SettingsController.getWindowSize());
         newButton.addActionListener(actionEvent -> this.newFile());
         openButton.addActionListener(actionEvent -> this.openFile());
         saveButton.addActionListener(actionEvent -> this.saveFile());
