@@ -215,7 +215,7 @@ public class RegisterBank extends View {
 
     public void setRegister(int reg, Long registerValue) {
         String registerString = String.format("%020d", registerValue);
-        switch(reg) {
+        switch (reg) {
             case Register.RAX:
                 this.rax.setText(registerString);
                 break;

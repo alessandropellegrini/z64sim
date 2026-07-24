@@ -728,6 +728,10 @@ Instruction Instruction() :
         {
             mnemonic = stripSuffix(t.image);
 
+            // Cannot have two memory operands
+            if(op1 instanceof OperandMemory && op2 instanceof OperandMemory)
+                throw new ParseException("Line " + t.beginLine + ": Cannot have two memory operands in one instruction.");
+
             // Sanity check
             if(size == -1) { // Size is given by the operand
                 if(op1 instanceof OperandRegister)

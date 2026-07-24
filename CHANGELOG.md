@@ -2,4 +2,4 @@
 
 Fixes:
 
-- Fix the way the .fill directive is implemented (thanks to @luca-yinxing).
+- Prevent assemblying two memory operands in the same instruction.
