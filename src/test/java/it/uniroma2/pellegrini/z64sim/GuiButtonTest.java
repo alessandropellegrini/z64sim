@@ -156,7 +156,7 @@ public class GuiButtonTest {
         });
 
         // Assembly runs on a SwingWorker background thread; wait for it to complete
-        Thread.sleep(2000);
+        Thread.sleep(500);
 
         // Verify assembly succeeded, then step and check result.
         // step() now runs synchronously on the EDT, so we can verify immediately.
@@ -200,7 +200,7 @@ public class GuiButtonTest {
         });
 
         // Wait for assembly to complete
-        Thread.sleep(2000);
+        Thread.sleep(500);
 
         // Verify assembly succeeded, then click run
         SwingUtilities.invokeAndWait(() -> {

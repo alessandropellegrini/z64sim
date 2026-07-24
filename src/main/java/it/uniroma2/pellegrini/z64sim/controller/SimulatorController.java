@@ -329,9 +329,9 @@ public class SimulatorController extends Controller {
 
         sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
             boolean hlt = sc.stepInstruction();
+            Memory.selectAddress(sc.cpuState.getRIP());
             if (hlt) {
                 sc.simulationTimer.stop();
-                Memory.selectAddress(sc.cpuState.getRIP());
             }
         });
         sc.simulationTimer.start();
@@ -358,7 +358,6 @@ public class SimulatorController extends Controller {
         SimulatorController sc = getInstance();
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
             sc.simulationTimer.stop();
-            Memory.selectAddress(sc.cpuState.getRIP());
         }
     }
 
