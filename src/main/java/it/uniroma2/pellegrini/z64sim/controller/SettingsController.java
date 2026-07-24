@@ -178,6 +178,16 @@ public class SettingsController extends Controller {
         getInstance().settings.setFileLastDir(value);
     }
 
+    public static boolean getShowLineNumbers() {
+        return getInstance().settings.getShowLineNumbers();
+    }
+
+    public static void setShowLineNumbers(boolean show) {
+        boolean old = getInstance().settings.getShowLineNumbers();
+        getInstance().settings.setShowLineNumbers(show);
+        pcs.firePropertyChange("showLineNumbers", old, show);
+    }
+
     private static class Settings implements Serializable {
 
         private static final long serialVersionUID = 1L;
@@ -194,6 +204,7 @@ public class SettingsController extends Controller {
         private int windowSizeX;
         private int windowSizeY;
         private String fileLastDir;
+        private boolean showLineNumbers;
 
         private Settings() {
             // Configuration defaults
@@ -205,6 +216,7 @@ public class SettingsController extends Controller {
             this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
             this.fileLastDir = null;
+            this.showLineNumbers = true;
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
@@ -310,6 +322,14 @@ public class SettingsController extends Controller {
 
         public String getFileLastDir() {
             return fileLastDir;
+        }
+
+        public boolean getShowLineNumbers() {
+            return showLineNumbers;
+        }
+
+        public void setShowLineNumbers(boolean showLineNumbers) {
+            this.showLineNumbers = showLineNumbers;
         }
 
         public void setFileLastDir(String fileLastDir) {

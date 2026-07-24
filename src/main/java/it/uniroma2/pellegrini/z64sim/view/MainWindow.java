@@ -81,7 +81,19 @@ public class MainWindow extends View {
         JScrollPane editorScrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, editor);
         if (editorScrollPane != null) {
             LineNumberPanel lineNumbers = new LineNumberPanel(editor);
-            editorScrollPane.setRowHeaderView(lineNumbers);
+            if (SettingsController.getShowLineNumbers()) {
+                editorScrollPane.setRowHeaderView(lineNumbers);
+            }
+            // Listen for runtime toggling of line numbers
+            SettingsController.addPropertyChangeListener("showLineNumbers", evt -> {
+                if (Boolean.TRUE.equals(evt.getNewValue())) {
+                    editorScrollPane.setRowHeaderView(lineNumbers);
+                } else {
+                    editorScrollPane.setRowHeaderView(null);
+                }
+                editorScrollPane.revalidate();
+                editorScrollPane.repaint();
+            });
         }
 
         this.memoryView.setModel(Memory.getInstance());
