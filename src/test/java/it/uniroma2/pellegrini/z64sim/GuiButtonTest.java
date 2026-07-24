@@ -58,7 +58,7 @@ public class GuiButtonTest {
     static void tearDown() throws Exception {
         // Stop any running simulation to prevent lingering worker threads
         SimulatorController.stop();
-        Thread.sleep(500);
+        Thread.sleep(100);
 
         if (mainWindowInstance != null) {
             SwingUtilities.invokeAndWait(() -> {
@@ -158,7 +158,7 @@ public class GuiButtonTest {
         });
 
         // Assembly runs on a SwingWorker background thread; wait for it to complete
-        Thread.sleep(500);
+        Thread.sleep(100);
 
         // Verify assembly succeeded, then step and check result.
         // step() now runs synchronously on the EDT, so we can verify immediately.
@@ -203,7 +203,7 @@ public class GuiButtonTest {
         });
 
         // Wait for assembly to complete
-        Thread.sleep(250);
+        Thread.sleep(100);
 
         // Verify assembly succeeded, then click run
         SwingUtilities.invokeAndWait(() -> {
@@ -220,7 +220,7 @@ public class GuiButtonTest {
         });
 
         // Let the Timer-driven infinite loop run for a bit
-        Thread.sleep(250);
+        Thread.sleep(100);
 
         // Click stop via the GUI. This works correctly because the Timer-based
         // execution yields the EDT between ticks, keeping it responsive.
