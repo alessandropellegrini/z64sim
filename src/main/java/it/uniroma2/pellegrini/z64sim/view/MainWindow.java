@@ -39,9 +39,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -105,7 +108,6 @@ public class MainWindow extends View {
         this.mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.mainFrame.setJMenuBar(new MainWindowMenu());
         this.mainFrame.setMinimumSize(new Dimension(Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX")), Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"))));
-        this.mainFrame.setSize(SettingsController.getWindowSize());
         this.mainFrame.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent evt) {
                 Component c = (Component) evt.getSource();
@@ -121,13 +123,15 @@ public class MainWindow extends View {
 
         this.setApplicationIcon();
         this.mainFrame.pack();
+        // Apply saved window size after pack(), so it is not overridden
+        this.mainFrame.setSize(SettingsController.getWindowSize());
         newButton.addActionListener(actionEvent -> this.newFile());
         openButton.addActionListener(actionEvent -> this.openFile());
         saveButton.addActionListener(actionEvent -> this.saveFile());
         assembleButton.addActionListener(AppActions.ASSEMBLE);
 
         Toolkit tk = Toolkit.getDefaultToolkit();
-        final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
+        final int modKeyMask = tk.getMenuShortcutKeyMask();
 
         // Attach undo manager to the document
         editor.getDocument().addUndoableEditListener(undoManager);
@@ -265,7 +269,7 @@ public class MainWindow extends View {
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
-                Files.writeString(fileToSave.toPath(), content);
+                Files.write(fileToSave.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 return null;
             }
 
@@ -302,7 +306,7 @@ public class MainWindow extends View {
         new SwingWorker<String, Void>() {
             @Override
             protected String doInBackground() throws Exception {
-                return Files.readString(Path.of(filePath));
+                return new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8);
             }
 
             @Override
@@ -404,14 +408,33 @@ public class MainWindow extends View {
         // Set the minimized icon for the jar (works out of the box on Windows and Linux)
         this.mainFrame.setIconImage(image);
 
-        // Now the macOS shit to set the icon in the docker. This is the only place that requires us to
-        // run on Java >8, otherwise it'd be ugly and nasty to check if com.apple.eawt.Application is accessible.
+        // Set the icon in the macOS dock. We use reflection to avoid a compile-time dependency on
+        // java.awt.Taskbar (introduced in Java 9), so the project can target Java 8.
         try {
-            final Taskbar taskbar = Taskbar.getTaskbar();
-            taskbar.setIconImage(image);
-        } catch (final UnsupportedOperationException ignored) {
-        } catch (final SecurityException e) {
-            log.error(PropertyBroker.getMessageFromBundle("exception.security.while.setting.icon"));
+            final Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
+            final Method getTaskbar = taskbarClass.getMethod("getTaskbar");
+            final Object taskbar = getTaskbar.invoke(null);
+            final Method setIconImage = taskbarClass.getMethod("setIconImage", Image.class);
+            setIconImage.invoke(taskbar, image);
+        } catch (final ClassNotFoundException ignored) {
+            // java.awt.Taskbar is not available (Java 8) -- try the legacy Apple API
+            try {
+                final Class<?> appClass = Class.forName("com.apple.eawt.Application");
+                final Method getApp = appClass.getMethod("getApplication");
+                final Object app = getApp.invoke(null);
+                final Method setDockIcon = appClass.getMethod("setDockIconImage", Image.class);
+                setDockIcon.invoke(app, image);
+            } catch (final ReflectiveOperationException alsoIgnored) {
+                // Not on macOS, or the Apple API is not available -- nothing to do
+            }
+        } catch (final InvocationTargetException e) {
+            if (e.getCause() instanceof UnsupportedOperationException) {
+                // Taskbar feature not supported on this platform -- nothing to do
+            } else if (e.getCause() instanceof SecurityException) {
+                log.error(PropertyBroker.getMessageFromBundle("exception.security.while.setting.icon"));
+            }
+        } catch (final ReflectiveOperationException ignored) {
+            // NoSuchMethodException, IllegalAccessException -- should not happen, but fail silently
         }
     }
 

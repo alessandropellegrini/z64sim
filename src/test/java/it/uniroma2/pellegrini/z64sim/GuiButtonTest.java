@@ -16,8 +16,10 @@ import org.junit.jupiter.api.condition.DisabledIf;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,7 +58,7 @@ public class GuiButtonTest {
     static void tearDown() throws Exception {
         // Stop any running simulation to prevent lingering worker threads
         SimulatorController.stop();
-        Thread.sleep(500);
+        Thread.sleep(100);
 
         if (mainWindowInstance != null) {
             SwingUtilities.invokeAndWait(() -> {
@@ -156,7 +158,7 @@ public class GuiButtonTest {
         });
 
         // Assembly runs on a SwingWorker background thread; wait for it to complete
-        Thread.sleep(500);
+        Thread.sleep(100);
 
         // Verify assembly succeeded, then step and check result.
         // step() now runs synchronously on the EDT, so we can verify immediately.
@@ -183,8 +185,9 @@ public class GuiButtonTest {
     @Timeout(15)
     void testStopHaltsExecution() throws Exception {
         // Read the infinite loop program from test resources
-        String program = Files.readString(
-                Path.of(getClass().getClassLoader().getResource("infinite_loop.asm").toURI()));
+        String program = new String(Files.readAllBytes(
+                Paths.get(getClass().getClassLoader().getResource("infinite_loop.asm").toURI())),
+                StandardCharsets.UTF_8);
 
         // Set editor text and click assemble
         SwingUtilities.invokeAndWait(() -> {
@@ -200,7 +203,7 @@ public class GuiButtonTest {
         });
 
         // Wait for assembly to complete
-        Thread.sleep(250);
+        Thread.sleep(100);
 
         // Verify assembly succeeded, then click run
         SwingUtilities.invokeAndWait(() -> {
@@ -217,7 +220,7 @@ public class GuiButtonTest {
         });
 
         // Let the Timer-driven infinite loop run for a bit
-        Thread.sleep(250);
+        Thread.sleep(100);
 
         // Click stop via the GUI. This works correctly because the Timer-based
         // execution yields the EDT between ticks, keeping it responsive.
