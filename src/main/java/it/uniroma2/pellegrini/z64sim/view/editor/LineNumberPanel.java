@@ -86,11 +86,11 @@ public class LineNumberPanel extends JPanel implements DocumentListener, Propert
         for (int i = 0; i < lineCount; i++) {
             try {
                 // Get the y position of this line in the editor
-                Rectangle2D rect = editor.modelToView2D(root.getElement(i).getStartOffset());
+                Rectangle rect = editor.modelToView(root.getElement(i).getStartOffset());
                 if (rect == null) continue;
 
-                int y = (int) rect.getY();
-                int lineHeight = (int) rect.getHeight();
+                int y = rect.y;
+                int lineHeight = rect.height;
 
                 // Skip lines outside the visible clip
                 if (y + lineHeight < clip.y) continue;

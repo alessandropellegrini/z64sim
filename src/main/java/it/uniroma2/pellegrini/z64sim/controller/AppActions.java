@@ -96,7 +96,7 @@ public final class AppActions {
             PropertyBroker.getMessageFromBundle("menu.edit.undo")) {
         {
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         }
 
         @Override
@@ -111,11 +111,11 @@ public final class AppActions {
             // Mac: Cmd+Shift+Z, Windows/Linux: Ctrl+Y
             if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                 putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-                        java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()
+                        java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
                                 | InputEvent.SHIFT_DOWN_MASK));
             } else {
                 putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y,
-                        java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+                        java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             }
         }
 
