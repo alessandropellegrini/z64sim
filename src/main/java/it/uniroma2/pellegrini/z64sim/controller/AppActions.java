@@ -28,7 +28,7 @@ public final class AppActions {
         {
             putValue(SHORT_DESCRIPTION, PropertyBroker.getMessageFromBundle("gui.assemble.program"));
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_B,
-                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         }
 
         @Override

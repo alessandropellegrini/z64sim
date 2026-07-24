@@ -12,7 +12,7 @@ This is a simulator for the z64 CPU, a fictional CPU designed for educational pu
 ## Getting and running the simulator
 
 Official builds are available through [GitHub Releases](https://github.com/alessandropellegrini/z64sim/releases).
-In order to run it, you need to have Java 11 or later installed. To run the simulator, simply execute the following
+In order to run it, you need to have Java 8 or later installed. To run the simulator, simply execute the following
 command:
 
     java -jar z64sim.jar
