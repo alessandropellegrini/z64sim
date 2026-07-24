@@ -42,12 +42,27 @@ public class SimulatorController extends Controller {
     // Timer-driven simulation: each tick executes one instruction on the EDT,
     // yielding between ticks so the GUI stays responsive.
     private Timer simulationTimer;
+    private int timerDelayMs = 0;
 
     private SimulatorController() {
     }
 
     public static void init() {
         instance = new SimulatorController();
+    }
+
+    /**
+     * Load a program for execution without GUI interaction.
+     * Sets the program in memory, initialises RIP to _start and RSP to the end of memory.
+     *
+     * @param program the assembled program
+     */
+    public static void loadProgram(Program program) {
+        SimulatorController sc = getInstance();
+        sc.program = program;
+        Memory.setProgram(program);
+        sc.cpuState.setRIP(program._start.getTarget());
+        sc.cpuState.setRSP((long) program.getLargestAddress());
     }
 
     private static SimulatorController getInstance() {
@@ -326,14 +341,28 @@ public class SimulatorController extends Controller {
         if (sc.program == null) return;
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
 
-        sc.simulationTimer = new Timer(0, e -> {
+        sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
             boolean hlt = sc.stepInstruction();
+            Memory.selectAddress(sc.cpuState.getRIP());
             if (hlt) {
                 sc.simulationTimer.stop();
-                Memory.selectAddress(sc.cpuState.getRIP());
             }
         });
         sc.simulationTimer.start();
+    }
+
+    /**
+     * Update the timer delay (in milliseconds) controlling simulation speed.
+     * If a simulation is currently running, the delay is applied immediately.
+     *
+     * @param delayMs delay between steps, 0 = maximum speed
+     */
+    public static void setTimerDelay(int delayMs) {
+        SimulatorController sc = getInstance();
+        sc.timerDelayMs = delayMs;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.setDelay(delayMs);
+        }
     }
 
     /**
@@ -343,7 +372,6 @@ public class SimulatorController extends Controller {
         SimulatorController sc = getInstance();
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
             sc.simulationTimer.stop();
-            Memory.selectAddress(sc.cpuState.getRIP());
         }
     }
 
