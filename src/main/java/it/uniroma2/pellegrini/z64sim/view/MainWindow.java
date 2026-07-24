@@ -56,6 +56,7 @@ public class MainWindow extends View {
 
     private File openFile = null;
     private boolean isDirty = false;
+    private boolean loading = false;
 
     private MainWindow() {
         $$$setupUI$$$();
@@ -96,9 +97,9 @@ public class MainWindow extends View {
 
         editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { MainWindow.setDirty(); }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { if (!loading) MainWindow.setDirty(); }
             @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { MainWindow.setDirty(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { if (!loading) MainWindow.setDirty(); }
             @Override
             public void changedUpdate(javax.swing.event.DocumentEvent e) { /* attribute changes, not content */ }
         });
@@ -174,7 +175,10 @@ public class MainWindow extends View {
     private void newFile() {
         if (!this.changesToDiscard())
             return;
+        this.loading = true;
         this.editor.setText("");
+        this.loading = false;
+        this.isDirty = false;
         this.openFile = null;
         this.tabbedPane.setTitleAt(0, PropertyBroker.getMessageFromBundle("file.tab.untitled"));
     }
@@ -241,7 +245,10 @@ public class MainWindow extends View {
             protected void done() {
                 try {
                     String content = get();
+                    MainWindow.this.loading = true;
                     MainWindow.this.editor.setText(content);
+                    MainWindow.this.loading = false;
+                    MainWindow.this.isDirty = false;
                     MainWindow.this.openFile = new File(filePath);
                     MainWindow.this.tabbedPane.setTitleAt(0, MainWindow.this.openFile.getName());
                     SettingsController.setFileLastDir(MainWindow.this.openFile.getParent());
