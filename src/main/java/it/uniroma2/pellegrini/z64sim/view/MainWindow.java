@@ -55,9 +55,12 @@ public class MainWindow extends View {
     private JButton runButton;
     private JButton stopButton;
     private JLabel editorPositionLabel;
+    private JSlider speedSlider;
+    private JLabel speedLabel;
 
     private File openFile = null;
     private boolean isDirty = false;
+    private boolean loading = false;
 
     private MainWindow() {
         $$$setupUI$$$();
@@ -99,12 +102,12 @@ public class MainWindow extends View {
         editor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                MainWindow.setDirty();
+                if (!loading) MainWindow.setDirty();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                MainWindow.setDirty();
+                if (!loading) MainWindow.setDirty();
             }
 
             @Override
@@ -191,7 +194,10 @@ public class MainWindow extends View {
     private void newFile() {
         if (!this.changesToDiscard())
             return;
+        this.loading = true;
         this.editor.setText("");
+        this.loading = false;
+        this.isDirty = false;
         this.openFile = null;
         this.tabbedPane.setTitleAt(0, PropertyBroker.getMessageFromBundle("file.tab.untitled"));
     }
@@ -258,7 +264,10 @@ public class MainWindow extends View {
             protected void done() {
                 try {
                     String content = get();
+                    MainWindow.this.loading = true;
                     MainWindow.this.editor.setText(content);
+                    MainWindow.this.loading = false;
+                    MainWindow.this.isDirty = false;
                     MainWindow.this.openFile = new File(filePath);
                     MainWindow.this.tabbedPane.setTitleAt(0, MainWindow.this.openFile.getName());
                     SettingsController.setFileLastDir(MainWindow.this.openFile.getParent());
@@ -368,6 +377,7 @@ public class MainWindow extends View {
      * @noinspection ALL
      */
     private void $$$setupUI$$$() {
+        createUIComponents();
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         Font mainPanelFont = UIManager.getFont("Panel.font");
@@ -425,6 +435,14 @@ public class MainWindow extends View {
         stopButton.setText("");
         stopButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.stop.program"));
         toolBar1.add(stopButton);
+        final JToolBar.Separator toolBar$Separator1 = new JToolBar.Separator();
+        toolBar1.add(toolBar$Separator1);
+        speedLabel = new JLabel();
+        this.$$$loadLabelText$$$(speedLabel, this.$$$getMessageFromBundle$$$("i18n", "gui.simulation.speed"));
+        toolBar1.add(speedLabel);
+        toolBar1.add(speedSlider);
+        final Spacer spacer1 = new Spacer();
+        toolBar1.add(spacer1);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
         Font splitPane1Font = UIManager.getFont("Panel.font");
@@ -461,8 +479,8 @@ public class MainWindow extends View {
         editorPositionLabel = new JLabel();
         editorPositionLabel.setText(" ");
         panel1.add(editorPositionLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer1 = new Spacer();
-        panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final Spacer spacer2 = new Spacer();
+        panel1.add(spacer2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final JScrollPane scrollPane2 = new JScrollPane();
         splitPane2.setRightComponent(scrollPane2);
         memoryView = new JTable();
@@ -507,8 +525,43 @@ public class MainWindow extends View {
     /**
      * @noinspection ALL
      */
+    private void $$$loadLabelText$$$(JLabel component, String text) {
+        StringBuffer result = new StringBuffer();
+        boolean haveMnemonic = false;
+        char mnemonic = '\0';
+        int mnemonicIndex = -1;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&') {
+                i++;
+                if (i == text.length()) break;
+                if (!haveMnemonic && text.charAt(i) != '&') {
+                    haveMnemonic = true;
+                    mnemonic = text.charAt(i);
+                    mnemonicIndex = result.length();
+                }
+            }
+            result.append(text.charAt(i));
+        }
+        component.setText(result.toString());
+        if (haveMnemonic) {
+            component.setDisplayedMnemonic(mnemonic);
+            component.setDisplayedMnemonicIndex(mnemonicIndex);
+        }
+    }
+
+    /**
+     * @noinspection ALL
+     */
     public JComponent $$$getRootComponent$$$() {
         return mainPanel;
     }
 
+
+    private void createUIComponents() {
+        speedSlider = new JSlider(0, 1000, 1000);
+        speedSlider.setPreferredSize(new Dimension(120, speedSlider.getPreferredSize().height));
+        speedSlider.setMaximumSize(new Dimension(120, speedSlider.getPreferredSize().height));
+        speedSlider.setToolTipText(PropertyBroker.getMessageFromBundle("gui.speed.slider"));
+        speedSlider.addChangeListener(e -> SimulatorController.setTimerDelay(1000 - speedSlider.getValue()));
+    }
 }

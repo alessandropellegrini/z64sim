@@ -156,7 +156,7 @@ public class GuiButtonTest {
         });
 
         // Assembly runs on a SwingWorker background thread; wait for it to complete
-        Thread.sleep(2000);
+        Thread.sleep(500);
 
         // Verify assembly succeeded, then step and check result.
         // step() now runs synchronously on the EDT, so we can verify immediately.
@@ -200,7 +200,7 @@ public class GuiButtonTest {
         });
 
         // Wait for assembly to complete
-        Thread.sleep(2000);
+        Thread.sleep(250);
 
         // Verify assembly succeeded, then click run
         SwingUtilities.invokeAndWait(() -> {
@@ -217,7 +217,7 @@ public class GuiButtonTest {
         });
 
         // Let the Timer-driven infinite loop run for a bit
-        Thread.sleep(500);
+        Thread.sleep(250);
 
         // Click stop via the GUI. This works correctly because the Timer-based
         // execution yields the EDT between ticks, keeping it responsive.
