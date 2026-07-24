@@ -200,7 +200,7 @@ public class GuiButtonTest {
         });
 
         // Wait for assembly to complete
-        Thread.sleep(500);
+        Thread.sleep(250);
 
         // Verify assembly succeeded, then click run
         SwingUtilities.invokeAndWait(() -> {
@@ -217,7 +217,7 @@ public class GuiButtonTest {
         });
 
         // Let the Timer-driven infinite loop run for a bit
-        Thread.sleep(500);
+        Thread.sleep(250);
 
         // Click stop via the GUI. This works correctly because the Timer-based
         // execution yields the EDT between ticks, keeping it responsive.

@@ -99,12 +99,16 @@ public class MainWindow extends View {
         final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
 
-        editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        editor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) { if (!loading) MainWindow.setDirty(); }
+            public void insertUpdate(DocumentEvent e) {
+                if (!loading) MainWindow.setDirty();
+            }
 
             @Override
-            public void removeUpdate(DocumentEvent e) { if (!loading) MainWindow.setDirty(); }
+            public void removeUpdate(DocumentEvent e) {
+                if (!loading) MainWindow.setDirty();
+            }
 
             @Override
             public void changedUpdate(DocumentEvent e) { /* attribute changes, not content */ }
