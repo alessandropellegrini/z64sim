@@ -18,7 +18,6 @@ import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
-import it.uniroma2.pellegrini.z64sim.view.components.JFilePicker;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
 import javax.swing.*;
@@ -30,6 +29,7 @@ import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,6 +60,7 @@ public class MainWindow extends View {
 
     private File openFile = null;
     private boolean isDirty = false;
+    private boolean loading = false;
 
     private MainWindow() {
         $$$setupUI$$$();
@@ -98,16 +99,12 @@ public class MainWindow extends View {
         final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
 
-        editor.getDocument().addDocumentListener(new DocumentListener() {
+        editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                MainWindow.setDirty();
-            }
+            public void insertUpdate(DocumentEvent e) { if (!loading) MainWindow.setDirty(); }
 
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                MainWindow.setDirty();
-            }
+            public void removeUpdate(DocumentEvent e) { if (!loading) MainWindow.setDirty(); }
 
             @Override
             public void changedUpdate(DocumentEvent e) { /* attribute changes, not content */ }
@@ -193,7 +190,10 @@ public class MainWindow extends View {
     private void newFile() {
         if (!this.changesToDiscard())
             return;
+        this.loading = true;
         this.editor.setText("");
+        this.loading = false;
+        this.isDirty = false;
         this.openFile = null;
         this.tabbedPane.setTitleAt(0, PropertyBroker.getMessageFromBundle("file.tab.untitled"));
     }
@@ -260,7 +260,10 @@ public class MainWindow extends View {
             protected void done() {
                 try {
                     String content = get();
+                    MainWindow.this.loading = true;
                     MainWindow.this.editor.setText(content);
+                    MainWindow.this.loading = false;
+                    MainWindow.this.isDirty = false;
                     MainWindow.this.openFile = new File(filePath);
                     MainWindow.this.tabbedPane.setTitleAt(0, MainWindow.this.openFile.getName());
                     SettingsController.setFileLastDir(MainWindow.this.openFile.getParent());
