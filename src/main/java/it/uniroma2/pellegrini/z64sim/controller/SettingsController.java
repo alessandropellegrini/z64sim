@@ -243,6 +243,24 @@ public class SettingsController extends Controller {
             return settings;
         }
 
+        /**
+         * Custom deserialization to handle fields added in newer versions.
+         * When loading an old configuration file that lacks a field, GetField.get()
+         * returns the specified default rather than the type's zero value.
+         */
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            ObjectInputStream.GetField fields = in.readFields();
+            this.uiLang = (String) fields.get("uiLang", null);
+            this.theme = (String) fields.get("theme", null);
+            this.logLevel = (String) fields.get("logLevel", null);
+            this.logShowDateTime = fields.get("logShowDateTime", false);
+            this.logOutFile = (String) fields.get("logOutFile", null);
+            this.windowSizeX = fields.get("windowSizeX", 0);
+            this.windowSizeY = fields.get("windowSizeY", 0);
+            this.fileLastDir = (String) fields.get("fileLastDir", null);
+            this.showLineNumbers = fields.get("showLineNumbers", true);
+        }
+
 
         protected static Settings getDefaultConfiguration() {
             return new Settings();
