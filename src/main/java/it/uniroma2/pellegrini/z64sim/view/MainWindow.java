@@ -19,6 +19,9 @@ import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
+import it.uniroma2.pellegrini.z64sim.view.editor.AsmStyledDocument;
+import it.uniroma2.pellegrini.z64sim.view.editor.AsmSyntaxHighlighter;
+import it.uniroma2.pellegrini.z64sim.view.editor.LineNumberPanel;
 
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
@@ -26,6 +29,12 @@ import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Element;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -44,7 +53,7 @@ public class MainWindow extends View {
     private JButton assembleButton;
     private JTable memoryView;
     private JTextArea compilerOutput;
-    private JEditorPane editor;
+    private JTextPane editor;
     private JButton openButton;
     private JButton saveButton;
     private JPanel editorTab;
@@ -61,9 +70,19 @@ public class MainWindow extends View {
     private File openFile = null;
     private boolean isDirty = false;
     private boolean loading = false;
+    private AsmSyntaxHighlighter highlighter;
+    private AsmStyledDocument asmDocument;
+    private final UndoManager undoManager = new UndoManager();
 
     private MainWindow() {
         $$$setupUI$$$();
+
+        // Attach line number gutter to the editor's scroll pane
+        JScrollPane editorScrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, editor);
+        if (editorScrollPane != null) {
+            LineNumberPanel lineNumbers = new LineNumberPanel(editor);
+            editorScrollPane.setRowHeaderView(lineNumbers);
+        }
 
         this.memoryView.setModel(Memory.getInstance());
         Memory.getInstance().setView(this.memoryView);
@@ -98,6 +117,8 @@ public class MainWindow extends View {
         Toolkit tk = Toolkit.getDefaultToolkit();
         final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
+        // Attach undo manager to the document
+        editor.getDocument().addUndoableEditListener(undoManager);
 
         editor.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -169,6 +190,12 @@ public class MainWindow extends View {
         im.put((KeyStroke) AppActions.STOP.getValue(Action.ACCELERATOR_KEY), "stop");
         am.put("stop", AppActions.STOP);
 
+        im.put((KeyStroke) AppActions.UNDO.getValue(Action.ACCELERATOR_KEY), "undo");
+        am.put("undo", AppActions.UNDO);
+
+        im.put((KeyStroke) AppActions.REDO.getValue(Action.ACCELERATOR_KEY), "redo");
+        am.put("redo", AppActions.REDO);
+
         // Listen for theme changes from SettingsController
         SettingsController.addPropertyChangeListener("theme", evt -> {
             if ("light".equals(evt.getNewValue())) {
@@ -176,6 +203,9 @@ public class MainWindow extends View {
             } else {
                 this.setTheme(new FlatDarkLaf());
             }
+            // Update syntax highlighting colors for the new theme
+            highlighter.setDarkTheme(!"light".equals(evt.getNewValue()));
+            asmDocument.rehighlight();
         });
 
         // Listen for update check completion
@@ -195,9 +225,12 @@ public class MainWindow extends View {
         if (!this.changesToDiscard())
             return;
         this.loading = true;
+        this.asmDocument.setHighlightingEnabled(false);
         this.editor.setText("");
+        this.asmDocument.setHighlightingEnabled(true);
         this.loading = false;
         this.isDirty = false;
+        this.undoManager.discardAllEdits();
         this.openFile = null;
         this.tabbedPane.setTitleAt(0, PropertyBroker.getMessageFromBundle("file.tab.untitled"));
     }
@@ -265,9 +298,12 @@ public class MainWindow extends View {
                 try {
                     String content = get();
                     MainWindow.this.loading = true;
+                    MainWindow.this.asmDocument.setHighlightingEnabled(false);
                     MainWindow.this.editor.setText(content);
+                    MainWindow.this.asmDocument.setHighlightingEnabled(true);
                     MainWindow.this.loading = false;
                     MainWindow.this.isDirty = false;
+                    MainWindow.this.undoManager.discardAllEdits();
                     MainWindow.this.openFile = new File(filePath);
                     MainWindow.this.tabbedPane.setTitleAt(0, MainWindow.this.openFile.getName());
                     SettingsController.setFileLastDir(MainWindow.this.openFile.getParent());
@@ -319,6 +355,26 @@ public class MainWindow extends View {
 
     public static String getCode() {
         return getInstance().editor.getText();
+    }
+
+    public static void undo() {
+        UndoManager um = getInstance().undoManager;
+        if (um.canUndo()) {
+            try {
+                um.undo();
+            } catch (CannotUndoException ignored) {
+            }
+        }
+    }
+
+    public static void redo() {
+        UndoManager um = getInstance().undoManager;
+        if (um.canRedo()) {
+            try {
+                um.redo();
+            } catch (CannotRedoException ignored) {
+            }
+        }
     }
 
     public static void compileResult(String toString) {
@@ -469,7 +525,6 @@ public class MainWindow extends View {
         Font scrollPane1Font = UIManager.getFont("Panel.font");
         if (scrollPane1Font != null) scrollPane1.setFont(scrollPane1Font);
         editorTab.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        editor = new JEditorPane();
         Font editorFont = UIManager.getFont("EditorPane.font");
         if (editorFont != null) editor.setFont(editorFont);
         scrollPane1.setViewportView(editor);
@@ -563,5 +618,25 @@ public class MainWindow extends View {
         speedSlider.setMaximumSize(new Dimension(120, speedSlider.getPreferredSize().height));
         speedSlider.setToolTipText(PropertyBroker.getMessageFromBundle("gui.speed.slider"));
         speedSlider.addChangeListener(e -> SimulatorController.setTimerDelay(1000 - speedSlider.getValue()));
+
+        // Create the syntax-highlighted editor
+        highlighter = new AsmSyntaxHighlighter();
+        // Detect initial theme
+        highlighter.setDarkTheme(!"light".equals(SettingsController.getTheme()));
+        asmDocument = new AsmStyledDocument(highlighter);
+        editor = new JTextPane(asmDocument) {
+            @Override
+            public boolean getScrollableTracksViewportWidth() {
+                // Prevent word-wrap: allow horizontal scrolling like a code editor
+                return getUI().getPreferredSize(this).width <= getParent().getSize().width;
+            }
+        };
+        Font monoFont = new Font(Font.MONOSPACED, Font.PLAIN, 14);
+        editor.setFont(monoFont);
+        // JTextPane renders using the document's styles, not the component font.
+        // Set the monospaced font on the document's default style so all text uses it.
+        Style defaultStyle = asmDocument.getStyle(StyleContext.DEFAULT_STYLE);
+        StyleConstants.setFontFamily(defaultStyle, Font.MONOSPACED);
+        StyleConstants.setFontSize(defaultStyle, 14);
     }
 }

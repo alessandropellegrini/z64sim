@@ -156,7 +156,7 @@
                         </properties>
                         <border type="none"/>
                         <children>
-                          <component id="14747" class="javax.swing.JEditorPane" binding="editor">
+                          <component id="14747" class="javax.swing.JTextPane" binding="editor" custom-create="true">
                             <constraints/>
                             <properties>
                               <font swing-font="EditorPane.font"/>

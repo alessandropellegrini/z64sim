@@ -91,4 +91,37 @@ public final class AppActions {
             MainWindow.quit();
         }
     };
+
+    public static final Action UNDO = new AbstractAction(
+            PropertyBroker.getMessageFromBundle("menu.edit.undo")) {
+        {
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z,
+                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            MainWindow.undo();
+        }
+    };
+
+    public static final Action REDO = new AbstractAction(
+            PropertyBroker.getMessageFromBundle("menu.edit.redo")) {
+        {
+            // Mac: Cmd+Shift+Z, Windows/Linux: Ctrl+Y
+            if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+                putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z,
+                        java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()
+                                | InputEvent.SHIFT_DOWN_MASK));
+            } else {
+                putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y,
+                        java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+            }
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            MainWindow.redo();
+        }
+    };
 }
