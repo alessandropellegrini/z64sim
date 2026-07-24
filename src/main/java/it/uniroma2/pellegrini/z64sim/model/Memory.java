@@ -11,50 +11,69 @@ import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass2;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 import javax.swing.*;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 /**
  * @author Alessandro Pellegrini <pellegrini@dis.uniroma1.it>
  */
 public class Memory extends AbstractTableModel {
-    private static Memory instance = null;
-    private Program program = null;
+    private static volatile Memory instance = null;
+    private volatile Program program = null;
     private JTable memoryView;
+
+    // Observable support for model-view decoupling
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+    public static final String PROP_PROGRAM = "program";
 
     private Memory() {
     }
 
-    public static Memory getInstance() {
+    public static synchronized Memory getInstance() {
         if(instance == null)
             instance = new Memory();
         return instance;
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.removePropertyChangeListener(listener);
+    }
+
     public static void selectAddress(long address) {
         if(getInstance().memoryView == null) return;
         int row = (int) (address / 8);
-        getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
-        getInstance().memoryView.scrollRectToVisible(getInstance().memoryView.getCellRect(row, 0, true));
-        // TODO: probably overkill and leaky
-        getInstance().memoryView.addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent e) {
-                getInstance().memoryView.getSelectionModel().setSelectionInterval(row, row);
-                getInstance().memoryView.scrollRectToVisible(getInstance().memoryView.getCellRect(row, 0, true));
-            }
-        });
+        // Ensure JTable operations happen on the EDT
+        if (SwingUtilities.isEventDispatchThread()) {
+            doSelectAddress(row);
+        } else {
+            SwingUtilities.invokeLater(() -> doSelectAddress(row));
+        }
+    }
+
+    private static void doSelectAddress(int row) {
+        JTable view = getInstance().memoryView;
+        if (view == null) return;
+        view.getSelectionModel().setSelectionInterval(row, row);
+        view.scrollRectToVisible(view.getCellRect(row, 0, true));
     }
 
     public static void setProgram(Program program) {
+        Program oldProgram = getInstance().program;
         getInstance().program = program;
-        getInstance().fireTableChanged(null);
+        getInstance().fireTableDataChanged();
+        getInstance().pcs.firePropertyChange(PROP_PROGRAM, oldProgram, program);
     }
 
     public static void setValueAt(long address, byte srcValue) {
         getInstance().program.binary.put((int) address, new MemoryData(srcValue));
-        getInstance().fireTableRowsUpdated((int) address / 8, (int) address / 8);
+        int row = (int) address / 8;
+        getInstance().fireTableRowsUpdated(row, row);
     }
 
     @Override
@@ -123,16 +142,6 @@ public class Memory extends AbstractTableModel {
     @Override
     public void setValueAt(Object o, int row, int col) {
         throw new IllegalStateException("Internal error: cannot set cell value");
-    }
-
-    @Override
-    public void addTableModelListener(TableModelListener tableModelListener) {
-
-    }
-
-    @Override
-    public void removeTableModelListener(TableModelListener tableModelListener) {
-
     }
 
     public static byte getValueAt(long address) {

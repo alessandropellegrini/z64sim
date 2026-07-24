@@ -6,15 +6,19 @@ package it.uniroma2.pellegrini.z64sim.view.components;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import it.uniroma2.pellegrini.z64sim.isa.registers.FlagsRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import it.uniroma2.pellegrini.z64sim.model.CpuState;
+
 import it.uniroma2.pellegrini.z64sim.view.View;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class RegisterBank extends View {
+public class RegisterBank extends View implements PropertyChangeListener {
 
     private JPanel multicycleCPU;
     private JLabel rsp;
@@ -36,9 +40,126 @@ public class RegisterBank extends View {
     private JLabel rdx;
     private JLabel rbx;
 
+
+
+    /**
+     * Bind this RegisterBank to a CpuState instance, listening for property changes
+     * on all registers, RIP, and flags. UI updates are marshalled to the EDT.
+     */
+    public void bind(CpuState cpuState) {
+        // Listen for register and RIP changes via CpuState's PropertyChangeSupport
+        cpuState.addPropertyChangeListener(this);
+        // Listen for flag bit changes directly on the FlagsRegister
+        cpuState.getFlagsRegister().addPropertyChangeListener(this);
+    }
+
     @Override
-    public boolean dispatch(Events command) {
-        return false;
+    public void propertyChange(PropertyChangeEvent evt) {
+        // Marshal all UI updates to the EDT
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> handlePropertyChange(evt));
+        } else {
+            handlePropertyChange(evt);
+        }
+    }
+
+    private void handlePropertyChange(PropertyChangeEvent evt) {
+        Object source = evt.getSource();
+        String property = evt.getPropertyName();
+
+        if (source instanceof CpuState) {
+            CpuState cpuState = (CpuState) source;
+            switch (property) {
+                case CpuState.PROP_RIP:
+                    this.rip.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_FLAGS:
+                    updateFlagsDisplay(cpuState);
+                    break;
+                case CpuState.PROP_RAX:
+                    this.rax.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RCX:
+                    this.rcx.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RDX:
+                    this.rdx.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RBX:
+                    this.rbx.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RSP:
+                    this.rsp.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RBP:
+                    this.rbp.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RSI:
+                    this.rsi.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_RDI:
+                    this.rdi.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R8:
+                    this.r8.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R9:
+                    this.r9.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R10:
+                    this.r10.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R11:
+                    this.r11.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R12:
+                    this.r12.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R13:
+                    this.r13.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R14:
+                    this.r14.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+                case CpuState.PROP_R15:
+                    this.r15.setText(String.format("%020d", (Long) evt.getNewValue()));
+                    break;
+            }
+        } else if (source instanceof FlagsRegister) {
+            // A flag bit changed - update the flags display
+            // We need CpuState reference, get it from SimulatorController
+            // For simplicity, just update based on the new register value
+            long registerValue = (Long) evt.getNewValue();
+            // Decode individual flags from the register value
+            boolean OF = (registerValue & (1 << 11)) != 0;
+            boolean DF = (registerValue & (1 << 10)) != 0;
+            boolean IF = (registerValue & (1 << 9)) != 0;
+            boolean SF = (registerValue & (1 << 7)) != 0;
+            boolean ZF = (registerValue & (1 << 6)) != 0;
+            boolean PF = (registerValue & (1 << 2)) != 0;
+            boolean CF = (registerValue & 1) != 0;
+            String flags = String.format("%05d ", registerValue) +
+                    (OF ? "[OF]" : "") +
+                    (DF ? "[DF]" : "") +
+                    (IF ? "[IF]" : "") +
+                    (SF ? "[SF]" : "") +
+                    (ZF ? "[ZF]" : "") +
+                    (PF ? "[PF]" : "") +
+                    (CF ? "[CF]" : "");
+            this.rflags.setText(flags);
+        }
+    }
+
+    private void updateFlagsDisplay(CpuState cpuState) {
+        String flags = String.format("%05d ", cpuState.getFlags()) +
+                (cpuState.getOF() ? "[OF]" : "") +
+                (cpuState.getDF() ? "[DF]" : "") +
+                (cpuState.getIF() ? "[IF]" : "") +
+                (cpuState.getSF() ? "[SF]" : "") +
+                (cpuState.getZF() ? "[ZF]" : "") +
+                (cpuState.getPF() ? "[PF]" : "") +
+                (cpuState.getCF() ? "[CF]" : "");
+        this.rflags.setText(flags);
     }
 
 
@@ -195,75 +316,5 @@ public class RegisterBank extends View {
     }
 
     private void createUIComponents() {
-    }
-
-    public void setRIP(long address) {
-        this.rip.setText(String.format("%020d", address));
-    }
-
-    public void setFlags(long registerValue, boolean OF, boolean DF, boolean IF, boolean SF, boolean ZF, boolean PF, boolean CF) {
-        String flags = String.format("%05d ", registerValue) +
-                (OF ? "[OF]" : "") +
-                (DF ? "[DF]" : "") +
-                (IF ? "[IF]" : "") +
-                (SF ? "[SF]" : "") +
-                (ZF ? "[ZF]" : "") +
-                (PF ? "[PF]" : "") +
-                (CF ? "[CF]" : "");
-        this.rflags.setText(flags);
-    }
-
-    public void setRegister(int reg, Long registerValue) {
-        String registerString = String.format("%020d", registerValue);
-        switch (reg) {
-            case Register.RAX:
-                this.rax.setText(registerString);
-                break;
-            case Register.RBX:
-                this.rbx.setText(registerString);
-                break;
-            case Register.RCX:
-                this.rcx.setText(registerString);
-                break;
-            case Register.RDX:
-                this.rdx.setText(registerString);
-                break;
-            case Register.RSI:
-                this.rsi.setText(registerString);
-                break;
-            case Register.RDI:
-                this.rdi.setText(registerString);
-                break;
-            case Register.RBP:
-                this.rbp.setText(registerString);
-                break;
-            case Register.RSP:
-                this.rsp.setText(registerString);
-                break;
-            case Register.R8:
-                this.r8.setText(registerString);
-                break;
-            case Register.R9:
-                this.r9.setText(registerString);
-                break;
-            case Register.R10:
-                this.r10.setText(registerString);
-                break;
-            case Register.R11:
-                this.r11.setText(registerString);
-                break;
-            case Register.R12:
-                this.r12.setText(registerString);
-                break;
-            case Register.R13:
-                this.r13.setText(registerString);
-                break;
-            case Register.R14:
-                this.r14.setText(registerString);
-                break;
-            case Register.R15:
-                this.r15.setText(registerString);
-                break;
-        }
     }
 }

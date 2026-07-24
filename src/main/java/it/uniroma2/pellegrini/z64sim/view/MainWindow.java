@@ -10,14 +10,13 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+import it.uniroma2.pellegrini.z64sim.controller.AppActions;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
 import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
@@ -52,6 +51,7 @@ public class MainWindow extends View {
     private JButton stepButton;
     private RegisterBank cpuView;
     private JButton runButton;
+    private JButton stopButton;
     private JLabel editorPositionLabel;
 
     private File openFile = null;
@@ -79,7 +79,7 @@ public class MainWindow extends View {
         this.mainFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent windowEvent) {
-                Dispatcher.dispatch(Events.QUIT);
+                MainWindow.quit();
             }
         });
 
@@ -88,19 +88,19 @@ public class MainWindow extends View {
         newButton.addActionListener(actionEvent -> this.newFile());
         openButton.addActionListener(actionEvent -> this.openFile());
         saveButton.addActionListener(actionEvent -> this.saveFile());
-        assembleButton.addActionListener(actionEvent -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM));
+        assembleButton.addActionListener(AppActions.ASSEMBLE);
 
         Toolkit tk = Toolkit.getDefaultToolkit();
         final int modKeyMask = tk.getMenuShortcutKeyMaskEx();
 
-        editor.addKeyListener(new KeyAdapter() {
+
+        editor.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
-            public void keyTyped(KeyEvent e) {
-                super.keyTyped(e);
-                if (e.getModifiersEx() != modKeyMask) {
-                    MainWindow.setDirty();
-                }
-            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { MainWindow.setDirty(); }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { MainWindow.setDirty(); }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { /* attribute changes, not content */ }
         });
         editor.addCaretListener(new CaretListener() {
             @Override
@@ -114,52 +114,61 @@ public class MainWindow extends View {
             }
         });
         SimulatorController.setCpuView(this.cpuView);
-        stepButton.addActionListener(actionEvent -> {
-            SimulatorController.step();
+        stepButton.addActionListener(AppActions.STEP);
+        runButton.addActionListener(AppActions.RUN);
+        stopButton.addActionListener(AppActions.STOP);
+
+        // Keyboard shortcuts via InputMap/ActionMap
+        InputMap im = mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = mainPanel.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask), "save");
+        am.put("save", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) { MainWindow.this.saveFile(); }
         });
-        runButton.addActionListener(actionEvent -> {
-            SimulatorController.run();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask), "new");
+        am.put("new", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) { MainWindow.this.newFile(); }
         });
 
-        mainPanel.registerKeyboardAction(
-                e -> this.saveFile(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_S, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask), "open");
+        am.put("open", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) { MainWindow.this.openFile(); }
+        });
 
-        mainPanel.registerKeyboardAction(
-                e -> this.newFile(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_N, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        im.put((KeyStroke) AppActions.ASSEMBLE.getValue(Action.ACCELERATOR_KEY), "assemble");
+        am.put("assemble", AppActions.ASSEMBLE);
 
-        mainPanel.registerKeyboardAction(
-                e -> this.openFile(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_O, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        im.put((KeyStroke) AppActions.STEP.getValue(Action.ACCELERATOR_KEY), "step");
+        am.put("step", AppActions.STEP);
 
-        mainPanel.registerKeyboardAction(
-                e -> {
-                    SimulatorController.step();
-                },
-                KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        im.put((KeyStroke) AppActions.RUN.getValue(Action.ACCELERATOR_KEY), "run");
+        am.put("run", AppActions.RUN);
 
-        mainPanel.registerKeyboardAction(
-                e -> {
-                    SimulatorController.run();
-                },
-                KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        im.put((KeyStroke) AppActions.STOP.getValue(Action.ACCELERATOR_KEY), "stop");
+        am.put("stop", AppActions.STOP);
 
-        mainPanel.registerKeyboardAction(
-                e -> Dispatcher.dispatch(Events.ASSEMBLE_PROGRAM),
-                KeyStroke.getKeyStroke(KeyEvent.VK_B, modKeyMask),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        // Listen for theme changes from SettingsController
+        SettingsController.addPropertyChangeListener("theme", evt -> {
+            if ("light".equals(evt.getNewValue())) {
+                this.setTheme(new FlatLightLaf());
+            } else {
+                this.setTheme(new FlatDarkLaf());
+            }
+        });
+
+        // Listen for update check completion
+        UpdateController.addPropertyChangeListener("updateCheckCompleted", evt -> {
+            if (UpdateController.isUpdateAvailable()) {
+                SwingUtilities.invokeLater(() ->
+                    JOptionPane.showMessageDialog(this.mainFrame,
+                        PropertyBroker.getMessageFromBundle("update.available.0", UpdateController.getUpstreamVersion()),
+                        PropertyBroker.getMessageFromBundle("update.available"),
+                        JOptionPane.INFORMATION_MESSAGE)
+                );
+            }
+        });
     }
 
     private void newFile() {
@@ -183,14 +192,27 @@ public class MainWindow extends View {
             }
             this.openFile = new File(filePath);
         }
-        try {
-            Files.writeString(this.openFile.toPath(), this.editor.getText());
-            this.isDirty = false;
-            this.tabbedPane.setTitleAt(0, this.openFile.getName());
-            SettingsController.setFileLastDir(this.openFile.getParent());
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.saving.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        }
+        final File fileToSave = this.openFile;
+        final String content = this.editor.getText();
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                Files.writeString(fileToSave.toPath(), content);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get(); // Check for exceptions
+                    MainWindow.this.isDirty = false;
+                    MainWindow.this.tabbedPane.setTitleAt(0, fileToSave.getName());
+                    SettingsController.setFileLastDir(fileToSave.getParent());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.saving.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     private void openFile() {
@@ -205,27 +227,44 @@ public class MainWindow extends View {
         if (filePath == null) {
             return;
         }
-        try {
-            this.doOpenFile(filePath);
-            SettingsController.setFileLastDir(this.openFile.getParent());
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.opening.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        }
+        this.doOpenFile(filePath);
     }
 
-    private void doOpenFile(String filePath) throws IOException {
-        this.editor.setText(Files.readString(Path.of(filePath)));
-        this.openFile = new File(filePath);
-        this.tabbedPane.setTitleAt(0, this.openFile.getName());
+    private void doOpenFile(String filePath) {
+        new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                return Files.readString(Path.of(filePath));
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String content = get();
+                    MainWindow.this.editor.setText(content);
+                    MainWindow.this.openFile = new File(filePath);
+                    MainWindow.this.tabbedPane.setTitleAt(0, MainWindow.this.openFile.getName());
+                    SettingsController.setFileLastDir(MainWindow.this.openFile.getParent());
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(mainFrame, PropertyBroker.getMessageFromBundle("file.error.while.opening.0", e.getMessage()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     // Return false if the user canceled the action
     private boolean changesToDiscard() {
         if (this.isDirty) {
-            int result = JOptionPane.showConfirmDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("file.modified.want.to.save"), PropertyBroker.getMessageFromBundle("file.save.question"), JOptionPane.YES_NO_CANCEL_OPTION);
+            int result = JOptionPane.showConfirmDialog(this.mainFrame,
+                    PropertyBroker.getMessageFromBundle("file.modified.want.to.save"),
+                    PropertyBroker.getMessageFromBundle("file.save.question"),
+                    JOptionPane.YES_NO_CANCEL_OPTION);
             if (result == JOptionPane.YES_OPTION) {
                 this.saveFile();
-            } else return result != JOptionPane.CANCEL_OPTION;
+                return true;
+            }
+            // NO means discard changes and proceed; anything else (CANCEL, CLOSED_OPTION) aborts
+            return result == JOptionPane.NO_OPTION;
         }
         return true;
     }
@@ -247,11 +286,7 @@ public class MainWindow extends View {
     public static void showMainWindow(String fileToOpen) {
         MainWindow instance = getInstance();
         if (fileToOpen != null) {
-            try {
-                instance.doOpenFile(fileToOpen);
-            } catch (IOException e) {
-                log.error(PropertyBroker.getMessageFromBundle("file.error.while.opening"), e);
-            }
+            instance.doOpenFile(fileToOpen);
         }
         instance.show();
     }
@@ -286,21 +321,16 @@ public class MainWindow extends View {
         }
     }
 
-    @Override
-    public boolean dispatch(Events command) {
-        switch (command) {
-            case SET_THEME_LIGHT:
-                this.setTheme(new FlatLightLaf());
-                break;
-            case SET_THEME_DARK:
-                this.setTheme(new FlatDarkLaf());
-                break;
-            case UPDATE_CHECK_COMPLETED:
-                if (UpdateController.isUpdateAvailable()) {
-                    JOptionPane.showMessageDialog(this.mainFrame, PropertyBroker.getMessageFromBundle("update.available.0", UpdateController.getUpstreamVersion()), PropertyBroker.getMessageFromBundle("update.available"), JOptionPane.INFORMATION_MESSAGE);
-                }
+    /**
+     * Quit the application, prompting to save unsaved changes.
+     */
+    public static void quit() {
+        MainWindow mw = getInstance();
+        if (!mw.changesToDiscard()) {
+            return;
         }
-        return true;
+        SettingsController.persist();
+        System.exit(0);
     }
 
     private void setTheme(LookAndFeel theme) {
@@ -371,6 +401,13 @@ public class MainWindow extends View {
         runButton.setText("");
         runButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.run.program"));
         toolBar1.add(runButton);
+        stopButton = new JButton();
+        Font stopButtonFont = UIManager.getFont("Button.font");
+        if (stopButtonFont != null) stopButton.setFont(stopButtonFont);
+        stopButton.setIcon(new ImageIcon(getClass().getResource("/images/stop.png")));
+        stopButton.setText("");
+        stopButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.stop.program"));
+        toolBar1.add(stopButton);
         final JSplitPane splitPane1 = new JSplitPane();
         splitPane1.setDividerSize(5);
         Font splitPane1Font = UIManager.getFont("Panel.font");
@@ -432,6 +469,9 @@ public class MainWindow extends View {
 
     private static Method $$$cachedGetBundleMethod$$$ = null;
 
+    /**
+     * @noinspection ALL
+     */
     private String $$$getMessageFromBundle$$$(String path, String key) {
         ResourceBundle bundle;
         try {

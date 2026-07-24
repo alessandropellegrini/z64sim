@@ -24,11 +24,15 @@ public class FlagsRegister extends Register {
     }
 
     private void setBit(int bit) {
+        long oldValue = this.value;
         this.value = this.value | (long) bit;
+        pcs.firePropertyChange("value", oldValue, this.value);
     }
 
     private void clearBit(int bit) {
+        long oldValue = this.value;
         this.value = this.value & ~(long)bit;
+        pcs.firePropertyChange("value", oldValue, this.value);
     }
 
     private boolean isSetBit(int bit) {

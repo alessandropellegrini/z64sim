@@ -4,9 +4,7 @@
  */
 package it.uniroma2.pellegrini.z64sim.view;
 
-import it.uniroma2.pellegrini.z64sim.PropertyBroker;
-import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+import it.uniroma2.pellegrini.z64sim.controller.AppActions;
 
 import javax.swing.*;
 
@@ -15,14 +13,12 @@ public class MainWindowMenu extends JMenuBar {
     public MainWindowMenu() {
 
         /* FILE */
-        JMenu menuFile = new JMenu(PropertyBroker.getMessageFromBundle("menu.file"));
+        JMenu menuFile = new JMenu("File");
 
-        JMenuItem settingsMenu = new JMenuItem(PropertyBroker.getMessageFromBundle("menu.file.settings"));
-        settingsMenu.addActionListener(e -> Dispatcher.dispatch(Events.SHOW_SETTINGS_DIALOG));
+        JMenuItem settingsMenu = new JMenuItem(AppActions.SHOW_SETTINGS);
         menuFile.add(settingsMenu);
 
-        JMenuItem quitMenu = new JMenuItem(PropertyBroker.getMessageFromBundle("menu.file.quit"));
-        quitMenu.addActionListener(e -> Dispatcher.dispatch(Events.QUIT));
+        JMenuItem quitMenu = new JMenuItem(AppActions.QUIT);
         menuFile.add(quitMenu);
 
         this.add(menuFile);

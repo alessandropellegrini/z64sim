@@ -65,7 +65,6 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) ^ msb) != 0);
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             case "sar":
                 // SAR = Shift Arithmetic Right: preserves sign bit
@@ -75,7 +74,6 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(false);
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             case "shr":
                 // SHR = Shift Logical Right: fills with zeros
@@ -85,7 +83,6 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(msb != 0);
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             case "rcl": {
                 // RCL = Rotate through Carry Left
@@ -100,7 +97,6 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) != 0) != cf);
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             }
             case "rcr": {
@@ -118,7 +114,6 @@ public class InstructionClass3 extends Instruction {
                     long resultMsb1 = result & (msbMask >>> 1);
                     SimulatorController.setOF((resultMsb != 0) != (resultMsb1 != 0));
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             }
             case "rol": {
@@ -129,7 +124,6 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     SimulatorController.setOF(((result & msbMask) != 0) != ((result & 1) != 0));
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             }
             case "ror": {
@@ -142,7 +136,6 @@ public class InstructionClass3 extends Instruction {
                     long resultMsb1 = result & (msbMask >>> 1);
                     SimulatorController.setOF((resultMsb != 0) != (resultMsb1 != 0));
                 }
-                SimulatorController.refreshUIFlags();
                 break;
             }
             default:

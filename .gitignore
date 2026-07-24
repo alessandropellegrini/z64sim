@@ -118,3 +118,12 @@ buildNumber.properties
 .classpath
 
 # End of https://www.toptal.com/developers/gitignore/api/maven,intellij+all
+
+# javacc generated files
+Assembler.java
+AssemblerConstants.java
+AssemblerTokenManager.java
+JavaCharStream.java
+ParseException.java
+Token.java
+TokenMgrError.java
