@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -84,7 +85,7 @@ public class ControlFlowTest {
         //   case1:   mov, jmp
         //   leave:   jz (not taken), add, sub, jmp
         //   end:     hlt
-        List<String> expectedTrace = List.of(
+        List<String> expectedTrace = Arrays.asList(
                 "mov",  // movl var, %eax
                 "mov",  // movq table(,%rax,8), %rax
                 "jmp",  // jmp *%rax  → .case1

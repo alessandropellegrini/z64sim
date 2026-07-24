@@ -16,8 +16,10 @@ import org.junit.jupiter.api.condition.DisabledIf;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -183,8 +185,9 @@ public class GuiButtonTest {
     @Timeout(15)
     void testStopHaltsExecution() throws Exception {
         // Read the infinite loop program from test resources
-        String program = Files.readString(
-                Path.of(getClass().getClassLoader().getResource("infinite_loop.asm").toURI()));
+        String program = new String(Files.readAllBytes(
+                Paths.get(getClass().getClassLoader().getResource("infinite_loop.asm").toURI())),
+                StandardCharsets.UTF_8);
 
         // Set editor text and click assemble
         SwingUtilities.invokeAndWait(() -> {
