@@ -66,7 +66,7 @@ public class RegisterBank extends View implements PropertyChangeListener {
     public void bind(CpuState cpuState) {
         this.boundCpuState = cpuState;
 
-        // Build the property-name → label lookup table (FLAGS is intentionally absent).
+        // Build the property-name --> label lookup table (FLAGS is intentionally absent).
         registerLabels.put(CpuState.PROP_RAX, rax);
         registerLabels.put(CpuState.PROP_RCX, rcx);
         registerLabels.put(CpuState.PROP_RDX, rdx);

@@ -88,7 +88,7 @@ public class ControlFlowTest {
         List<String> expectedTrace = Arrays.asList(
                 "mov",  // movl var, %eax
                 "mov",  // movq table(,%rax,8), %rax
-                "jmp",  // jmp *%rax  → .case1
+                "jmp",  // jmp *%rax  --> .case1
                 "mov",  // movl $1, %ebx
                 "jmp",  // jmp .leave
                 "jz",   // jz .end  (not taken, ZF=0)

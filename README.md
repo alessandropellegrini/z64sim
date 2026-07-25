@@ -29,15 +29,16 @@ Please provide a detailed description of the bug and, if possible, a minimal exa
 The simulator provides a minimalistic editor for writing z64 assembly code.
 The toolbar contains the following buttons to interact with the simulator:
 
-* ![](src/main/resources/images/assemble_icon.png): **Assemble** — assembles the code in the editor and loads it into
+* ![](src/main/resources/images/assemble_icon24.png): **Assemble** — assembles the code in the editor and loads it into
   the simulator. If the code is invalid, a message log will appear at the bottom of the window (below the CPU registers).
-* ![](src/main/resources/images/step.png): **Step** — executes a single instruction. If the program counter does not
+* ![](src/main/resources/images/step24.png): **Step** — executes a single instruction. If the program counter does not
   point to a valid instruction, the simulator will stop. This button has no effect if no program is loaded or if
   execution has reached a `hlt` instruction.
-* ![](src/main/resources/images/run.png): **Run** — starts continuous execution of the program. This is equivalent to
+* ![](src/main/resources/images/run24.png): **Run** — starts continuous execution of the program. This is equivalent to
   repeatedly pressing the Step button until `hlt` is reached or an error occurs.
 * ![](src/main/resources/images/stop24.png): **Stop** — halts a running program. This is useful when execution is
   in progress (e.g., the program is in an infinite loop) and you want to regain control of the simulator.
+* ![](src/main/resources/images/iodevice24.png): Open the **Device Manager** — see below.
 
 ### Keyboard shortcuts
 
@@ -50,6 +51,67 @@ The toolbar contains the following buttons to interact with the simulator:
 | F8            | Step instruction    |
 | F5            | Run program         |
 | Shift+F5      | Stop program        |
+
+## Managing Devices
+
+z64sim supports pluggable I/O devices that interact with the CPU through port-mapped I/O
+instructions (`in` / `out`). Devices are managed through the **Device Manager** dialog.
+
+A **DMAC** (Direct Memory Access Controller) is always present in the system. It occupies
+IVN 0 and has its I/O ports hardwired at addresses `0x00`–`0x09`. The DMAC cannot be
+removed, reordered, or reconfigured. User devices must not use port addresses in this
+reserved range. The DMAC supports the `insb`/`insw`/`insl`/`outsb`/`outsw`/`outsl`
+string I/O instructions, as well as manual programming via `out` instructions to its ports.
+
+Device configuration is *persistent*: when the simulator is restarted, the previous device
+configuration is reloaded.
+
+### Adding a device
+
+1. Open the Device Manager.
+2. Select a device type from the drop-down list (sorted alphabetically) and click **Add**.
+3. The device appears in the table. If the device supports interrupt-driven I/O, an IVN
+   (Interrupt Vector Number) is automatically assigned. Non-interrupt devices show "—" in
+   the IVN column.
+4. Click the device row to configure its I/O port addresses in the port table below.
+   Each port element (registers, flip-flops) must be assigned a unique I/O address.
+
+### Editing IVN and port addresses
+
+- Double-click the **IVN** cell to change the interrupt vector number (0–255). The
+  simulator validates that no two interrupt-capable devices share the same IVN.
+- Double-click a port **Address** cell to assign an I/O port address in hexadecimal
+  (e.g., `0x10`).
+
+### Reordering and removing devices
+
+- **Drag and drop** rows in the device table to change the daisy-chain priority order
+  (relevant for interrupt arbitration).
+- Select a device row and click the **trash** button to remove a device from the system.
+- Close the dialog with **OK** to apply changes, or **Cancel** to discard.
+
+### Viewing the interface schematic
+
+Select a device row and click the **Interface** button to open a hardware-level schematic
+of the device's I/O interface. You can zoom in/out
+(Ctrl+mouse wheel or +/− buttons), scroll, and export the diagram as PNG.
+
+### IVT table in the main window
+
+The **IVT** (Interrupt Vector Table) panel in the main window shows only
+interrupt-capable devices at their assigned IVN slots.
+
+## Custom Devices
+
+You can implement your own devices and add them to the simulator. Compile your device
+class against the z64sim JAR and place the resulting `.class` file under the following
+directory structure, relative to where you launch the JAR:
+
+    it/uniroma2/pellegrini/z64sim/devices/MyDevice.class
+
+The simulator scans this path in the current working directory at startup. See the
+[Implementing Custom Devices](docs/implementing-devices.md) guide for the full API
+reference, protocol conventions, and deployment instructions.
 
 ## Building from source
 

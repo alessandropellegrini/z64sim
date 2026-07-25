@@ -26,7 +26,7 @@ public class InstructionClass3Test {
     // --- SHL / SAL ---
 
     @Test
-    @DisplayName("shl $1, %dl with dl=0x01 → result=0x02, CF=0")
+    @DisplayName("shl $1, %dl with dl=0x01 --> result=0x02, CF=0")
     public void testShlNoCarry() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x01L);
@@ -38,7 +38,7 @@ public class InstructionClass3Test {
     }
 
     @Test
-    @DisplayName("shl $1, %dl with dl=0x80 → result=0x00, CF=1")
+    @DisplayName("shl $1, %dl with dl=0x80 --> result=0x00, CF=1")
     public void testShlCarry() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x80L);
@@ -61,7 +61,7 @@ public class InstructionClass3Test {
     }
 
     @Test
-    @DisplayName("shl $4, %dl with dl=0x0F → result=0xF0")
+    @DisplayName("shl $4, %dl with dl=0x0F --> result=0xF0")
     public void testMultiBitShift() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x0FL);
@@ -74,7 +74,7 @@ public class InstructionClass3Test {
     // --- SHR ---
 
     @Test
-    @DisplayName("shr $1, %dl with dl=0x01 → result=0x00, CF=1")
+    @DisplayName("shr $1, %dl with dl=0x01 --> result=0x00, CF=1")
     public void testShrCarry() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x01L);
@@ -86,7 +86,7 @@ public class InstructionClass3Test {
     }
 
     @Test
-    @DisplayName("shr $1, %dl with dl=0x80 → result=0x40, CF=0")
+    @DisplayName("shr $1, %dl with dl=0x80 --> result=0x40, CF=0")
     public void testShrNoCarry() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x80L);
@@ -100,7 +100,7 @@ public class InstructionClass3Test {
     // --- SAR ---
 
     @Test
-    @DisplayName("sar $1, %rdx with rdx=0x8000000000000000 → sign preserved (0xC...0)")
+    @DisplayName("sar $1, %rdx with rdx=0x8000000000000000 --> sign preserved (0xC...0)")
     public void testSarSignPreserved() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 8);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x8000000000000000L);
@@ -113,7 +113,7 @@ public class InstructionClass3Test {
     // --- ROL ---
 
     @Test
-    @DisplayName("rol $1, %dl with dl=0x80 → result=0x01 (MSB rotated to LSB)")
+    @DisplayName("rol $1, %dl with dl=0x80 --> result=0x01 (MSB rotated to LSB)")
     public void testRol() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x80L);
@@ -126,7 +126,7 @@ public class InstructionClass3Test {
     // --- ROR ---
 
     @Test
-    @DisplayName("ror $1, %dl with dl=0x01 → result=0x80 (LSB rotated to MSB)")
+    @DisplayName("ror $1, %dl with dl=0x01 --> result=0x80 (LSB rotated to MSB)")
     public void testRor() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x01L);
@@ -139,7 +139,7 @@ public class InstructionClass3Test {
     // --- RCL ---
 
     @Test
-    @DisplayName("rcl $1, %dl with dl=0x80, CF=0 → result=0x00, CF=1")
+    @DisplayName("rcl $1, %dl with dl=0x80, CF=0 --> result=0x00, CF=1")
     public void testRclCarryOut() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x80L);
@@ -152,7 +152,7 @@ public class InstructionClass3Test {
     }
 
     @Test
-    @DisplayName("rcl $1, %dl with dl=0x00, CF=1 → result=0x01, CF=0")
+    @DisplayName("rcl $1, %dl with dl=0x00, CF=1 --> result=0x01, CF=0")
     public void testRclCarryIn() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x00L);
@@ -167,7 +167,7 @@ public class InstructionClass3Test {
     // --- RCR ---
 
     @Test
-    @DisplayName("rcr $1, %dl with dl=0x01, CF=0 → result=0x00, CF=1")
+    @DisplayName("rcr $1, %dl with dl=0x01, CF=0 --> result=0x00, CF=1")
     public void testRcrCarryOut() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x01L);
@@ -180,7 +180,7 @@ public class InstructionClass3Test {
     }
 
     @Test
-    @DisplayName("rcr $1, %dl with dl=0x00, CF=1 → result=0x80, CF=0")
+    @DisplayName("rcr $1, %dl with dl=0x00, CF=1 --> result=0x80, CF=0")
     public void testRcrCarryIn() throws SimulatorException {
         OperandRegister reg = new OperandRegister(Register.RDX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RDX, 0x00L);

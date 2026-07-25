@@ -37,14 +37,6 @@ public class Memory extends AbstractTableModel {
         return instance;
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        this.pcs.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        this.pcs.removePropertyChangeListener(listener);
-    }
-
     public static void selectAddress(long address) {
         if(getInstance().memoryView == null) return;
         int row = (int) (address / 8);
@@ -94,11 +86,6 @@ public class Memory extends AbstractTableModel {
     @Override
     public Class<?> getColumnClass(int col) {
         return String.class;
-    }
-
-    @Override
-    public boolean isCellEditable(int row, int col) {
-        return false;
     }
 
     @Override

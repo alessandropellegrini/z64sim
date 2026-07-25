@@ -14,6 +14,7 @@ import it.uniroma2.pellegrini.z64sim.controller.AppActions;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
+import it.uniroma2.pellegrini.z64sim.model.Devices;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -28,6 +29,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.text.Element;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -38,13 +40,12 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -69,6 +70,8 @@ public class MainWindow extends View {
     private JLabel editorPositionLabel;
     private JSlider speedSlider;
     private JLabel speedLabel;
+    private JTable ivtTable;
+    private JButton deviceButton;
 
     private File openFile = null;
     private boolean isDirty = false;
@@ -101,6 +104,10 @@ public class MainWindow extends View {
 
         this.memoryView.setModel(Memory.getInstance());
         Memory.getInstance().setView(this.memoryView);
+        this.ivtTable.setModel(Devices.getInstance());
+        this.ivtTable.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        this.ivtTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        this.ivtTable.getColumnModel().getColumn(0).setMaxWidth(40);
         this.compilerOutput.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
         this.mainFrame = new JFrame(PropertyBroker.getPropertyValue("z64sim.name"));
@@ -165,6 +172,13 @@ public class MainWindow extends View {
         stepButton.addActionListener(AppActions.STEP);
         runButton.addActionListener(AppActions.RUN);
         stopButton.addActionListener(AppActions.STOP);
+        deviceButton.addActionListener(e -> {
+            DeviceManager dialog = new DeviceManager();
+            dialog.setTitle("Device Manager");
+            dialog.pack();
+            dialog.setLocationRelativeTo(mainFrame);
+            dialog.setVisible(true);
+        });
 
         // Keyboard shortcuts via InputMap/ActionMap
         InputMap im = mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -526,6 +540,13 @@ public class MainWindow extends View {
         stopButton.setText("");
         stopButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "gui.stop.program"));
         toolBar1.add(stopButton);
+        deviceButton = new JButton();
+        Font deviceButtonFont = UIManager.getFont("Button.font");
+        if (deviceButtonFont != null) deviceButton.setFont(deviceButtonFont);
+        deviceButton.setIcon(new ImageIcon(getClass().getResource("/images/iodevice.png")));
+        deviceButton.setText("");
+        deviceButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "button.devices"));
+        toolBar1.add(deviceButton);
         final JToolBar.Separator toolBar$Separator1 = new JToolBar.Separator();
         toolBar1.add(toolBar$Separator1);
         speedLabel = new JLabel();
@@ -579,8 +600,6 @@ public class MainWindow extends View {
         final JSplitPane splitPane3 = new JSplitPane();
         splitPane3.setOrientation(0);
         splitPane1.setRightComponent(splitPane3);
-        cpuView = new RegisterBank();
-        splitPane3.setLeftComponent(cpuView.$$$getRootComponent$$$());
         final JScrollPane scrollPane3 = new JScrollPane();
         Font scrollPane3Font = UIManager.getFont("Panel.font");
         if (scrollPane3Font != null) scrollPane3.setFont(scrollPane3Font);
@@ -590,6 +609,41 @@ public class MainWindow extends View {
         compilerOutput.setRows(5);
         compilerOutput.setText("");
         scrollPane3.setViewportView(compilerOutput);
+        final JSplitPane splitPane4 = new JSplitPane();
+        splitPane4.setResizeWeight(1.0);
+        splitPane3.setLeftComponent(splitPane4);
+        cpuView = new RegisterBank();
+        splitPane4.setLeftComponent(cpuView.$$$getRootComponent$$$());
+        final JScrollPane scrollPane4 = new JScrollPane();
+        scrollPane4.setPreferredSize(new Dimension(200, 0));
+        splitPane4.setRightComponent(scrollPane4);
+        ivtTable = new JTable();
+        ivtTable.setFillsViewportHeight(true);
+        Font ivtTableFont = this.$$$getFont$$$("Monospaced", -1, 12, ivtTable.getFont());
+        if (ivtTableFont != null) ivtTable.setFont(ivtTableFont);
+        scrollPane4.setViewportView(ivtTable);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private Font $$$getFont$$$(String fontName, int style, int size, Font currentFont) {
+        if (currentFont == null) return null;
+        String resultName;
+        if (fontName == null) {
+            resultName = currentFont.getName();
+        } else {
+            Font testFont = new Font(fontName, Font.PLAIN, 10);
+            if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+                resultName = fontName;
+            } else {
+                resultName = currentFont.getName();
+            }
+        }
+        Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+        boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+        Font fontWithFallback = isMac ? new Font(font.getFamily(), font.getStyle(), font.getSize()) : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+        return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
     }
 
     private static Method $$$cachedGetBundleMethod$$$ = null;

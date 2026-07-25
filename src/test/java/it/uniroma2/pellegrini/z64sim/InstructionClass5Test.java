@@ -61,10 +61,35 @@ public class InstructionClass5Test {
     }
 
     @Test
-    @DisplayName("iret throws UnsupportedOperationException")
-    public void testIret() {
-        OperandMemory target = new OperandMemory(-1, -1, -1, -1, 0x1000, -1);
-        Instruction inst = new InstructionClass5("iret", target);
-        assertThrows(UnsupportedOperationException.class, inst::run);
+    @DisplayName("iret pops RIP and RFLAGS from stack")
+    public void testIret() throws ParseException, SimulatorException {
+        Program program = new Program();
+        program.textSectionStart(0x800);
+        Memory.setProgram(program);
+
+        // Simulate interrupt entry: stack has [RFLAGS, RIP] (RIP on top)
+        // Push RFLAGS = 0x0202 (IF set) at RSP-8
+        long savedRflags = 0x0202L;
+        long savedRip = 0x1500L;
+        long stackTop = 0x2000L;
+
+        // Write RIP at stackTop - 16 (pushed second, so on top)
+        for (int i = 0; i < 8; i++) {
+            Memory.setValueAt(stackTop - 16 + i, (byte) (savedRip >> (i * 8)));
+        }
+        // Write RFLAGS at stackTop - 8 (pushed first, so below RIP)
+        for (int i = 0; i < 8; i++) {
+            Memory.setValueAt(stackTop - 8 + i, (byte) (savedRflags >> (i * 8)));
+        }
+
+        // RSP points to the top of the pushed frame
+        SimulatorController.getCpuState().setRegisterValue(Register.RSP, stackTop - 16);
+        SimulatorController.getCpuState().setRIP(0x3000L); // current handler address
+
+        new InstructionClass5("iret", null).run();
+
+        assertEquals(savedRip, SimulatorController.getCpuState().getRIP());
+        assertEquals(savedRflags, SimulatorController.getCpuState().getFlags());
+        assertEquals(stackTop, SimulatorController.getCpuState().getRegisterValue(Register.RSP));
     }
 }

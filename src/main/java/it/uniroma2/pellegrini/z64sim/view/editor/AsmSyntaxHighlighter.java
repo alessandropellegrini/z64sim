@@ -49,7 +49,7 @@ public class AsmSyntaxHighlighter {
 
     private boolean darkTheme = false;
 
-    /** Style cache: token kind → AttributeSet. Rebuilt when theme changes. */
+    /** Style cache: token kind --> AttributeSet. Rebuilt when theme changes. */
     private final Map<Integer, AttributeSet> styleMap = new HashMap<>();
 
     /** Style used for comment special tokens. */
@@ -236,7 +236,7 @@ public class AsmSyntaxHighlighter {
      * any comments found.
      */
     private void highlightSpecialTokens(Token regularToken, StyledDocument doc, String text) {
-        // The specialToken chain is: regularToken.specialToken → previous special → ...
+        // The specialToken chain is: regularToken.specialToken --> previous special --> ...
         // We need to walk backwards, but we only care about comments (kind == COMMENT).
         Token special = regularToken.specialToken;
         while (special != null) {
