@@ -538,6 +538,7 @@ void Code() :
 Instruction Drivers() :
 {
     Token t;
+    Instruction i;
 }
 {
     try {
@@ -555,7 +556,11 @@ Instruction Drivers() :
                 }
             }
             (<COMMENT> | <NEWLINE>)*
-            ( Statement() )+
+            ( i = Statement()
+              {if(i != null) {
+                  this.program.addInstruction(i);
+              }}
+            )+
             t = <IRET>
             {
                 this.program.addInstruction(new InstructionClass5(t.image, null));

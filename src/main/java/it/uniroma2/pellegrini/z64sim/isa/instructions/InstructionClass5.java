@@ -55,7 +55,22 @@ public class InstructionClass5 extends Instruction {
                 break;
             case "iret":
             case "iretq":
-                throw new UnsupportedOperationException("Not supported yet.");
+                // Pop RIP (return address)
+                sp = new OperandRegister(Register.RSP, 8);
+                spValue = SimulatorController.getOperandValue(sp);
+                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                Long rip = SimulatorController.getOperandValue(spMem);
+                spValue += 8;
+
+                // Pop RFLAGS (restores IF to pre-interrupt value)
+                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                Long rflags = SimulatorController.getOperandValue(spMem);
+                spValue += 8;
+
+                SimulatorController.setOperandValue(sp, spValue);
+                SimulatorController.setRIP(rip);
+                SimulatorController.getCpuState().setFlags(rflags);
+                break;
             default:
                 throw new RuntimeException("Unknown Class 5 instruction: " + mnemonic);
         }

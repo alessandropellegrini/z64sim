@@ -33,6 +33,7 @@ public class z64sim {
 
         splashScreen.step("Initializing controllers");
         SimulatorController.init();
+        SettingsController.applyDeviceConfig();
 
         splashScreen.step("Initializing UI");
         splashScreen.close();

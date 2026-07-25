@@ -84,6 +84,15 @@
               <toolTipText resource-bundle="i18n" key="gui.stop.program"/>
             </properties>
           </component>
+          <component id="18247" class="javax.swing.JButton" binding="deviceButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/iodevice.png"/>
+              <text value=""/>
+              <toolTipText resource-bundle="i18n" key="button.devices"/>
+            </properties>
+          </component>
           <component id="sep01" class="javax.swing.JToolBar$Separator">
             <constraints/>
             <properties/>
@@ -217,11 +226,6 @@
             </properties>
             <border type="none"/>
             <children>
-              <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/RegisterBank.form" binding="cpuView">
-                <constraints>
-                  <splitpane position="left"/>
-                </constraints>
-              </nested-form>
               <scrollpane id="2f25d">
                 <constraints>
                   <splitpane position="right"/>
@@ -241,6 +245,40 @@
                   </component>
                 </children>
               </scrollpane>
+              <splitpane id="7c93">
+                <constraints>
+                  <splitpane position="left"/>
+                </constraints>
+                <properties>
+                  <resizeWeight value="1.0"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <nested-form id="b6f08" form-file="it/uniroma2/pellegrini/z64sim/view/components/RegisterBank.form" binding="cpuView">
+                    <constraints>
+                      <splitpane position="left"/>
+                    </constraints>
+                  </nested-form>
+                  <scrollpane id="6f697">
+                    <constraints>
+                      <splitpane position="right"/>
+                    </constraints>
+                    <properties>
+                      <preferredSize width="200" height="0"/>
+                    </properties>
+                    <border type="none"/>
+                    <children>
+                      <component id="241eb" class="javax.swing.JTable" binding="ivtTable">
+                        <constraints/>
+                        <properties>
+                          <fillsViewportHeight value="true"/>
+                          <font name="Monospaced" size="12"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </splitpane>
             </children>
           </splitpane>
         </children>

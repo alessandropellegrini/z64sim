@@ -6,6 +6,10 @@ package it.uniroma2.pellegrini.z64sim.controller;
 
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.SettingsException;
+import it.uniroma2.pellegrini.z64sim.model.Device;
+import it.uniroma2.pellegrini.z64sim.model.DeviceMapping;
+import it.uniroma2.pellegrini.z64sim.model.Devices;
+import it.uniroma2.pellegrini.z64sim.model.IoPortDescriptor;
 import it.uniroma2.pellegrini.z64sim.util.log.LogLevel;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
@@ -18,8 +22,12 @@ import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class SettingsController extends Controller {
     private static final Logger log = LoggerFactory.getLogger();
@@ -188,6 +196,76 @@ public class SettingsController extends Controller {
         pcs.firePropertyChange("showLineNumbers", old, show);
     }
 
+    // ---- Device configuration persistence ----
+
+    public static List<DeviceConfig> getDeviceConfigs() {
+        List<DeviceConfig> configs = getInstance().settings.getDeviceConfigs();
+        return configs != null ? configs : new ArrayList<DeviceConfig>();
+    }
+
+    public static void setDeviceConfigs(List<DeviceConfig> configs) {
+        getInstance().settings.setDeviceConfigs(configs);
+    }
+
+    /**
+     * Reconstruct live Device instances from saved configuration
+     * and register them in the Devices singleton.
+     */
+    @SuppressWarnings("unchecked")
+    public static void applyDeviceConfig() {
+        List<DeviceConfig> configs = getDeviceConfigs();
+        if (configs.isEmpty()) return;
+
+        Devices devices = Devices.getInstance();
+        devices.clearAllDevices();
+
+        for (DeviceConfig cfg : configs) {
+            try {
+                Class<?> cls = Class.forName(cfg.className);
+                if (!Device.class.isAssignableFrom(cls)) {
+                    log.warn("Saved device class is not a Device: " + cfg.className);
+                    continue;
+                }
+                Device device = (Device) cls.newInstance();
+                DeviceMapping mapping = new DeviceMapping(device, cfg.ivn);
+
+                for (IoPortDescriptor desc : device.getDescriptor().getIoPorts()) {
+                    Long addr = cfg.portAssignments.get(desc.getName());
+                    if (addr != null && addr >= 0) {
+                        mapping.assignPort(addr, desc);
+                        devices.registerPort(addr, mapping);
+                    }
+                }
+
+                devices.registerDevice(cfg.ivn, mapping);
+            } catch (Exception e) {
+                log.warn("Failed to restore device " + cfg.className + ": " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Serializable snapshot of one device entry for settings persistence.
+     */
+    public static class DeviceConfig implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        public String className;
+        public int ivn;
+        /** element name --> I/O port address (-1 = unassigned) */
+        public HashMap<String, Long> portAssignments;
+
+        public DeviceConfig() {
+            this.portAssignments = new HashMap<String, Long>();
+        }
+
+        public DeviceConfig(String className, int ivn, Map<String, Long> ports) {
+            this.className = className;
+            this.ivn = ivn;
+            this.portAssignments = new HashMap<String, Long>(ports);
+        }
+    }
+
     private static class Settings implements Serializable {
 
         private static final long serialVersionUID = 1L;
@@ -205,6 +283,7 @@ public class SettingsController extends Controller {
         private int windowSizeY;
         private String fileLastDir;
         private boolean showLineNumbers;
+        private List<DeviceConfig> deviceConfigs;
 
         private Settings() {
             // Configuration defaults
@@ -217,6 +296,7 @@ public class SettingsController extends Controller {
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
             this.fileLastDir = null;
             this.showLineNumbers = true;
+            this.deviceConfigs = new ArrayList<DeviceConfig>();
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
@@ -259,6 +339,14 @@ public class SettingsController extends Controller {
             this.windowSizeY = fields.get("windowSizeY", 0);
             this.fileLastDir = (String) fields.get("fileLastDir", null);
             this.showLineNumbers = fields.get("showLineNumbers", true);
+            // Handle deviceConfigs added in a newer version
+            try {
+                @SuppressWarnings("unchecked")
+                List<DeviceConfig> saved = (List<DeviceConfig>) fields.get("deviceConfigs", null);
+                this.deviceConfigs = saved != null ? saved : new ArrayList<DeviceConfig>();
+            } catch (Exception e) {
+                this.deviceConfigs = new ArrayList<DeviceConfig>();
+            }
         }
 
 
@@ -352,6 +440,14 @@ public class SettingsController extends Controller {
 
         public void setFileLastDir(String fileLastDir) {
             this.fileLastDir = fileLastDir;
+        }
+
+        public List<DeviceConfig> getDeviceConfigs() {
+            return deviceConfigs;
+        }
+
+        public void setDeviceConfigs(List<DeviceConfig> deviceConfigs) {
+            this.deviceConfigs = deviceConfigs;
         }
     }
 }

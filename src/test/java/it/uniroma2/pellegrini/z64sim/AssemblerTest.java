@@ -38,6 +38,12 @@ public class AssemblerTest {
         assertDoesNotThrow(() -> assemble("/test.asm"));
         assertDoesNotThrow(() -> assemble("/relocations.asm"));
         assertDoesNotThrow(() -> assemble("/isa.asm"));
+        assertDoesNotThrow(() -> assemble("/driver.asm"));
+        assertDoesNotThrow(() -> assemble("/busywaiting.asm"));
+        assertDoesNotThrow(() -> assemble("/sync_prodcons.asm"));
+        assertDoesNotThrow(() -> assemble("/async_prodcons.asm"));
+        assertDoesNotThrow(() -> assemble("/alarm.asm"));
+        assertDoesNotThrow(() -> assemble("/timer.asm"));
     }
 
 }

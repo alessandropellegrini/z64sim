@@ -14,6 +14,8 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
+import it.uniroma2.pellegrini.z64sim.model.DeviceMapping;
+import it.uniroma2.pellegrini.z64sim.model.Devices;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
 import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
 import it.uniroma2.pellegrini.z64sim.model.Program;
@@ -43,6 +45,8 @@ public class SimulatorController extends Controller {
     // yielding between ticks so the GUI stays responsive.
     private Timer simulationTimer;
     private int timerDelayMs = 0;
+    private boolean devicesStarted = false;
+    private boolean halted = false;
 
     private SimulatorController() {
     }
@@ -314,6 +318,7 @@ public class SimulatorController extends Controller {
                     // These fire PropertyChangeEvents that update the RegisterBank reactively
                     sc.cpuState.setRIP(_start);
                     sc.cpuState.setRSP((long) sc.program.getLargestAddress());
+                    sc.devicesStarted = false;
                 }
             }
         }.execute();
@@ -325,11 +330,14 @@ public class SimulatorController extends Controller {
      */
     public static void step() {
         SimulatorController sc = getInstance();
+        sc.startDevicesIfNeeded();
         try {
             sc.stepInstruction();
         } catch (SimulatorException e) {
+            sc.stopDevices();
             showRuntimeError(e.getMessage());
         } catch (RuntimeException e) {
+            sc.stopDevices();
             String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
             showRuntimeError(PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error,
                     Long.toHexString(sc.cpuState.getRIP())));
@@ -348,19 +356,20 @@ public class SimulatorController extends Controller {
         if (sc.program == null) return;
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
 
+        sc.startDevicesIfNeeded();
+
         sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
             try {
-                boolean hlt = sc.stepInstruction();
+                sc.stepInstruction();
                 Memory.selectAddress(sc.cpuState.getRIP());
-                if (hlt) {
-                    sc.simulationTimer.stop();
-                }
             } catch (SimulatorException ex) {
                 sc.simulationTimer.stop();
+                sc.stopDevices();
                 Memory.selectAddress(sc.cpuState.getRIP());
                 showRuntimeError(ex.getMessage());
             } catch (RuntimeException ex) {
                 sc.simulationTimer.stop();
+                sc.stopDevices();
                 Memory.selectAddress(sc.cpuState.getRIP());
                 String error = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
                 showRuntimeError(PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error,
@@ -392,6 +401,30 @@ public class SimulatorController extends Controller {
         if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
             sc.simulationTimer.stop();
         }
+        sc.halted = false;
+        sc.stopDevices();
+    }
+
+    /**
+     * Notify all registered devices that the simulation has started,
+     * but only on the first call after assembly.
+     */
+    private void startDevicesIfNeeded() {
+        if (!devicesStarted) {
+            devicesStarted = true;
+            Devices.getInstance().notifySimulationStart();
+        }
+    }
+
+    /**
+     * Notify all registered devices that the simulation has stopped
+     * and reset the flag so they will be re-started on the next run.
+     */
+    private void stopDevices() {
+        if (devicesStarted) {
+            devicesStarted = false;
+            Devices.getInstance().notifySimulationStop();
+        }
     }
 
     private static void showRuntimeError(String message) {
@@ -400,18 +433,45 @@ public class SimulatorController extends Controller {
     }
 
     /**
-     * Execute a single instruction.
+     * Execute a single instruction step.
+     * <p>
+     * If the CPU is halted (by {@code hlt}), no instruction is fetched.
+     * The method still checks for pending interrupts — if one arrives,
+     * the CPU exits the halted state and the interrupt handler runs.
      *
-     * @return true if the program halted (hlt instruction)
      * @throws SimulatorException if an error occurs (e.g. RIP points to data)
      */
-    boolean stepInstruction() throws SimulatorException {
-        if(this.program == null) return true;
+    void stepInstruction() throws SimulatorException {
+        if(this.program == null) return;
+
+        if (halted) {
+            // CPU is halted — skip fetch/execute, but check for interrupts
+            if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
+                halted = false;
+                handleInterrupt();
+            }
+            return;
+        }
 
         Instruction instruction = this.fetch();
         instruction.run();
 
-        return instruction.getMnemonic().equals("hlt");
+        if (instruction.getMnemonic().equals("hlt")) {
+            halted = true;
+            // Don't advance RIP past hlt — displaceRIP(-size) already done
+            // in InstructionClass0, so RIP stays at hlt.
+            // Check immediately for pending interrupts.
+            if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
+                halted = false;
+                handleInterrupt();
+            }
+            return;
+        }
+
+        // Check for pending hardware interrupts after each instruction
+        if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
+            handleInterrupt();
+        }
     }
 
     private Instruction fetch() throws SimulatorException {
@@ -421,10 +481,62 @@ public class SimulatorController extends Controller {
             throw new SimulatorException("Cannot execute data at address 0x" + Long.toHexString(rip));
         }
         Instruction instruction = (Instruction) element;
-        // This fires PropertyChangeEvent → RegisterBank updates RIP reactively
+        // This fires PropertyChangeEvent --> RegisterBank updates RIP reactively
         this.cpuState.setRIP(rip + instruction.getSize());
 
         return instruction;
+    }
+
+    /**
+     * Handle a pending hardware interrupt via daisy-chain polling.
+     * <p>
+     * Polls devices in registration order (daisy chain). The first device
+     * with INT_REQ set wins. The interrupt entry sequence:
+     * push RFLAGS, push RIP, clear IF, jump to IVT handler.
+     */
+    private void handleInterrupt() {
+        DeviceMapping winner = Devices.getInstance().pollInterrupt();
+        if (winner == null) return;  // spurious — counter desynchronized
+
+        long rsp = cpuState.getRSP();
+
+        // Push RFLAGS (preserves current IF=1 for iret to restore)
+        rsp -= 8;
+        writeQwordToMemory(rsp, cpuState.getFlags());
+
+        // Push RIP (return address = next instruction to execute)
+        rsp -= 8;
+        writeQwordToMemory(rsp, cpuState.getRIP());
+
+        cpuState.setRSP(rsp);
+
+        // Clear IF — before IVT lookup
+        cpuState.setIF(false);
+
+        // Jump to handler via IVT
+        int ivn = winner.getIvn();
+        long handlerAddress = readQwordFromMemory(ivn * 8L);
+        cpuState.setRIP(handlerAddress);
+    }
+
+    /**
+     * Write a 64-bit value to memory in little-endian byte order.
+     */
+    private void writeQwordToMemory(long address, long value) {
+        for (int i = 0; i < 8; i++) {
+            Memory.setValueAt(address + i, (byte) (value >> (i * 8)));
+        }
+    }
+
+    /**
+     * Read a 64-bit value from memory in little-endian byte order.
+     */
+    private long readQwordFromMemory(long address) {
+        long value = 0;
+        for (int i = 0; i < 8; i++) {
+            value |= ((long) (Memory.getValueAt(address + i) & 0xFF)) << (i * 8);
+        }
+        return value;
     }
 
     public static void setRIP(long address) {

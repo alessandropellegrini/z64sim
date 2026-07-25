@@ -121,10 +121,10 @@ public class LineNumberPanel extends JPanel implements DocumentListener, Propert
         // Determine if we're on a dark background
         int brightness = (bg.getRed() + bg.getGreen() + bg.getBlue()) / 3;
         if (brightness < 128) {
-            // Dark background → light gray numbers
+            // Dark background --> light gray numbers
             return new Color(120, 120, 120);
         } else {
-            // Light background → dark gray numbers
+            // Light background --> dark gray numbers
             return new Color(140, 140, 140);
         }
     }

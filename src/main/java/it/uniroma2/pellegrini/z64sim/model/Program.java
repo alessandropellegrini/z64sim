@@ -136,14 +136,10 @@ public class Program {
 
     public void newDriver(Integer idn, long address) {
         int offset = idn * 8;
-        this.binary.put(offset, new MemoryData((byte) (address >> 56)));
-        this.binary.put(offset+1, new MemoryData((byte) (address >> 48)));
-        this.binary.put(offset+2, new MemoryData((byte) (address >> 40)));
-        this.binary.put(offset+3, new MemoryData((byte) (address >> 32)));
-        this.binary.put(offset+4, new MemoryData((byte) (address >> 24)));
-        this.binary.put(offset+5, new MemoryData((byte) (address >> 16)));
-        this.binary.put(offset+6, new MemoryData((byte) (address >> 8)));
-        this.binary.put(offset+7, new MemoryData((byte) (address)));
+        // Store handler address in little-endian byte order (matching x86 convention)
+        for (int i = 0; i < 8; i++) {
+            this.binary.put(offset + i, new MemoryData((byte) (address >> (i * 8))));
+        }
     }
 
     public void addEqu(String name, Long value) throws ProgramException {

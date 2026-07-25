@@ -28,7 +28,7 @@ public class InstructionClass2Test {
     // --- ADD ---
 
     @Test
-    @DisplayName("add $5 to rax=10 → result=15, no flags")
+    @DisplayName("add $5 to rax=10 --> result=15, no flags")
     public void testAdd() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(5);
         OperandRegister dst = new OperandRegister(Register.RAX, 8);
@@ -44,7 +44,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("add reg to reg: al=0xFF + bl=1 → overflow byte, CF=1, ZF=1")
+    @DisplayName("add reg to reg: al=0xFF + bl=1 --> overflow byte, CF=1, ZF=1")
     public void testAddOverflow() throws ParseException, SimulatorException {
         // Use register-to-register so the flag computation uses 1-byte size
         OperandRegister src = new OperandRegister(Register.RBX, 1);
@@ -60,7 +60,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("add reg to reg: al=0x7F + bl=0x01 → signed overflow, OF=1, SF=1")
+    @DisplayName("add reg to reg: al=0x7F + bl=0x01 --> signed overflow, OF=1, SF=1")
     public void testAddSignedOverflow() throws ParseException, SimulatorException {
         // Two positive values that overflow to negative: 0x7F + 0x01 = 0x80 (-128)
         OperandRegister src = new OperandRegister(Register.RBX, 1);
@@ -103,7 +103,7 @@ public class InstructionClass2Test {
     // --- SUB ---
 
     @Test
-    @DisplayName("sub $3 from rax=10 → result=7")
+    @DisplayName("sub $3 from rax=10 --> result=7")
     public void testSub() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(3);
         OperandRegister dst = new OperandRegister(Register.RAX, 8);
@@ -117,7 +117,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("sub $1 from al=0 → borrow, CF=1")
+    @DisplayName("sub $1 from al=0 --> borrow, CF=1")
     public void testSubBorrow() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(1);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -132,7 +132,7 @@ public class InstructionClass2Test {
     // --- ADC ---
 
     @Test
-    @DisplayName("adc $1, %al with al=2, CF=1 → result=4")
+    @DisplayName("adc $1, %al with al=2, CF=1 --> result=4")
     public void testAdcWithCarry() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(1);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -145,7 +145,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("adc $1, %al with al=2, CF=0 → result=3")
+    @DisplayName("adc $1, %al with al=2, CF=0 --> result=3")
     public void testAdcNoCarry() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(1);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -160,7 +160,7 @@ public class InstructionClass2Test {
     // --- SBB ---
 
     @Test
-    @DisplayName("sbb $1, %al with al=5, CF=0 → result=3 (CF inverted adds 1)")
+    @DisplayName("sbb $1, %al with al=5, CF=0 --> result=3 (CF inverted adds 1)")
     public void testSbbNoCarry() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(1);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -169,12 +169,12 @@ public class InstructionClass2Test {
 
         new InstructionClass2("sbb", src, dst).run();
 
-        // sbb: srcValue += CF ? 0 : 1 → srcValue = 1+1=2, result = 5-2=3
+        // sbb: srcValue += CF ? 0 : 1 --> srcValue = 1+1=2, result = 5-2=3
         assertEquals(3L, SimulatorController.getCpuState().getRegisterValue(Register.RAX) & 0xFFL);
     }
 
     @Test
-    @DisplayName("sbb $1, %al with al=5, CF=1 → result=4")
+    @DisplayName("sbb $1, %al with al=5, CF=1 --> result=4")
     public void testSbbWithCarry() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(1);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -183,14 +183,14 @@ public class InstructionClass2Test {
 
         new InstructionClass2("sbb", src, dst).run();
 
-        // sbb: srcValue += CF ? 0 : 1 → srcValue = 1+0=1, result = 5-1=4
+        // sbb: srcValue += CF ? 0 : 1 --> srcValue = 1+0=1, result = 5-1=4
         assertEquals(4L, SimulatorController.getCpuState().getRegisterValue(Register.RAX) & 0xFFL);
     }
 
     // --- CMP ---
 
     @Test
-    @DisplayName("cmp $5, %rax with rax=5 → ZF=1, CF=0, destination unchanged")
+    @DisplayName("cmp $5, %rax with rax=5 --> ZF=1, CF=0, destination unchanged")
     public void testCmpEqual() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(5);
         OperandRegister dst = new OperandRegister(Register.RAX, 8);
@@ -204,7 +204,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("cmp $10, %rax with rax=5 → CF=1 (5 < 10)")
+    @DisplayName("cmp $10, %rax with rax=5 --> CF=1 (5 < 10)")
     public void testCmpLess() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(10);
         OperandRegister dst = new OperandRegister(Register.RAX, 8);
@@ -220,7 +220,7 @@ public class InstructionClass2Test {
     // --- TEST ---
 
     @Test
-    @DisplayName("test $0xFF, %al with al=0 → ZF=1, CF=0, OF=0")
+    @DisplayName("test $0xFF, %al with al=0 --> ZF=1, CF=0, OF=0")
     public void testTestZero() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(0xFF);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -234,7 +234,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("test $0x0F, %al with al=0xF0 → ZF=1 (AND=0)")
+    @DisplayName("test $0x0F, %al with al=0xF0 --> ZF=1 (AND=0)")
     public void testTestNonOverlapping() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(0x0F);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -248,7 +248,7 @@ public class InstructionClass2Test {
     // --- NEG ---
 
     @Test
-    @DisplayName("neg al=5 → result=0xFB (-5 byte), CF=1")
+    @DisplayName("neg al=5 --> result=0xFB (-5 byte), CF=1")
     public void testNeg() throws ParseException, SimulatorException {
         OperandRegister op = new OperandRegister(Register.RAX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RAX, 5L);
@@ -261,7 +261,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("neg al=0 → result=0, CF=0")
+    @DisplayName("neg al=0 --> result=0, CF=0")
     public void testNegZero() throws ParseException, SimulatorException {
         OperandRegister op = new OperandRegister(Register.RAX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RAX, 0L);
@@ -276,7 +276,7 @@ public class InstructionClass2Test {
     // --- AND ---
 
     @Test
-    @DisplayName("and $0x0F, %al with al=0xFF → result=0x0F, CF=0, OF=0")
+    @DisplayName("and $0x0F, %al with al=0xFF --> result=0x0F, CF=0, OF=0")
     public void testAnd() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(0x0F);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -292,7 +292,7 @@ public class InstructionClass2Test {
     // --- OR ---
 
     @Test
-    @DisplayName("or $0xF0, %al with al=0x0F → result=0xFF")
+    @DisplayName("or $0xF0, %al with al=0x0F --> result=0xFF")
     public void testOr() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(0xF0);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -308,7 +308,7 @@ public class InstructionClass2Test {
     // --- XOR ---
 
     @Test
-    @DisplayName("xor %rax, %rax → result=0, ZF=1")
+    @DisplayName("xor %rax, %rax --> result=0, ZF=1")
     public void testXor() throws ParseException, SimulatorException {
         OperandRegister src = new OperandRegister(Register.RAX, 8);
         OperandRegister dst = new OperandRegister(Register.RAX, 8);
@@ -323,7 +323,7 @@ public class InstructionClass2Test {
     // --- NOT ---
 
     @Test
-    @DisplayName("not al=0x55 → result=0xAA, no flag change")
+    @DisplayName("not al=0x55 --> result=0xAA, no flag change")
     public void testNot() throws ParseException, SimulatorException {
         OperandRegister op = new OperandRegister(Register.RAX, 1);
         SimulatorController.getCpuState().setRegisterValue(Register.RAX, 0x55L);
@@ -337,7 +337,7 @@ public class InstructionClass2Test {
     // --- BT ---
 
     @Test
-    @DisplayName("bt $3, %al with al=0x08 → CF=1 (bit 3 set)")
+    @DisplayName("bt $3, %al with al=0x08 --> CF=1 (bit 3 set)")
     public void testBtTrue() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(3);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
@@ -349,7 +349,7 @@ public class InstructionClass2Test {
     }
 
     @Test
-    @DisplayName("bt $3, %al with al=0x00 → CF=0 (bit 3 clear)")
+    @DisplayName("bt $3, %al with al=0x00 --> CF=0 (bit 3 clear)")
     public void testBtFalse() throws ParseException, SimulatorException {
         OperandImmediate src = new OperandImmediate(3);
         OperandRegister dst = new OperandRegister(Register.RAX, 1);
