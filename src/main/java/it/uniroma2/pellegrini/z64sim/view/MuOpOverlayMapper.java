@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.view;
@@ -30,14 +30,14 @@ public class MuOpOverlayMapper {
     public static MuOpMapping map(String muOpOrig) {
         String muOp = muOpOrig.trim();
         String signals = "";
-        
+
         if (muOp.isEmpty() || muOp.startsWith("if ") || muOp.startsWith("else") ||
             muOp.startsWith("endif") || muOp.startsWith("while ") || muOp.startsWith("end while")) {
             return new MuOpMapping(Collections.emptyList(), "");
         }
-        
+
         List<String> ov = new ArrayList<>();
-        
+
         if (muOp.equals("MAR \u2190 RIP")) {
             ov.addAll(Arrays.asList("rip-read", "mar-write", "data-bus"));
             signals = "B_RIP = 1, W_MAR = 1";
@@ -258,10 +258,10 @@ public class MuOpOverlayMapper {
             ov.addAll(Arrays.asList("smux", "regmux"));
             signals = "S_MUX = 2, REG_MUX = 1, W_M = 1, B_SHORT = 1";
         }
-        
+
         return new MuOpMapping(ov, signals);
     }
-    
+
     private static String extractOp(String muOp) {
         int start = muOp.indexOf('[');
         int end = muOp.indexOf(']');
@@ -270,7 +270,7 @@ public class MuOpOverlayMapper {
         }
         return "";
     }
-    
+
     /**
      * Add a register-bank read overlay.
      * All GPRs map to the unified "reg-read" group.
@@ -280,7 +280,7 @@ public class MuOpOverlayMapper {
             ov.add("reg-read");
         }
     }
-    
+
     /**
      * Add a register-bank write overlay.
      * All GPRs map to the unified "reg-write" group.
@@ -290,7 +290,7 @@ public class MuOpOverlayMapper {
             ov.add("reg-write");
         }
     }
-    
+
     /** Check whether a register name is a general-purpose register */
     private static boolean isGPR(String reg) {
         reg = reg.toUpperCase();

@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.view;
@@ -220,11 +220,11 @@ public class MuOpAnimationDialog extends JDialog {
         }
         if (step >= currentOps.size()) step = currentOps.size() - 1;
         currentStep = step;
-        
+
         String op = currentOps.get(currentStep);
         muOpLabel.setText(PropertyBroker.getMessageFromBundle("muop.prefix") + " " + op);
         stepLabel.setText(PropertyBroker.getMessageFromBundle("muop.step.counter", String.valueOf(currentStep + 1), String.valueOf(currentOps.size())));
-        
+
         MuOpOverlayMapper.MuOpMapping mapping = MuOpOverlayMapper.map(op);
         signalsLabel.setText(PropertyBroker.getMessageFromBundle("muop.signals.prefix") + " " + mapping.signals);
         canvas.setHighlightedGroups(mapping.overlays);
@@ -305,7 +305,7 @@ public class MuOpAnimationDialog extends JDialog {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         if (instructionCombo.getItemCount() > 0) {
             instructionCombo.setSelectedIndex(0);
         }
