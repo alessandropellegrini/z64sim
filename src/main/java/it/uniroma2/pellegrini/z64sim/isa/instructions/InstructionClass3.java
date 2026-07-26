@@ -79,7 +79,7 @@ public class InstructionClass3 extends Instruction {
                 mask = 0xFFFFFFFFFFFFFFFFL;
                 break;
         }
-        long msbMask = mask & (~mask >>> 1);
+        long msbMask = 1L << (bitWidth - 1);
         long msb = value & msbMask;
         long lsb = value & 1;
 
