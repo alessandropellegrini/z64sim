@@ -19,6 +19,8 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 public class InstructionClass3 extends Instruction {
     private static final Logger log = LoggerFactory.getLogger();
 
+    private static final String[] MNEMONICS = {"sal", "sar", "shr", "rcl", "rcr", "rol", "ror"};
+
     // TODO: make consistent with src and dest. Can use RCX as source when explicit places is given
     private final int places;
     private final OperandRegister reg;
@@ -28,6 +30,33 @@ public class InstructionClass3 extends Instruction {
         this.places = p;
         this.reg = r;
         this.setSize(8);
+    }
+
+    public int getPlaces() {
+        return this.places;
+    }
+
+    public OperandRegister getReg() {
+        return this.reg;
+    }
+
+    @Override
+    public int getType() {
+        if ("shl".equals(this.mnemonic)) {
+            return 0;
+        }
+        return lookupType(MNEMONICS);
+    }
+
+    @Override
+    protected byte[] encode() {
+        byte[] buf = new byte[this.size];
+        buf[0] = encodeOpcode(getType());
+        buf[1] = encodeMode(sizeToSsDs(this.reg.getSize()), sizeToSsDs(this.reg.getSize()), 2, 0);
+        buf[2] = encodeSib(0, 0, 0, 0);
+        buf[3] = encodeRm(0, this.reg.getRegister());
+        writeLE32(buf, 4, this.places);
+        return buf;
     }
 
     @Override

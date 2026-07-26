@@ -16,6 +16,8 @@ import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
 import it.uniroma2.pellegrini.z64sim.model.Devices;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
+import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
+import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
@@ -72,6 +74,7 @@ public class MainWindow extends View {
     private JLabel speedLabel;
     private JTable ivtTable;
     private JButton deviceButton;
+    private JButton muOpsButton;
 
     private File openFile = null;
     private boolean isDirty = false;
@@ -79,6 +82,7 @@ public class MainWindow extends View {
     private AsmSyntaxHighlighter highlighter;
     private AsmStyledDocument asmDocument;
     private final UndoManager undoManager = new UndoManager();
+    private MuOpAnimationDialog muOpDialog;
 
     private MainWindow() {
         $$$setupUI$$$();
@@ -104,6 +108,22 @@ public class MainWindow extends View {
 
         this.memoryView.setModel(Memory.getInstance());
         Memory.getInstance().setView(this.memoryView);
+        this.memoryView.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = memoryView.rowAtPoint(e.getPoint());
+                    if (row < 0) return;
+                    long address = row * 8L;
+                    MemoryElement elem = Memory.getMemoryElementAt(address);
+                    if (elem instanceof Instruction) {
+                        InstructionInspector dialog = new InstructionInspector(
+                                mainFrame, (Instruction) elem, address, memoryView);
+                        dialog.setVisible(true);
+                    }
+                }
+            }
+        });
         this.ivtTable.setModel(Devices.getInstance());
         this.ivtTable.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         this.ivtTable.getColumnModel().getColumn(0).setPreferredWidth(40);
@@ -178,6 +198,13 @@ public class MainWindow extends View {
             dialog.pack();
             dialog.setLocationRelativeTo(mainFrame);
             dialog.setVisible(true);
+        });
+        muOpsButton.addActionListener(e -> {
+            if (muOpDialog == null || !muOpDialog.isDisplayable()) {
+                muOpDialog = new MuOpAnimationDialog(mainFrame);
+            }
+            muOpDialog.setVisible(true);
+            muOpDialog.toFront();
         });
 
         // Keyboard shortcuts via InputMap/ActionMap
@@ -547,6 +574,13 @@ public class MainWindow extends View {
         deviceButton.setText("");
         deviceButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "button.devices"));
         toolBar1.add(deviceButton);
+        muOpsButton = new JButton();
+        Font muOpsButtonFont = UIManager.getFont("Button.font");
+        if (muOpsButtonFont != null) muOpsButton.setFont(muOpsButtonFont);
+        muOpsButton.setIcon(new ImageIcon(getClass().getResource("/images/mu.png")));
+        muOpsButton.setText("");
+        muOpsButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "inspect.muops"));
+        toolBar1.add(muOpsButton);
         final JToolBar.Separator toolBar$Separator1 = new JToolBar.Separator();
         toolBar1.add(toolBar$Separator1);
         speedLabel = new JLabel();

@@ -143,12 +143,15 @@ public class AlarmTest {
 
     private void dispatchInterrupt() {
         long rsp = SimulatorController.getCpuState().getRSP();
-        rsp -= 8;
-        writeQword(rsp, SimulatorController.getCpuState().getFlags());
+        long savedFlags = SimulatorController.getCpuState().getFlags();
+        SimulatorController.getCpuState().setIF(false);
+        // Push RIP first (deeper on stack)
         rsp -= 8;
         writeQword(rsp, SimulatorController.getCpuState().getRIP());
+        // Push FLAGS second (top of stack)
+        rsp -= 8;
+        writeQword(rsp, savedFlags);
         SimulatorController.getCpuState().setRegisterValue(Register.RSP, rsp);
-        SimulatorController.getCpuState().setIF(false);
 
         DeviceMapping winner = Devices.getInstance().pollInterrupt();
         if (winner != null) {

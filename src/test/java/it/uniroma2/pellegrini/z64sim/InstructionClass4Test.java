@@ -97,4 +97,21 @@ public class InstructionClass4Test {
         new InstructionClass4("std").run();
         assertTrue(SimulatorController.getDF());
     }
+
+    @Test
+    @DisplayName("getType and encode for Class 4 instructions")
+    public void testGetTypeAndEncode() {
+        String[] mnemonics = {"clc", "clp", "clz", "cls", "cli", "cld", "clo", "stc", "stp", "stz", "sts", "sti", "std", "sto"};
+        for (int i = 0; i < mnemonics.length; i++) {
+            InstructionClass4 inst = new InstructionClass4(mnemonics[i]);
+            assertEquals(i, inst.getType());
+            byte[] buf = inst.getValue();
+            assertEquals(8, buf.length);
+            byte expectedOpcode = (byte) (0x40 | i);
+            assertEquals(expectedOpcode, buf[0]);
+            for (int j = 1; j < 8; j++) {
+                assertEquals((byte) 0x00, buf[j]);
+            }
+        }
+    }
 }

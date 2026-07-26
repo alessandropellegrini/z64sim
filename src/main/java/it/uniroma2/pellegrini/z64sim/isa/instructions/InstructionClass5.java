@@ -20,12 +20,48 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 public class InstructionClass5 extends Instruction {
     private static final Logger log = LoggerFactory.getLogger();
 
+    private static final String[] MNEMONICS = {"jmp", "call", "ret", "iret"};
+
     private final Operand target;
 
     public InstructionClass5(String mnemonic, Operand t) {
         super(mnemonic, 5);
         this.target = t;
         this.setSize(8);
+    }
+
+    @Override
+    public int getType() {
+        if ("retq".equals(this.mnemonic)) {
+            return 2;
+        }
+        if ("iretq".equals(this.mnemonic)) {
+            return 3;
+        }
+        return lookupType(MNEMONICS);
+    }
+
+    @Override
+    protected byte[] encode() {
+        byte[] buf = new byte[this.size];
+        buf[0] = encodeOpcode(getType());
+
+        if (this.target instanceof OperandMemory) {
+            OperandMemory mem = (OperandMemory) this.target;
+            buf[1] = encodeMode(0, 0, 2, 0);
+            buf[2] = encodeSib(0, 0, 0, 0);
+            buf[3] = encodeRm(0, 0);
+            if (mem.getDisplacement() != null) {
+                writeLE32(buf, 4, mem.getDisplacement());
+            }
+        } else if (this.target instanceof OperandRegister) {
+            OperandRegister reg = (OperandRegister) this.target;
+            buf[1] = encodeMode(0, 0, 0, 0);
+            buf[2] = encodeSib(0, 0, 0, 0);
+            buf[3] = encodeRm(0, reg.getRegister());
+        }
+
+        return buf;
     }
 
     @Override
@@ -55,21 +91,23 @@ public class InstructionClass5 extends Instruction {
                 break;
             case "iret":
             case "iretq":
-                // Pop RIP (return address)
+                // Pop FLAGS first (top of stack — pushed last by int)
                 sp = new OperandRegister(Register.RSP, 8);
                 spValue = SimulatorController.getOperandValue(sp);
-                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
-                Long rip = SimulatorController.getOperandValue(spMem);
-                spValue += 8;
-
-                // Pop RFLAGS (restores IF to pre-interrupt value)
                 spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
                 Long rflags = SimulatorController.getOperandValue(spMem);
                 spValue += 8;
 
+                // Pop RIP second (deeper — pushed first by int)
+                spMem = new OperandMemory(-1, -1, -1, -1, spValue.intValue(), 8);
+                Long rip = SimulatorController.getOperandValue(spMem);
+                spValue += 8;
+
                 SimulatorController.setOperandValue(sp, spValue);
-                SimulatorController.setRIP(rip);
                 SimulatorController.getCpuState().setFlags(rflags);
+                SimulatorController.setRIP(rip);
+                // Re-enable interrupts (pushed FLAGS had IF=0)
+                SimulatorController.getCpuState().setIF(true);
                 break;
             default:
                 throw new RuntimeException("Unknown Class 5 instruction: " + mnemonic);

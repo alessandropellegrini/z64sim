@@ -134,6 +134,16 @@ public class Memory extends AbstractTableModel {
     public static byte getValueAt(long address) {
         return getInstance().program.getMemoryElementAt(address).getValue()[0]; // TODO: make it safer!
     }
+
+    /**
+     * Returns the {@link MemoryElement} stored at the given byte address,
+     * or {@code null} if no program is loaded.
+     */
+    public static MemoryElement getMemoryElementAt(long address) {
+        Program p = getInstance().program;
+        if (p == null) return null;
+        return p.getMemoryElementAt(address);
+    }
     public void setView(JTable memoryView) {
         this.memoryView = memoryView;
     }

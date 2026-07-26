@@ -21,6 +21,7 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
  */
 public class InstructionClass1 extends Instruction {
     private static final Logger log = LoggerFactory.getLogger();
+    private static final String[] MNEMONICS = {"mov", "movsX", "movzX", "lea", "push", "pop", "pushf", "popf", "movs", "stos"};
 
     private final Operand source;
     private final Operand destination;
@@ -32,11 +33,21 @@ public class InstructionClass1 extends Instruction {
         this.destination = d;
         this.implicitSize = implicitSize;
 
-        if(s instanceof OperandImmediate && s.getSize() == 8 || s instanceof OperandImmediate && d instanceof OperandMemory) {
+        if(s instanceof OperandImmediate && (s.getSize() == 8 || (d instanceof OperandMemory && ((OperandMemory) d).getDisplacement() != 0))) {
             this.setSize(16);
         } else {
             this.setSize(8);
         }
+    }
+
+    @Override
+    public int getType() {
+        return lookupType(MNEMONICS);
+    }
+
+    @Override
+    protected byte[] encode() {
+        return encodeTwoOperand(getType(), this.source, this.destination);
     }
 
 

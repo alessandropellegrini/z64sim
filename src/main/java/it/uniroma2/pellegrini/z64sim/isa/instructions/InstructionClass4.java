@@ -13,9 +13,16 @@ import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
  */
 public class InstructionClass4 extends Instruction {
 
+    private static final String[] MNEMONICS = {"clc", "clp", "clz", "cls", "cli", "cld", "clo", "stc", "stp", "stz", "sts", "sti", "std", "sto"};
+
     public InstructionClass4(String mnemonic) {
         super(mnemonic, 4);
         this.setSize(8);
+    }
+
+    @Override
+    public int getType() {
+        return lookupType(MNEMONICS);
     }
 
     @Override
@@ -71,5 +78,12 @@ public class InstructionClass4 extends Instruction {
     @Override
     public String toString() {
         return this.mnemonic;
+    }
+
+    @Override
+    protected byte[] encode() {
+        byte[] buf = new byte[this.size];
+        buf[0] = encodeOpcode(getType());
+        return buf;
     }
 }

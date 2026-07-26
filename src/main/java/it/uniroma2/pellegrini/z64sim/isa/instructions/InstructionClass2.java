@@ -29,12 +29,21 @@ public class InstructionClass2 extends Instruction {
         this.source = s;
         this.destination = d;
 
-        if(s instanceof OperandImmediate && s.getSize() == 8 ||
-            s instanceof OperandImmediate && d instanceof OperandMemory) {
+        if(s instanceof OperandImmediate && (s.getSize() == 8 || (d instanceof OperandMemory && ((OperandMemory) d).getDisplacement() != 0))) {
             this.setSize(16);
         } else {
             this.setSize(8);
         }
+    }
+
+    @Override
+    public int getType() {
+        return lookupType(opcodes);
+    }
+
+    @Override
+    protected byte[] encode() {
+        return encodeTwoOperand(getType(), this.source, this.destination);
     }
 
     @Override

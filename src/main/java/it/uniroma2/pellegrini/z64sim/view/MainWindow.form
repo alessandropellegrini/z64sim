@@ -93,6 +93,15 @@
               <toolTipText resource-bundle="i18n" key="button.devices"/>
             </properties>
           </component>
+          <component id="mu01" class="javax.swing.JButton" binding="muOpsButton">
+            <constraints/>
+            <properties>
+              <font swing-font="Button.font"/>
+              <icon value="images/mu.png"/>
+              <text value=""/>
+              <toolTipText resource-bundle="i18n" key="inspect.muops"/>
+            </properties>
+          </component>
           <component id="sep01" class="javax.swing.JToolBar$Separator">
             <constraints/>
             <properties/>
