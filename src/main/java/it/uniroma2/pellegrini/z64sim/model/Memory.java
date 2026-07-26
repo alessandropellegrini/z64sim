@@ -121,7 +121,7 @@ public class Memory extends AbstractTableModel {
                 final OperandImmediate source = (OperandImmediate) ((InstructionClass2) immediate).getSource();
                 return source.toBytesString();
             } else {
-                throw new IllegalStateException("Internal error: null memory element request");
+                return "00 00 00 00 00 00 00 00";
             }
         }
 
@@ -134,7 +134,12 @@ public class Memory extends AbstractTableModel {
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < 8; i++) {
             final MemoryElement memoryElement = this.program.getMemoryElementAt(row * 8L + i);
-            sb.append(memoryElement).append(" ");
+            if(memoryElement == null) {
+                sb.append("00 ");
+            } else {
+                sb.append(memoryElement).append(" ");
+                i += memoryElement.getSize() - 1;
+            }
         }
 
         return sb.toString();
