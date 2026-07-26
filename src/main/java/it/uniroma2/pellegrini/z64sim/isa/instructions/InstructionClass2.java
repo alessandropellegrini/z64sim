@@ -51,25 +51,27 @@ public class InstructionClass2 extends Instruction {
         Long srcValue = SimulatorController.getOperandValue(this.source);
         Long dstValue = this.destination != null ? SimulatorController.getOperandValue(this.destination) : 0L;
 
-        long mask = 0;
+        Long mask = 0L;
         switch(this.source.getSize()) {
             case 1:
-                mask = 0xFF;
+                mask = 0xFFL;
                 break;
             case 2:
-                mask = 0xFFFF;
+                mask = 0xFFFFL;
                 break;
             case 4:
-                mask = 0xFFFFFFFF;
+                mask = 0xFFFFFFFFL;
                 break;
             case 8:
                 mask = 0xFFFFFFFFFFFFFFFFL;
                 break;
         }
 
+        Long result = 0L;
+
         switch(mnemonic) {
             case "add":
-                long result = srcValue + dstValue;
+                result = srcValue + dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
                 SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 break;
