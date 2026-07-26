@@ -134,16 +134,17 @@ public class DeviceDriverTest {
         // After each instruction, check for interrupts (mimics stepInstruction)
         if (SimulatorController.getCpuState().getIF()
                 && Devices.getInstance().isIRQPending()) {
-            // Trigger interrupt entry manually: save RFLAGS, RIP; clear IF; jump to handler
+            // Trigger interrupt entry manually: clear IF, push RIP, push FLAGS; jump to handler
             long rsp = SimulatorController.getCpuState().getRSP();
-            // Push RFLAGS
-            rsp -= 8;
-            writeQword(rsp, SimulatorController.getCpuState().getFlags());
-            // Push RIP (return address)
+            long savedFlags = SimulatorController.getCpuState().getFlags();
+            SimulatorController.getCpuState().setIF(false);
+            // Push RIP first (deeper on stack)
             rsp -= 8;
             writeQword(rsp, SimulatorController.getCpuState().getRIP());
+            // Push FLAGS second (top of stack)
+            rsp -= 8;
+            writeQword(rsp, savedFlags);
             SimulatorController.getCpuState().setRegisterValue(Register.RSP, rsp);
-            SimulatorController.getCpuState().setIF(false);
 
             // Poll for the winning device
             DeviceMapping winner = Devices.getInstance().pollInterrupt();

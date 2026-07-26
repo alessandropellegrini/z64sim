@@ -86,15 +86,16 @@ public class KeyboardTest {
         if (SimulatorController.getCpuState().getIF()
                 && Devices.getInstance().isIRQPending()) {
             long rsp = SimulatorController.getCpuState().getRSP();
-            // Push RFLAGS
-            rsp -= 8;
-            writeQword(rsp, SimulatorController.getCpuState().getFlags());
-            // Push RIP (return address)
+            long savedFlags = SimulatorController.getCpuState().getFlags();
+            SimulatorController.getCpuState().setIF(false);
+            // Push RIP first (deeper on stack)
             rsp -= 8;
             writeQword(rsp, SimulatorController.getCpuState().getRIP());
+            // Push FLAGS second (top of stack)
+            rsp -= 8;
+            writeQword(rsp, savedFlags);
             SimulatorController.getCpuState().setRegisterValue(
                     it.uniroma2.pellegrini.z64sim.isa.registers.Register.RSP, rsp);
-            SimulatorController.getCpuState().setIF(false);
 
             // Poll for the winning device and jump to its ISR
             DeviceMapping winner = Devices.getInstance().pollInterrupt();

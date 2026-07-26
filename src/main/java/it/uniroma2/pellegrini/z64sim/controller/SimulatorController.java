@@ -319,6 +319,9 @@ public class SimulatorController extends Controller {
                     sc.cpuState.setRIP(_start);
                     sc.cpuState.setRSP((long) sc.program.getLargestAddress());
                     sc.devicesStarted = false;
+
+                    // Scroll the memory table to the first instruction
+                    Memory.selectAddress(_start);
                 }
             }
         }.execute();
@@ -500,20 +503,22 @@ public class SimulatorController extends Controller {
 
         long rsp = cpuState.getRSP();
 
-        // Push RFLAGS (preserves current IF=1 for iret to restore)
-        rsp -= 8;
-        writeQwordToMemory(rsp, cpuState.getFlags());
+        // Clear IF before pushing (pushed FLAGS will have IF=0;
+        // iret explicitly re-enables interrupts at the end)
+        long savedFlags = cpuState.getFlags();
+        cpuState.setIF(false);
 
-        // Push RIP (return address = next instruction to execute)
+        // Push RIP first (return address — goes deeper on stack)
         rsp -= 8;
         writeQwordToMemory(rsp, cpuState.getRIP());
 
+        // Push FLAGS second (goes on top of stack)
+        rsp -= 8;
+        writeQwordToMemory(rsp, savedFlags);
+
         cpuState.setRSP(rsp);
 
-        // Clear IF — before IVT lookup
-        cpuState.setIF(false);
-
-        // Jump to handler via IVT
+        // Jump to handler via IVT (IVN * 8)
         int ivn = winner.getIvn();
         long handlerAddress = readQwordFromMemory(ivn * 8L);
         cpuState.setRIP(handlerAddress);

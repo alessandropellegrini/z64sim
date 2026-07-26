@@ -10,6 +10,8 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 public class InstructionClass0 extends Instruction {
 
+    private static final String[] MNEMONICS = {null, "hlt", "nop", "int"}; // index 0 unused
+
     OperandImmediate ivn;
 
     public InstructionClass0(String mnemonic, OperandImmediate ivn) throws ParseException {
@@ -18,6 +20,20 @@ public class InstructionClass0 extends Instruction {
 
         // Set the size in memory
         this.setSize(8);
+    }
+
+    public OperandImmediate getIvn() {
+        return this.ivn;
+    }
+
+    @Override
+    public int getType() {
+        for (int i = 0; i < MNEMONICS.length; i++) {
+            if (this.mnemonic.equals(MNEMONICS[i])) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Override
@@ -36,5 +52,15 @@ public class InstructionClass0 extends Instruction {
         if(this.mnemonic.equals("int"))
             insn += " " + this.ivn;
         return insn;
+    }
+
+    @Override
+    protected byte[] encode() {
+        byte[] buf = new byte[this.size];
+        buf[0] = encodeOpcode(getType());
+        if ("int".equals(this.mnemonic) && this.ivn != null) {
+            buf[7] = (byte)(this.ivn.getValue() & 0xFF);
+        }
+        return buf;
     }
 }

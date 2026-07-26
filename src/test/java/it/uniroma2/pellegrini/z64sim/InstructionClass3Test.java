@@ -191,4 +191,29 @@ public class InstructionClass3Test {
         assertEquals(0x80L, SimulatorController.getCpuState().getRegisterValue(Register.RDX) & 0xFFL);
         assertFalse(SimulatorController.getCF());
     }
+
+    @Test
+    @DisplayName("getType and encode for Class 3 instructions")
+    public void testGetTypeAndEncode() {
+        OperandRegister reg = new OperandRegister(Register.RDX, 8);
+        InstructionClass3 sal = new InstructionClass3("sal", 1, reg);
+        assertEquals(0, sal.getType());
+
+        InstructionClass3 shl = new InstructionClass3("shl", 1, reg);
+        assertEquals(0, shl.getType());
+
+        InstructionClass3 sar = new InstructionClass3("sar", 4, reg);
+        assertEquals(1, sar.getType());
+
+        InstructionClass3 shr = new InstructionClass3("shr", 1, reg);
+        assertEquals(2, shr.getType());
+
+        byte[] buf = sal.getValue();
+        assertEquals(8, buf.length);
+        assertEquals((byte) 0x30, buf[0]); // Class 3, Type 0
+        assertEquals((byte) 0xF8, buf[1]); // SS=3, DS=3, DI=2, Mem=0 -> 11 11 10 00 = 0xF8
+        assertEquals((byte) 0x00, buf[2]); // SIB=0
+        assertEquals((byte) 0x02, buf[3]); // RM: src=0, dst=RDX(2) -> 0x02
+        assertEquals((byte) 0x01, buf[4]); // shift places = 1 LE32
+    }
 }

@@ -39,4 +39,33 @@ public class InstructionClass0Test {
         Instruction inst = new InstructionClass0("int", new OperandImmediate(0x80));
         assertThrows(UnsupportedOperationException.class, inst::run);
     }
+
+    @Test
+    @DisplayName("getType and encode for Class 0 instructions")
+    public void testGetTypeAndEncode() throws ParseException {
+        InstructionClass0 hlt = new InstructionClass0("hlt", null);
+        assertEquals(1, hlt.getType());
+        byte[] hltBuf = hlt.getValue();
+        assertEquals(8, hltBuf.length);
+        assertEquals((byte) 0x01, hltBuf[0]);
+        for (int i = 1; i < 8; i++) {
+            assertEquals((byte) 0x00, hltBuf[i]);
+        }
+
+        InstructionClass0 nop = new InstructionClass0("nop", null);
+        assertEquals(2, nop.getType());
+        byte[] nopBuf = nop.getValue();
+        assertEquals(8, nopBuf.length);
+        assertEquals((byte) 0x02, nopBuf[0]);
+
+        InstructionClass0 intInst = new InstructionClass0("int", new OperandImmediate(0x80));
+        assertEquals(3, intInst.getType());
+        byte[] intBuf = intInst.getValue();
+        assertEquals(8, intBuf.length);
+        assertEquals((byte) 0x03, intBuf[0]);
+        assertEquals((byte) 0x80, intBuf[7]);
+        for (int i = 1; i < 7; i++) {
+            assertEquals((byte) 0x00, intBuf[i]);
+        }
+    }
 }

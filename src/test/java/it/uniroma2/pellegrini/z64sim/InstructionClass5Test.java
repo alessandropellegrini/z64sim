@@ -67,22 +67,21 @@ public class InstructionClass5Test {
         program.textSectionStart(0x800);
         Memory.setProgram(program);
 
-        // Simulate interrupt entry: stack has [RFLAGS, RIP] (RIP on top)
-        // Push RFLAGS = 0x0202 (IF set) at RSP-8
+        // Simulate interrupt entry: int pushes RIP first (deeper), FLAGS second (top)
         long savedRflags = 0x0202L;
         long savedRip = 0x1500L;
         long stackTop = 0x2000L;
 
-        // Write RIP at stackTop - 16 (pushed second, so on top)
+        // Write RIP at stackTop - 8 (pushed first, so deeper)
         for (int i = 0; i < 8; i++) {
-            Memory.setValueAt(stackTop - 16 + i, (byte) (savedRip >> (i * 8)));
+            Memory.setValueAt(stackTop - 8 + i, (byte) (savedRip >> (i * 8)));
         }
-        // Write RFLAGS at stackTop - 8 (pushed first, so below RIP)
+        // Write FLAGS at stackTop - 16 (pushed second, so on top)
         for (int i = 0; i < 8; i++) {
-            Memory.setValueAt(stackTop - 8 + i, (byte) (savedRflags >> (i * 8)));
+            Memory.setValueAt(stackTop - 16 + i, (byte) (savedRflags >> (i * 8)));
         }
 
-        // RSP points to the top of the pushed frame
+        // RSP points to the top of the pushed frame (FLAGS)
         SimulatorController.getCpuState().setRegisterValue(Register.RSP, stackTop - 16);
         SimulatorController.getCpuState().setRIP(0x3000L); // current handler address
 
@@ -91,5 +90,31 @@ public class InstructionClass5Test {
         assertEquals(savedRip, SimulatorController.getCpuState().getRIP());
         assertEquals(savedRflags, SimulatorController.getCpuState().getFlags());
         assertEquals(stackTop, SimulatorController.getCpuState().getRegisterValue(Register.RSP));
+    }
+
+    @Test
+    @DisplayName("getType and encode for Class 5 instructions")
+    public void testGetTypeAndEncode() {
+        OperandMemory mem = new OperandMemory(-1, -1, -1, -1, 0x100, -1);
+        InstructionClass5 jmpMem = new InstructionClass5("jmp", mem);
+        assertEquals(0, jmpMem.getType());
+        byte[] buf = jmpMem.getValue();
+        assertEquals(8, buf.length);
+        assertEquals((byte) 0x50, buf[0]);
+        assertEquals((byte) 0x08, buf[1]); // SS=0, DS=0, DI=2, Mem=0 -> 0x08
+        assertEquals((byte) 0x00, buf[4]);
+        assertEquals((byte) 0x01, buf[5]);
+
+        InstructionClass5 ret = new InstructionClass5("ret", null);
+        assertEquals(2, ret.getType());
+
+        InstructionClass5 retq = new InstructionClass5("retq", null);
+        assertEquals(2, retq.getType());
+
+        InstructionClass5 iret = new InstructionClass5("iret", null);
+        assertEquals(3, iret.getType());
+
+        InstructionClass5 iretq = new InstructionClass5("iretq", null);
+        assertEquals(3, iretq.getType());
     }
 }

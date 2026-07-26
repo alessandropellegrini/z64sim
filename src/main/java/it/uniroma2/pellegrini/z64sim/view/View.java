@@ -6,3 +6,4 @@ package it.uniroma2.pellegrini.z64sim.view;
 
 public abstract class View {
 }
+

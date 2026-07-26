@@ -43,4 +43,31 @@ public class InstructionClass7Test {
         // Should not throw — just a no-op when no device is mapped
         assertDoesNotThrow(out::run);
     }
+
+    @Test
+    @DisplayName("getType and encode for Class 7 instructions")
+    public void testGetTypeAndEncode() throws ParseException {
+        OperandImmediate ioport = new OperandImmediate(0x3F8);
+        InstructionClass7 inInst = new InstructionClass7("in", 4, ioport);
+        assertEquals(0, inInst.getType());
+        byte[] buf = inInst.getValue();
+        assertEquals(8, buf.length);
+        assertEquals((byte) 0x70, buf[0]);
+        // SS=2, DS=2, DI=1, Mem=0 -> 10 10 01 00 = 0xA4 = (byte) -92
+        assertEquals((byte) 0xA4, buf[1]);
+        assertEquals((byte) 0xF8, buf[4]);
+        assertEquals((byte) 0x03, buf[5]);
+
+        InstructionClass7 outInst = new InstructionClass7("out", 4, ioport);
+        assertEquals(1, outInst.getType());
+
+        InstructionClass7 insInst = new InstructionClass7("ins", 1, null);
+        assertEquals(2, insInst.getType());
+        buf = insInst.getValue();
+        assertEquals((byte) 0x72, buf[0]);
+        assertEquals((byte) 0x00, buf[1]); // SS=0, DS=0, DI=0, Mem=0
+
+        InstructionClass7 outsInst = new InstructionClass7("outs", 1, null);
+        assertEquals(3, outsInst.getType());
+    }
 }

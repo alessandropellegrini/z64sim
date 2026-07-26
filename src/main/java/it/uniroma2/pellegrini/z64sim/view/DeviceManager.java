@@ -94,7 +94,6 @@ public class DeviceManager extends JDialog {
     // Device Discovery (JAR-safe)
     // ========================================================================
 
-    @SuppressWarnings("unchecked")
     private void discoverDevices() {
         try {
             ClassLoader cl = getClass().getClassLoader();
@@ -118,7 +117,7 @@ public class DeviceManager extends JDialog {
         discoverFromWorkingDirectory();
 
         // Sort alphabetically and populate combo box
-        Collections.sort(discoveredClasses, new Comparator<Class<? extends Device>>() {
+        discoveredClasses.sort(new Comparator<Class<? extends Device>>() {
             @Override
             public int compare(Class<? extends Device> a, Class<? extends Device> b) {
                 return a.getSimpleName().compareTo(b.getSimpleName());
@@ -129,7 +128,6 @@ public class DeviceManager extends JDialog {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void discoverFromDirectory(File dir) {
         if (!dir.exists()) return;
         File[] files = dir.listFiles();
@@ -143,7 +141,6 @@ public class DeviceManager extends JDialog {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void discoverFromJar(URL jarUrl) {
         try {
             // jar:file:/path/to/app.jar!/it/uniroma2/...
@@ -831,11 +828,11 @@ public class DeviceManager extends JDialog {
         deviceEnumeration = new JComboBox();
         deviceManagerPanel.add(deviceEnumeration, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         addButton = new JButton();
-        addButton.setIcon(new ImageIcon(getClass().getResource("/images/plus24.png")));
+        addButton.setIcon(new ImageIcon(getClass().getResource("/images/plus.png")));
         addButton.setText("");
         deviceManagerPanel.add(addButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         trashButton = new JButton();
-        trashButton.setIcon(new ImageIcon(getClass().getResource("/images/trash24.png")));
+        trashButton.setIcon(new ImageIcon(getClass().getResource("/images/trash.png")));
         trashButton.setText("");
         deviceManagerPanel.add(trashButton, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         interfaceButton = new JButton();

@@ -135,4 +135,21 @@ public class InstructionClass6Test {
         new InstructionClass6("jnp", target).run();
         assertEquals(0x1000L, SimulatorController.getCpuState().getRIP());
     }
+
+    @Test
+    @DisplayName("getType and encode for Class 6 instructions")
+    public void testGetTypeAndEncode() throws ParseException {
+        String[] mnemonics = {"jc", "jp", "jz", "js", "jo", "jnc", "jnp", "jnz", "jns", "jno"};
+        OperandMemory target = new OperandMemory(-1, -1, -1, -1, 0x200, -1);
+        for (int i = 0; i < mnemonics.length; i++) {
+            InstructionClass6 inst = new InstructionClass6(mnemonics[i], target);
+            assertEquals(i, inst.getType());
+            byte[] buf = inst.getValue();
+            assertEquals(8, buf.length);
+            assertEquals((byte) (0x60 | i), buf[0]);
+            assertEquals((byte) 0x08, buf[1]); // SS=0, DS=0, DI=2, Mem=0
+            assertEquals((byte) 0x00, buf[4]);
+            assertEquals((byte) 0x02, buf[5]);
+        }
+    }
 }

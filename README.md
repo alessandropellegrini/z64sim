@@ -35,10 +35,11 @@ The toolbar contains the following buttons to interact with the simulator:
   point to a valid instruction, the simulator will stop. This button has no effect if no program is loaded or if
   execution has reached a `hlt` instruction.
 * ![](src/main/resources/images/run24.png): **Run** — starts continuous execution of the program. This is equivalent to
-  repeatedly pressing the Step button until `hlt` is reached or an error occurs.
+  repeatedly pressing the Step button.
 * ![](src/main/resources/images/stop24.png): **Stop** — halts a running program. This is useful when execution is
-  in progress (e.g., the program is in an infinite loop) and you want to regain control of the simulator.
+  in progress and you want to regain control of the simulator.
 * ![](src/main/resources/images/iodevice24.png): Open the **Device Manager** — see below.
+* ![](src/main/resources/images/mu24.png): Open the **µ-ops Animation** — see below.
 
 ### Keyboard shortcuts
 
@@ -112,6 +113,20 @@ directory structure, relative to where you launch the JAR:
 The simulator scans this path in the current working directory at startup. See the
 [Implementing Custom Devices](docs/implementing-devices.md) guide for the full API
 reference, protocol conventions, and deployment instructions.
+
+## µ-ops Animation
+
+The **µ-ops Animation** dialog provides an interactive, step-by-step visualisation of
+the microoperations that the Control Unit executes for every z64 instruction.
+It is opened by clicking the **µ** button in the toolbar, or can be triggered from
+the Instruction Inspection dialog.
+
+If the dialog is activated clicking the **µ** button in the toolbar, it is possible
+to select an instruction to visualize from a list of representative ones.
+
+In the bottom part of the panel, the application displays the current µ-op text,
+the active control signals, a step counter, and playback controls with an adjustable
+speed slider.
 
 ## Building from source
 

@@ -22,6 +22,8 @@ import it.uniroma2.pellegrini.z64sim.model.Devices;
  */
 public class InstructionClass7 extends Instruction {
 
+    private static final String[] MNEMONICS = {"in", "out", "ins", "outs"};
+
     private final int transferSize; // The size of a data transfer
     private Operand ioport; // The I/O port number in case of an explicit I/O port
 
@@ -31,6 +33,36 @@ public class InstructionClass7 extends Instruction {
 
         this.transferSize = size;
         this.ioport = ioport;
+    }
+
+    public int getTransferSize() {
+        return this.transferSize;
+    }
+
+    public Operand getIoPort() {
+        return this.ioport;
+    }
+
+    @Override
+    public int getType() {
+        return lookupType(MNEMONICS);
+    }
+
+    @Override
+    protected byte[] encode() {
+        byte[] buf = new byte[this.size];
+        buf[0] = encodeOpcode(getType());
+
+        int di = (this.ioport instanceof OperandImmediate) ? 1 : 0;
+        buf[1] = encodeMode(sizeToSsDs(this.transferSize), sizeToSsDs(this.transferSize), di, 0);
+        buf[2] = encodeSib(0, 0, 0, 0);
+        buf[3] = encodeRm(0, 0);
+
+        if (this.ioport instanceof OperandImmediate) {
+            writeLE32(buf, 4, (int) ((OperandImmediate) this.ioport).getValue());
+        }
+
+        return buf;
     }
 
     @Override
@@ -148,7 +180,7 @@ public class InstructionClass7 extends Instruction {
         throw new DisassembleException("Invalid transfer size");
     }
 
-    private String getIoPort() {
+    private String getIoPortString() {
         if(this.ioport == null) {
             return "%dx";
         }
@@ -166,10 +198,10 @@ public class InstructionClass7 extends Instruction {
             }
             insn += " ";
             if(this.mnemonic.equals("in")) {
-                insn += this.getIoPort() + ", " + this.transferSizeToReg();
+                insn += this.getIoPortString() + ", " + this.transferSizeToReg();
             }
             if(this.mnemonic.equals("out")) {
-                insn += this.transferSizeToReg() + ", " + this.getIoPort();
+                insn += this.transferSizeToReg() + ", " + this.getIoPortString();
             }
         } catch(DisassembleException e) {
             throw new RuntimeException(e);
