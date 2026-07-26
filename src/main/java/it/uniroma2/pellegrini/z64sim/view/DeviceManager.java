@@ -7,6 +7,7 @@ package it.uniroma2.pellegrini.z64sim.view;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.devices.Dmac;
 import it.uniroma2.pellegrini.z64sim.model.Device;
@@ -81,7 +82,7 @@ public class DeviceManager extends JDialog {
         setPreferredSize(new Dimension(600, 400));
         getRootPane().setDefaultButton(confirmButton);
 
-        addDeviceLabel.setText("Add device:");
+        addDeviceLabel.setText(PropertyBroker.getMessageFromBundle("devmgr.add.device"));
 
         discoverDevices();
         setupTableModels();
@@ -308,11 +309,11 @@ public class DeviceManager extends JDialog {
         public String getColumnName(int col) {
             switch (col) {
                 case COL_ORDER:
-                    return "#";
+                    return PropertyBroker.getMessageFromBundle("devmgr.col.order");
                 case COL_NAME:
-                    return "Device";
+                    return PropertyBroker.getMessageFromBundle("ivt.table.device");
                 case COL_IVN:
-                    return "IVN";
+                    return PropertyBroker.getMessageFromBundle("ivt.table.ivn");
                 default:
                     return "";
             }
@@ -359,23 +360,23 @@ public class DeviceManager extends JDialog {
                 newIvn = Integer.parseInt(value.toString().trim());
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(DeviceManager.this,
-                        "IVN must be an integer (0–255).",
-                        "Invalid IVN", JOptionPane.ERROR_MESSAGE);
+                        PropertyBroker.getMessageFromBundle("devmgr.ivn.invalid"),
+                        PropertyBroker.getMessageFromBundle("devmgr.ivn.invalid.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (newIvn < 0 || newIvn >= Devices.IVT_ENTRIES) {
                 JOptionPane.showMessageDialog(DeviceManager.this,
-                        "IVN must be in range 0–255.",
-                        "Invalid IVN", JOptionPane.ERROR_MESSAGE);
+                        PropertyBroker.getMessageFromBundle("devmgr.ivn.invalid"),
+                        PropertyBroker.getMessageFromBundle("devmgr.ivn.invalid.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
             // Check for conflicts (only among interrupt-capable devices)
             for (int i = 0; i < entries.size(); i++) {
                 if (i != row && entries.get(i).ivn >= 0 && entries.get(i).ivn == newIvn) {
                     JOptionPane.showMessageDialog(DeviceManager.this,
-                            "IVN " + newIvn + " is already assigned to "
-                                    + entries.get(i).device.getDescriptor().getDeviceName() + ".",
-                            "IVN Conflict", JOptionPane.ERROR_MESSAGE);
+                            PropertyBroker.getMessageFromBundle("devmgr.ivn.conflict",
+                                    newIvn, entries.get(i).device.getDescriptor().getDeviceName()),
+                            PropertyBroker.getMessageFromBundle("devmgr.ivn.conflict.title"), JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
@@ -418,13 +419,13 @@ public class DeviceManager extends JDialog {
         public String getColumnName(int col) {
             switch (col) {
                 case COL_NAME:
-                    return "Element";
+                    return PropertyBroker.getMessageFromBundle("devmgr.col.element");
                 case COL_TYPE:
-                    return "Type";
+                    return PropertyBroker.getMessageFromBundle("devmgr.col.type");
                 case COL_FLAGS:
-                    return "Access";
+                    return PropertyBroker.getMessageFromBundle("devmgr.col.access");
                 case COL_PORT:
-                    return "Port Address";
+                    return PropertyBroker.getMessageFromBundle("devmgr.col.port.address");
                 default:
                     return "";
             }
@@ -487,8 +488,8 @@ public class DeviceManager extends JDialog {
                 }
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(DeviceManager.this,
-                        "Port address must be a number (use 0x prefix for hex).",
-                        "Invalid Port Address", JOptionPane.ERROR_MESSAGE);
+                        PropertyBroker.getMessageFromBundle("devmgr.port.invalid"),
+                        PropertyBroker.getMessageFromBundle("devmgr.port.invalid.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -501,11 +502,11 @@ public class DeviceManager extends JDialog {
                             continue;
                         }
                         JOptionPane.showMessageDialog(DeviceManager.this,
-                                "Port 0x" + Long.toHexString(addr).toUpperCase()
-                                        + " is already assigned to "
-                                        + entry.device.getDescriptor().getDeviceName()
-                                        + " --> " + pa.getKey() + ".",
-                                "Port Conflict", JOptionPane.ERROR_MESSAGE);
+                                PropertyBroker.getMessageFromBundle("devmgr.port.conflict",
+                                        Long.toHexString(addr).toUpperCase(),
+                                        entry.device.getDescriptor().getDeviceName(),
+                                        pa.getKey()),
+                                PropertyBroker.getMessageFromBundle("devmgr.port.conflict.title"), JOptionPane.ERROR_MESSAGE);
                         return;
                     }
                 }
@@ -608,8 +609,8 @@ public class DeviceManager extends JDialog {
             int row = ioPortTable.getSelectedRow();
             if (row < 0 || row >= devicesTableModel.getRowCount()) {
                 JOptionPane.showMessageDialog(this,
-                        "Select a device first.",
-                        "Interface", JOptionPane.INFORMATION_MESSAGE);
+                        PropertyBroker.getMessageFromBundle("devmgr.select.device"),
+                        PropertyBroker.getMessageFromBundle("devmgr.interface.title"), JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
             DeviceEntry entry = devicesTableModel.getEntry(row);
@@ -646,8 +647,8 @@ public class DeviceManager extends JDialog {
             device = cls.newInstance();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Failed to instantiate " + cls.getSimpleName() + ": " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                    PropertyBroker.getMessageFromBundle("devmgr.instantiate.failed", cls.getSimpleName(), ex.getMessage()),
+                    PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -664,8 +665,8 @@ public class DeviceManager extends JDialog {
             }
             if (defaultIvn >= Devices.IVT_ENTRIES) {
                 JOptionPane.showMessageDialog(this,
-                        "All 256 IVN slots are in use.",
-                        "No Available IVN", JOptionPane.ERROR_MESSAGE);
+                        PropertyBroker.getMessageFromBundle("devmgr.ivn.slots.full"),
+                        PropertyBroker.getMessageFromBundle("devmgr.ivn.slots.full.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -680,8 +681,8 @@ public class DeviceManager extends JDialog {
         // Cannot remove the DMAC (non-removable)
         if (!devicesTableModel.getEntry(row).removable) {
             JOptionPane.showMessageDialog(this,
-                    "The DMAC is a permanent system device and cannot be removed.",
-                    "Cannot Remove", JOptionPane.WARNING_MESSAGE);
+                    PropertyBroker.getMessageFromBundle("devmgr.cannot.remove"),
+                    PropertyBroker.getMessageFromBundle("devmgr.cannot.remove.title"), JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -698,8 +699,8 @@ public class DeviceManager extends JDialog {
             if (entry.ivn < 0) continue;  // non-interrupt device, no IVN
             if (!ivnSet.add(entry.ivn)) {
                 JOptionPane.showMessageDialog(this,
-                        "Duplicate IVN: " + entry.ivn,
-                        "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        PropertyBroker.getMessageFromBundle("devmgr.duplicate.ivn", entry.ivn),
+                        PropertyBroker.getMessageFromBundle("devmgr.validation.error.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
         }
@@ -716,19 +717,19 @@ public class DeviceManager extends JDialog {
                 // Check reserved DMAC port range for user devices
                 if (entry.removable && addr >= Dmac.PORT_BASE && addr < Dmac.PORT_END) {
                     JOptionPane.showMessageDialog(this,
-                            "Port 0x" + Long.toHexString(addr).toUpperCase()
-                                    + " is in the reserved DMAC range (0x00\u20130x08).",
-                            "Validation Error", JOptionPane.ERROR_MESSAGE);
+                            PropertyBroker.getMessageFromBundle("devmgr.port.reserved",
+                                    Long.toHexString(addr).toUpperCase()),
+                            PropertyBroker.getMessageFromBundle("devmgr.validation.error.title"), JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 String owner = portOwners.get(addr);
                 if (owner != null) {
                     JOptionPane.showMessageDialog(this,
-                            "Port 0x" + Long.toHexString(addr).toUpperCase()
-                                    + " is assigned to both " + owner
-                                    + " and " + devName + " --> " + pa.getKey() + ".",
-                            "Validation Error", JOptionPane.ERROR_MESSAGE);
+                            PropertyBroker.getMessageFromBundle("devmgr.port.assigned.both",
+                                    Long.toHexString(addr).toUpperCase(),
+                                    owner, devName, pa.getKey()),
+                            PropertyBroker.getMessageFromBundle("devmgr.validation.error.title"), JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 portOwners.put(addr, devName + " --> " + pa.getKey());

@@ -14,7 +14,7 @@ public class MainWindowMenu extends JMenuBar {
     public MainWindowMenu() {
 
         /* FILE */
-        JMenu menuFile = new JMenu("File");
+        JMenu menuFile = new JMenu(PropertyBroker.getMessageFromBundle("menu.file"));
 
         JMenuItem settingsMenu = new JMenuItem(AppActions.SHOW_SETTINGS);
         menuFile.add(settingsMenu);

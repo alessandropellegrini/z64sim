@@ -4,6 +4,7 @@
  */
 package it.uniroma2.pellegrini.z64sim;
 
+import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
@@ -166,8 +167,9 @@ public class GuiButtonTest {
             try {
                 JTextArea compilerOutput = getPrivateField("compilerOutput");
                 assertNotNull(compilerOutput, "Compiler output should not be null");
-                assertTrue(compilerOutput.getText().toLowerCase().contains("success"),
-                        "Compiler output should contain 'success' or 'successful'. Actual: " + compilerOutput.getText());
+                String expectedMsg = PropertyBroker.getMessageFromBundle("gui.assembly.successful");
+                assertTrue(compilerOutput.getText().contains(expectedMsg),
+                        "Compiler output should contain assembly success message. Actual: " + compilerOutput.getText());
 
                 JButton stepButton = getPrivateField("stepButton");
                 stepButton.doClick();
@@ -209,7 +211,8 @@ public class GuiButtonTest {
         SwingUtilities.invokeAndWait(() -> {
             try {
                 JTextArea compilerOutput = getPrivateField("compilerOutput");
-                assertTrue(compilerOutput.getText().toLowerCase().contains("success"),
+                String expectedMsg = PropertyBroker.getMessageFromBundle("gui.assembly.successful");
+                assertTrue(compilerOutput.getText().contains(expectedMsg),
                         "Assembly should succeed. Actual: " + compilerOutput.getText());
 
                 JButton runButton = getPrivateField("runButton");

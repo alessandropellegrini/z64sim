@@ -132,6 +132,9 @@ public final class ParseErrorFormatter {
             case AssemblerConstants.INSN_IN:
             case AssemblerConstants.INSN_OUT:
             case AssemblerConstants.INSN_IO_S:
+            case AssemblerConstants.INSN_PSEUDO_ARITH:
+            case AssemblerConstants.INSN_JCC_ALIAS:
+            case AssemblerConstants.INSN_JCC_COMPOUND:
             case AssemblerConstants.IRET: return "token.instruction";
             case AssemblerConstants.LABEL: return "token.label";
             case AssemblerConstants.LABEL_NAME: return "token.identifier";

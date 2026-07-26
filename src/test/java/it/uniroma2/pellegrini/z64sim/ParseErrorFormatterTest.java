@@ -18,6 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class ParseErrorFormatterTest {
 
+    // Locale-independent token names from the i18n bundle
+    private static final String TOK_INSTRUCTION = PropertyBroker.getMessageFromBundle("token.instruction");
+    private static final String TOK_LABEL = PropertyBroker.getMessageFromBundle("token.label");
+    private static final String TOK_REGISTER = PropertyBroker.getMessageFromBundle("token.register");
+    private static final String TOK_IMMEDIATE = PropertyBroker.getMessageFromBundle("token.immediate");
+    private static final String TOK_DIRECTIVE = PropertyBroker.getMessageFromBundle("token.directive");
+    private static final String TOK_NUMBER = PropertyBroker.getMessageFromBundle("token.number");
+    private static final String TOK_EOF = PropertyBroker.getMessageFromBundle("token.eof");
+
     // =====================================================================
     // Helper methods
     // =====================================================================
@@ -60,7 +69,7 @@ public class ParseErrorFormatterTest {
 
         assertTrue(result.contains("5"), "Should contain line number");
         assertTrue(result.contains("sbraga"), "Should contain the unexpected token");
-        assertTrue(result.contains("instruction"), "Should contain 'instruction'");
+        assertTrue(result.contains(TOK_INSTRUCTION), "Should contain instruction token name");
     }
 
     @Test
@@ -77,9 +86,9 @@ public class ParseErrorFormatterTest {
 
         assertTrue(result.contains("10"), "Should contain line number");
         assertTrue(result.contains("xyz"), "Should contain the unexpected token");
-        assertTrue(result.contains("instruction"), "Should contain 'instruction'");
-        assertTrue(result.contains("label"), "Should contain 'label'");
-        assertTrue(result.contains("register"), "Should contain 'register'");
+        assertTrue(result.contains(TOK_INSTRUCTION), "Should contain instruction token name");
+        assertTrue(result.contains(TOK_LABEL), "Should contain label token name");
+        assertTrue(result.contains(TOK_REGISTER), "Should contain register token name");
         assertTrue(result.contains(", or "), "Should use ', or ' before the last category");
     }
 
@@ -123,7 +132,7 @@ public class ParseErrorFormatterTest {
         String result = ParseErrorFormatter.format(ex);
 
         assertTrue(result.contains("99"), "Should contain line number");
-        assertTrue(result.contains("end of file"), "Should contain 'end of file'");
+        assertTrue(result.contains(TOK_EOF), "Should contain EOF token name");
     }
 
     @Test
@@ -141,7 +150,7 @@ public class ParseErrorFormatterTest {
         // All map to "directive" — count occurrences
         int count = 0;
         int idx = 0;
-        while ((idx = result.indexOf("directive", idx)) != -1) {
+        while ((idx = result.indexOf(TOK_DIRECTIVE, idx)) != -1) {
             count++;
             idx++;
         }
@@ -158,8 +167,8 @@ public class ParseErrorFormatterTest {
         ParseException ex = makeStructured("$", 42, expected);
         String result = ParseErrorFormatter.format(ex);
 
-        assertTrue(result.contains("label"), "Should contain 'label'");
-        assertTrue(result.contains("immediate"), "Should contain 'immediate'");
+        assertTrue(result.contains(TOK_LABEL), "Should contain label token name");
+        assertTrue(result.contains(TOK_IMMEDIATE), "Should contain immediate token name");
         assertTrue(result.contains(", or "), "Two items should be joined with ', or '");
     }
 
@@ -174,8 +183,8 @@ public class ParseErrorFormatterTest {
         ParseException ex = makeStructured("??", 8, expected);
         String result = ParseErrorFormatter.format(ex);
 
-        assertTrue(result.contains("register"), "Should contain 'register'");
-        assertTrue(result.contains("number"), "Should contain 'number'");
+        assertTrue(result.contains(TOK_REGISTER), "Should contain register token name");
+        assertTrue(result.contains(TOK_NUMBER), "Should contain number token name");
         assertTrue(result.contains("\"(\""), "Should contain literal paren");
     }
 
@@ -186,6 +195,6 @@ public class ParseErrorFormatterTest {
         ParseException ex = makeStructured("oops", 15, expected);
         String result = ParseErrorFormatter.format(ex);
 
-        assertTrue(result.contains("instruction"), "Should contain 'instruction'");
+        assertTrue(result.contains(TOK_INSTRUCTION), "Should contain instruction token name");
     }
 }
