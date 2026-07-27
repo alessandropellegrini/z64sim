@@ -176,9 +176,7 @@
                         <children>
                           <component id="14747" class="javax.swing.JTextPane" binding="editor" custom-create="true">
                             <constraints/>
-                            <properties>
-                              <font swing-font="EditorPane.font"/>
-                            </properties>
+                            <properties/>
                           </component>
                         </children>
                       </scrollpane>
