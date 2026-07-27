@@ -24,6 +24,7 @@ import it.uniroma2.pellegrini.z64sim.view.components.JFileDialog;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 import it.uniroma2.pellegrini.z64sim.view.editor.AsmStyledDocument;
 import it.uniroma2.pellegrini.z64sim.view.editor.AsmSyntaxHighlighter;
+import it.uniroma2.pellegrini.z64sim.view.editor.FindReplaceBar;
 import it.uniroma2.pellegrini.z64sim.view.editor.LineNumberPanel;
 
 import javax.swing.*;
@@ -78,6 +79,7 @@ public class MainWindow extends View {
     private boolean isDirty = false;
     private boolean loading = false;
     private AsmSyntaxHighlighter highlighter;
+    private FindReplaceBar findReplaceBar;
     private AsmStyledDocument asmDocument;
     private final UndoManager undoManager = new UndoManager();
     private MuOpAnimationDialog muOpDialog;
@@ -102,6 +104,23 @@ public class MainWindow extends View {
                 editorScrollPane.revalidate();
                 editorScrollPane.repaint();
             });
+        }
+
+        // Dynamically insert the FindReplaceBar into editorTab.
+        // The form generates editorTab with [scrollPane, statusPanel] in a GridLayout.
+        // We re-layout it with BorderLayout: scroll pane CENTER, find bar + status SOUTH.
+        {
+            Component scrollPane = editorTab.getComponent(0); // editor scroll pane
+            Component statusPanel = editorTab.getComponent(1); // position label panel
+            editorTab.removeAll();
+            editorTab.setLayout(new BorderLayout());
+            editorTab.add(scrollPane, BorderLayout.CENTER);
+            findReplaceBar = new FindReplaceBar(editor);
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+            bottomPanel.add(findReplaceBar);
+            bottomPanel.add(statusPanel);
+            editorTab.add(bottomPanel, BorderLayout.SOUTH);
         }
 
         this.memoryView.setModel(Memory.getInstance());
@@ -247,6 +266,12 @@ public class MainWindow extends View {
 
         im.put((KeyStroke) AppActions.REDO.getValue(Action.ACCELERATOR_KEY), "redo");
         am.put("redo", AppActions.REDO);
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, modKeyMask), "find");
+        am.put("find", AppActions.FIND);
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_H, modKeyMask), "findReplace");
+        am.put("findReplace", AppActions.FIND_REPLACE);
 
         // Listen for theme changes from SettingsController
         SettingsController.addPropertyChangeListener("theme", evt -> {
@@ -427,6 +452,14 @@ public class MainWindow extends View {
             } catch (CannotRedoException ignored) {
             }
         }
+    }
+
+    public static void find() {
+        getInstance().findReplaceBar.open(false);
+    }
+
+    public static void findReplace() {
+        getInstance().findReplaceBar.open(true);
     }
 
     public static void compileResult(String toString) {

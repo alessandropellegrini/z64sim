@@ -53,15 +53,17 @@ The toolbar contains the following buttons to interact with the simulator:
 
 ### Keyboard shortcuts
 
-| Shortcut      | Action              |
-|---------------|---------------------|
-| Ctrl+N        | New file            |
-| Ctrl+O        | Open file           |
-| Ctrl+S        | Save file           |
-| Ctrl+B        | Assemble program    |
-| F8            | Step instruction    |
-| F5            | Run program         |
-| Shift+F5      | Stop program        |
+| Shortcut | Action           |
+|----------|------------------|
+| Ctrl+N   | New file         |
+| Ctrl+O   | Open file        |
+| Ctrl+S   | Save file        |
+| Ctrl+F   | Find             |
+| Ctrl+H   | Find & Replace   |
+| Ctrl+B   | Assemble program |
+| F8       | Step instruction |
+| F5       | Run program      |
+| Shift+F5 | Stop program     |
 
 ## Managing Devices
 
