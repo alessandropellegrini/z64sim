@@ -461,9 +461,8 @@ public class SimulatorController extends Controller {
 
         if (instruction.getMnemonic().equals("hlt")) {
             halted = true;
-            // Don't advance RIP past hlt — displaceRIP(-size) already done
-            // in InstructionClass0, so RIP stays at hlt.
-            // Check immediately for pending interrupts.
+            // RIP already points past hlt — the halted flag prevents
+            // re-fetching. Check immediately for pending interrupts.
             if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
                 halted = false;
                 handleInterrupt();

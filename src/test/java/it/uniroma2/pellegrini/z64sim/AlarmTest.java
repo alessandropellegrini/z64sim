@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import java.awt.GraphicsEnvironment;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -96,33 +96,15 @@ public class AlarmTest {
         }
     }
 
-    /**
-     * Step one instruction. If it is {@code hlt} and IF=1, wait for an
-     * interrupt (the real device fires after 200–1000 ms) then dispatch it.
-     */
-    private String stepAndGetMnemonic() throws SimulatorException, InterruptedException {
+    private String stepAndGetMnemonic() throws SimulatorException {
         long rip = SimulatorController.getCpuState().getRIP();
         MemoryElement element = program.getMemoryElementAt(rip);
         assertNotNull(element, "Expected element at RIP=0x" + Long.toHexString(rip));
         assertInstanceOf(Instruction.class, element);
         Instruction instruction = (Instruction) element;
-
-        // Handle hlt: wait for interrupt if IF=1
-        if (instruction.getMnemonic().equals("hlt")
-                && SimulatorController.getCpuState().getIF()) {
-            if (!waitForInterrupt(3000)) {
-                return "hlt";  // terminal halt — no interrupt arrived
-            }
-            // Wake up: advance past hlt and dispatch the interrupt
-            SimulatorController.getCpuState().setRIP(rip + instruction.getSize());
-            dispatchInterrupt();
-            return "hlt";
-        }
-
         SimulatorController.getCpuState().setRIP(rip + instruction.getSize());
         instruction.run();
 
-        // Check for interrupts after non-hlt instructions
         if (SimulatorController.getCpuState().getIF()
                 && Devices.getInstance().isIRQPending()) {
             dispatchInterrupt();
@@ -131,24 +113,12 @@ public class AlarmTest {
         return instruction.getMnemonic();
     }
 
-    private boolean waitForInterrupt(long timeoutMs) throws InterruptedException {
-        if (Devices.getInstance().isIRQPending()) return true;
-        long deadline = System.currentTimeMillis() + timeoutMs;
-        while (System.currentTimeMillis() < deadline) {
-            if (Devices.getInstance().isIRQPending()) return true;
-            Thread.sleep(10);
-        }
-        return Devices.getInstance().isIRQPending();
-    }
-
     private void dispatchInterrupt() {
         long rsp = SimulatorController.getCpuState().getRSP();
         long savedFlags = SimulatorController.getCpuState().getFlags();
         SimulatorController.getCpuState().setIF(false);
-        // Push RIP first (deeper on stack)
         rsp -= 8;
         writeQword(rsp, SimulatorController.getCpuState().getRIP());
-        // Push FLAGS second (top of stack)
         rsp -= 8;
         writeQword(rsp, savedFlags);
         SimulatorController.getCpuState().setRegisterValue(Register.RSP, rsp);
@@ -177,27 +147,23 @@ public class AlarmTest {
 
     @Test
     @DisplayName("Driver sets alarm on/off based on parity of random input value")
-    public void testAlarmFollowsInputParity() throws SimulatorException, InterruptedException {
-        int maxSteps = 50;
+    public void testAlarmFollowsInputParity() throws SimulatorException {
+        final long deadlineMs = System.currentTimeMillis() + 5_000;
+
         boolean handlerRan = false;
         long capturedInput = 0;
         long capturedAlarm = 0;
-        List<String> trace = new ArrayList<>();
+        Set<String> trace = new LinkedHashSet<>();
 
-        for (int i = 0; i < maxSteps; i++) {
+        while (System.currentTimeMillis() < deadlineMs) {
             long rip = SimulatorController.getCpuState().getRIP();
             String mnemonic = stepAndGetMnemonic();
             trace.add(String.format("0x%x: %s", rip, mnemonic));
 
             if (mnemonic.equals("iret") && !handlerRan) {
                 handlerRan = true;
-                // Capture immediately — before a second interrupt can change state
                 capturedInput = inputMapping.read(0x12);   // DATA_IN
                 capturedAlarm = alarmMapping.read(0x20);    // ALARM
-            }
-
-            // After iret, the next instructions are jmp .stop --> hlt (terminal)
-            if (handlerRan && mnemonic.equals("hlt")) {
                 break;
             }
         }
