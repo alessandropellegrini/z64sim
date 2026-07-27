@@ -51,7 +51,14 @@ public class AsmStyledDocument extends DefaultStyledDocument {
 
     @Override
     public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
-        super.insertString(offs, str, a);
+        // Auto-indent: when the user presses Enter, copy the leading
+        // whitespace from the current line onto the new line.
+        if ("\n".equals(str) || "\r\n".equals(str) || "\r".equals(str)) {
+            String indent = getLeadingWhitespace(offs);
+            super.insertString(offs, str + indent, a);
+        } else {
+            super.insertString(offs, str, a);
+        }
         if (highlightingEnabled) {
             scheduleHighlight();
         }
@@ -92,5 +99,29 @@ public class AsmStyledDocument extends DefaultStyledDocument {
                 }
             });
         }
+    }
+
+    /**
+     * Returns the leading whitespace (spaces and tabs) of the line
+     * that contains the given document offset.
+     */
+    private String getLeadingWhitespace(int offs) throws BadLocationException {
+        Element root = getDefaultRootElement();
+        int lineIndex = root.getElementIndex(offs);
+        Element line = root.getElement(lineIndex);
+        int lineStart = line.getStartOffset();
+        int lineEnd = line.getEndOffset();
+        String lineText = getText(lineStart, lineEnd - lineStart);
+
+        StringBuilder indent = new StringBuilder();
+        for (int i = 0; i < lineText.length(); i++) {
+            char ch = lineText.charAt(i);
+            if (ch == ' ' || ch == '\t') {
+                indent.append(ch);
+            } else {
+                break;
+            }
+        }
+        return indent.toString();
     }
 }
