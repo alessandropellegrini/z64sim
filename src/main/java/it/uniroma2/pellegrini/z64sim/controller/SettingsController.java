@@ -1,28 +1,38 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.controller;
 
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.SettingsException;
+import it.uniroma2.pellegrini.z64sim.model.Device;
+import it.uniroma2.pellegrini.z64sim.model.DeviceMapping;
+import it.uniroma2.pellegrini.z64sim.model.Devices;
+import it.uniroma2.pellegrini.z64sim.model.IoPortDescriptor;
 import it.uniroma2.pellegrini.z64sim.util.log.LogLevel;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import it.uniroma2.pellegrini.z64sim.util.sys.OS;
 
 import java.awt.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class SettingsController extends Controller {
     private static final Logger log = LoggerFactory.getLogger();
     private static SettingsController instance = null;
+    private static final PropertyChangeSupport pcs = new PropertyChangeSupport(SettingsController.class);
 
     // To validate configuration file and to match JComboBoxes in SettingsWindow
     // WARNING: The model in the JComboBox *must* match the order in these arrays!
@@ -77,9 +87,8 @@ public class SettingsController extends Controller {
         }
     }
 
-    @Override
-    public boolean dispatch(Events command) {
-        return false;
+    public static void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(propertyName, listener);
     }
 
     private static SettingsController getInstance() {
@@ -151,11 +160,9 @@ public class SettingsController extends Controller {
     }
 
     public static void setThemeIdx(int idx) {
+        String oldTheme = getInstance().settings.getTheme();
         getInstance().settings.setTheme(themes[idx]);
-        if(idx == 0)
-            Dispatcher.dispatch(Events.SET_THEME_LIGHT);
-        else
-            Dispatcher.dispatch(Events.SET_THEME_DARK);
+        pcs.firePropertyChange("theme", oldTheme, themes[idx]);
     }
 
     public static Dimension getWindowSize() {
@@ -175,6 +182,85 @@ public class SettingsController extends Controller {
         getInstance().settings.setFileLastDir(value);
     }
 
+    public static boolean getShowLineNumbers() {
+        return getInstance().settings.getShowLineNumbers();
+    }
+
+    public static void setShowLineNumbers(boolean show) {
+        boolean old = getInstance().settings.getShowLineNumbers();
+        getInstance().settings.setShowLineNumbers(show);
+        pcs.firePropertyChange("showLineNumbers", old, show);
+    }
+
+    // ---- Device configuration persistence ----
+
+    public static List<DeviceConfig> getDeviceConfigs() {
+        List<DeviceConfig> configs = getInstance().settings.getDeviceConfigs();
+        return configs != null ? configs : new ArrayList<>();
+    }
+
+    public static void setDeviceConfigs(List<DeviceConfig> configs) {
+        getInstance().settings.setDeviceConfigs(configs);
+    }
+
+    /**
+     * Reconstruct live Device instances from saved configuration
+     * and register them in the Devices singleton.
+     */
+    public static void applyDeviceConfig() {
+        List<DeviceConfig> configs = getDeviceConfigs();
+        if (configs.isEmpty()) return;
+
+        Devices devices = Devices.getInstance();
+        devices.clearAllDevices();
+
+        for (DeviceConfig cfg : configs) {
+            try {
+                Class<?> cls = Class.forName(cfg.className);
+                if (!Device.class.isAssignableFrom(cls)) {
+                    log.warn("Saved device class is not a Device: " + cfg.className);
+                    continue;
+                }
+                Device device = (Device) cls.newInstance();
+                DeviceMapping mapping = new DeviceMapping(device, cfg.ivn);
+
+                for (IoPortDescriptor desc : device.getDescriptor().getIoPorts()) {
+                    Long addr = cfg.portAssignments.get(desc.getName());
+                    if (addr != null && addr >= 0) {
+                        mapping.assignPort(addr, desc);
+                        devices.registerPort(addr, mapping);
+                    }
+                }
+
+                devices.registerDevice(cfg.ivn, mapping);
+            } catch (Exception e) {
+                log.warn("Failed to restore device " + cfg.className + ": " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Serializable snapshot of one device entry for settings persistence.
+     */
+    public static class DeviceConfig implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        public String className;
+        public int ivn;
+        /** element name --> I/O port address (-1 = unassigned) */
+        public final HashMap<String, Long> portAssignments;
+
+        public DeviceConfig() {
+            this.portAssignments = new HashMap<>();
+        }
+
+        public DeviceConfig(String className, int ivn, Map<String, Long> ports) {
+            this.className = className;
+            this.ivn = ivn;
+            this.portAssignments = new HashMap<>(ports);
+        }
+    }
+
     private static class Settings implements Serializable {
 
         private static final long serialVersionUID = 1L;
@@ -191,6 +277,8 @@ public class SettingsController extends Controller {
         private int windowSizeX;
         private int windowSizeY;
         private String fileLastDir;
+        private boolean showLineNumbers;
+        private List<DeviceConfig> deviceConfigs;
 
         private Settings() {
             // Configuration defaults
@@ -202,6 +290,8 @@ public class SettingsController extends Controller {
             this.windowSizeX = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeX"));
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
             this.fileLastDir = null;
+            this.showLineNumbers = true;
+            this.deviceConfigs = new ArrayList<>();
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
@@ -226,6 +316,32 @@ public class SettingsController extends Controller {
             }
 
             return settings;
+        }
+
+        /**
+         * Custom deserialization to handle fields added in newer versions.
+         * When loading an old configuration file that lacks a field, GetField.get()
+         * returns the specified default rather than the type's zero value.
+         */
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            ObjectInputStream.GetField fields = in.readFields();
+            this.uiLang = (String) fields.get("uiLang", null);
+            this.theme = (String) fields.get("theme", null);
+            this.logLevel = (String) fields.get("logLevel", null);
+            this.logShowDateTime = fields.get("logShowDateTime", false);
+            this.logOutFile = (String) fields.get("logOutFile", null);
+            this.windowSizeX = fields.get("windowSizeX", 0);
+            this.windowSizeY = fields.get("windowSizeY", 0);
+            this.fileLastDir = (String) fields.get("fileLastDir", null);
+            this.showLineNumbers = fields.get("showLineNumbers", true);
+            // Handle deviceConfigs added in a newer version
+            try {
+                @SuppressWarnings("unchecked")
+                List<DeviceConfig> saved = (List<DeviceConfig>) fields.get("deviceConfigs", null);
+                this.deviceConfigs = saved != null ? saved : new ArrayList<>();
+            } catch (Exception e) {
+                this.deviceConfigs = new ArrayList<>();
+            }
         }
 
 
@@ -309,8 +425,24 @@ public class SettingsController extends Controller {
             return fileLastDir;
         }
 
+        public boolean getShowLineNumbers() {
+            return showLineNumbers;
+        }
+
+        public void setShowLineNumbers(boolean showLineNumbers) {
+            this.showLineNumbers = showLineNumbers;
+        }
+
         public void setFileLastDir(String fileLastDir) {
             this.fileLastDir = fileLastDir;
+        }
+
+        public List<DeviceConfig> getDeviceConfigs() {
+            return deviceConfigs;
+        }
+
+        public void setDeviceConfigs(List<DeviceConfig> deviceConfigs) {
+            this.deviceConfigs = deviceConfigs;
         }
     }
 }

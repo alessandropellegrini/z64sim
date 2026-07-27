@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
@@ -13,9 +13,15 @@ import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
  */
 public class InstructionClass4 extends Instruction {
 
+    private static final String[] MNEMONICS = {"clc", "clp", "clz", "cls", "cli", "cld", "clo", "stc", "stp", "stz", "sts", "sti", "std", "sto"};
+
     public InstructionClass4(String mnemonic) {
         super(mnemonic, 4);
         this.setSize(8);
+    }
+
+    public int getType() {
+        return lookupType(MNEMONICS);
     }
 
     @Override
@@ -66,11 +72,17 @@ public class InstructionClass4 extends Instruction {
             default:
                 throw new RuntimeException("Unknown Class 4 instruction: " + mnemonic);
         }
-        SimulatorController.refreshUIFlags();
     }
 
     @Override
     public String toString() {
         return this.mnemonic;
+    }
+
+    @Override
+    protected byte[] encode() {
+        byte[] buf = new byte[this.size];
+        buf[0] = encodeOpcode(getType());
+        return buf;
     }
 }

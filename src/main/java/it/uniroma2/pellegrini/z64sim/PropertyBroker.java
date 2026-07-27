@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim;
@@ -16,7 +16,7 @@ import java.util.ResourceBundle;
 
 public class PropertyBroker {
     private static final Logger log = LoggerFactory.getLogger();
-    private static PropertyBroker instance = null;
+    private static volatile PropertyBroker instance = null;
 
     private final Properties z64simProperties = new Properties();
     private final ResourceBundle i18nBundle;
@@ -31,8 +31,13 @@ public class PropertyBroker {
     }
 
     private static PropertyBroker getInstance() {
-        if(instance == null)
-            instance = new PropertyBroker();
+        if(instance == null) {
+            synchronized (PropertyBroker.class) {
+                if(instance == null) {
+                    instance = new PropertyBroker();
+                }
+            }
+        }
         return instance;
     }
 

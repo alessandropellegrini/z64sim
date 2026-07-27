@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
@@ -24,80 +24,88 @@ public class InstructionClass2 extends Instruction {
     @NonNls
     private static final String[] opcodes = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
 
-    public InstructionClass2(String mnemonic, Operand s, Operand d) throws ParseException {
+    public InstructionClass2(String mnemonic, Operand s, Operand d) {
         super(mnemonic, 2);
         this.source = s;
         this.destination = d;
 
-        if(s instanceof OperandImmediate && s.getSize() == 8 ||
-            s instanceof OperandImmediate && d instanceof OperandMemory) {
+        if(s instanceof OperandImmediate && (s.getSize() == 8 || (d instanceof OperandMemory && ((OperandMemory) d).getDisplacement() != 0))) {
             this.setSize(16);
         } else {
             this.setSize(8);
         }
     }
 
+    public int getType() {
+        return lookupType(opcodes);
+    }
+
+    @Override
+    protected byte[] encode() {
+        return encodeTwoOperand(getType(), this.source, this.destination);
+    }
+
     @Override
     public void run() throws SimulatorException {
         Long srcValue = SimulatorController.getOperandValue(this.source);
-        Long dstValue = SimulatorController.getOperandValue(this.destination);
+        Long dstValue = this.destination != null ? SimulatorController.getOperandValue(this.destination) : 0L;
 
-        long mask = 0;
+        Long mask = 0L;
         switch(this.source.getSize()) {
             case 1:
-                mask = 0xFF;
+                mask = 0xFFL;
                 break;
             case 2:
-                mask = 0xFFFF;
+                mask = 0xFFFFL;
                 break;
             case 4:
-                mask = 0xFFFFFFFF;
+                mask = 0xFFFFFFFFL;
                 break;
             case 8:
                 mask = 0xFFFFFFFFFFFFFFFFL;
                 break;
         }
 
+        long result = 0L;
+
         switch(mnemonic) {
             case "add":
-                long result = srcValue + dstValue;
+                result = srcValue + dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), false);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 break;
             case "sub":
                 result = dstValue - srcValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), true);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), true);
                 break;
             case "adc":
                 srcValue += SimulatorController.getCF() ? 1 : 0;
                 result = srcValue + dstValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), false);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 break;
             case "sbb":
                 srcValue += SimulatorController.getCF() ? 0 : 1;
                 result = dstValue - srcValue;
                 SimulatorController.setOperandValue(this.destination, result & mask);
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), true);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), true);
                 break;
             case "cmp":
                 result = dstValue - srcValue;
-                SimulatorController.updateFlagsAndRefresh(srcValue, dstValue, result, this.source.getSize(), true);
+                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), true);
                 break;
             case "test":
                 result = dstValue & srcValue;
                 SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
-                SimulatorController.refreshUIFlags();
                 break;
             case "neg":
                 result = -srcValue;
                 SimulatorController.setOperandValue(this.source, result & mask);
-                SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
+                SimulatorController.updateFlags(srcValue, 0, result, this.source.getSize(), true);
                 SimulatorController.setCF(srcValue != 0);
-                SimulatorController.refreshUIFlags();
                 break;
             case "and":
                 result = srcValue & dstValue & mask;
@@ -105,7 +113,6 @@ public class InstructionClass2 extends Instruction {
                 SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
-                SimulatorController.refreshUIFlags();
                 break;
             case "or":
                 result = srcValue | dstValue;
@@ -113,7 +120,6 @@ public class InstructionClass2 extends Instruction {
                 SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
-                SimulatorController.refreshUIFlags();
                 break;
             case "xor":
                 result = srcValue ^ dstValue;
@@ -121,7 +127,6 @@ public class InstructionClass2 extends Instruction {
                 SimulatorController.updateFlags(srcValue, dstValue, result, this.source.getSize(), false);
                 SimulatorController.setCF(false);
                 SimulatorController.setOF(false);
-                SimulatorController.refreshUIFlags();
                 break;
             case "not":
                 SimulatorController.setOperandValue(this.source, ~srcValue & mask);
@@ -129,7 +134,6 @@ public class InstructionClass2 extends Instruction {
             case "bt":
                 result = dstValue & (1L << srcValue);
                 SimulatorController.setCF(result != 0);
-                SimulatorController.refreshUIFlags();
                 break;
             default:
                 throw new RuntimeException("Unknown Class 2 instruction: " + mnemonic);

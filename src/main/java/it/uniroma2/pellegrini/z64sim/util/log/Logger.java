@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.util.log;
@@ -54,13 +54,13 @@ public class Logger {
     }
 
     public static synchronized void doLog(String className, int levelInt, String msg) {
+        Object[] args;
         if(showDateTime) {
-            Object[] args = {new Date(), className, LogLevel.intToLevel(levelInt), msg};
-            logFile.println(messageFormatter.format(args));
+            args = new Object[]{new Date(), className, LogLevel.intToLevel(levelInt), msg};
         } else {
-            Object[] args = {className, LogLevel.intToLevel(levelInt), msg};
-            logFile.println(messageFormatter.format(args));
+            args = new Object[]{className, LogLevel.intToLevel(levelInt), msg};
         }
+        logFile.println(messageFormatter.format(args));
     }
 
     public void trace(String msg) {

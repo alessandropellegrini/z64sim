@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class DisassemblerTest {
 
-    private void assembleAndDisassemble(String testProgram) throws ParseException, IOException {
+    private void assembleAndDisassemble(String testProgram) throws ParseException {
         InputStream is = getClass().getResourceAsStream(testProgram);
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
         Assembler a = new Assembler(isr);

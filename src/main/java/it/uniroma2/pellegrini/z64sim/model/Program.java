@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.model;
@@ -32,7 +32,7 @@ public class Program {
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
     private Integer locationCounter = 0;
 
-    public MemoryPointer text = new MemoryPointer(0);
+    public final MemoryPointer text = new MemoryPointer(0);
     public MemoryPointer _start = null;
 
     public Program() {
@@ -89,7 +89,7 @@ public class Program {
         return true;
     }
 
-    public Long getLabelAddress(String name) throws ParseException {
+    public Long getLabelAddress(String name) {
         final MemoryPointer mp = labels.get(name);
         if(mp == null)
             return null;
@@ -136,14 +136,10 @@ public class Program {
 
     public void newDriver(Integer idn, long address) {
         int offset = idn * 8;
-        this.binary.put(offset, new MemoryData((byte) (address >> 56)));
-        this.binary.put(offset+1, new MemoryData((byte) (address >> 48)));
-        this.binary.put(offset+2, new MemoryData((byte) (address >> 40)));
-        this.binary.put(offset+3, new MemoryData((byte) (address >> 32)));
-        this.binary.put(offset+4, new MemoryData((byte) (address >> 24)));
-        this.binary.put(offset+5, new MemoryData((byte) (address >> 16)));
-        this.binary.put(offset+6, new MemoryData((byte) (address >> 8)));
-        this.binary.put(offset+7, new MemoryData((byte) (address)));
+        // Store handler address in little-endian byte order (matching x86 convention)
+        for (int i = 0; i < 8; i++) {
+            this.binary.put(offset + i, new MemoryData((byte) (address >> (i * 8))));
+        }
     }
 
     public void addEqu(String name, Long value) throws ProgramException {
@@ -185,7 +181,7 @@ public class Program {
             this.label = label;
         }
 
-        private void relocateImmediate(OperandImmediate op, Instruction insn) throws ProgramException {
+        private void relocateImmediate(OperandImmediate op) throws ProgramException {
             // Get target address of the relocation
             MemoryPointer target = findLabelAddress(this.label);
             if (target == null) {
@@ -195,7 +191,7 @@ public class Program {
             op.relocate(target);
         }
 
-        private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
+        private void relocateMemory(OperandMemory op) throws ProgramException {
             // Get target address of the relocation
             MemoryPointer target = findLabelAddress(this.label);
             if (target == null) {
@@ -213,7 +209,7 @@ public class Program {
             }
             long target = labelAddress.getTarget();
             for(int i = 0; i < 8; i++) { // TODO: 8 bytes are common, but relocation should be more flexible
-                byte currByte = (byte)((target >> ((8 - i) * 8)) & 0xFF);
+                byte currByte = (byte)((target >> (i * 8)) & 0xFF);
                 program.binary.put(dataOffset + i, new MemoryData(currByte));
             }
         }
@@ -238,39 +234,39 @@ public class Program {
                     source = ((InstructionClass1) insn).getSource();
                     destination = ((InstructionClass1) insn).getDestination();
                     if (source instanceof OperandImmediate) {
-                        relocateImmediate((OperandImmediate) source, insn);
+                        relocateImmediate((OperandImmediate) source);
                     }
                     if (source instanceof OperandMemory) {
-                        relocateMemory((OperandMemory) source, insn);
+                        relocateMemory((OperandMemory) source);
                     }
                     if (destination instanceof OperandMemory) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
                 case 2:
                     source = ((InstructionClass2) insn).getSource();
                     destination = ((InstructionClass2) insn).getDestination();
                     if (source instanceof OperandImmediate) {
-                        relocateImmediate((OperandImmediate) source, insn);
+                        relocateImmediate((OperandImmediate) source);
                     }
                     if (source instanceof OperandMemory) {
-                        relocateMemory((OperandMemory) source, insn);
+                        relocateMemory((OperandMemory) source);
                     }
                     if (destination != null) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
 
                 case 5:
                     destination = ((InstructionClass5) insn).getTarget();
                     if (destination != null) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
                 case 6:
                     destination = ((InstructionClass6) insn).getTarget();
                     if (destination != null) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
                 default:

@@ -1,6 +1,6 @@
 /**
  *
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 options {
@@ -25,6 +25,9 @@ import it.uniroma2.pellegrini.z64sim.controller.*;
 
 import java.io.StringReader;
 import java.io.Reader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -37,6 +40,13 @@ public class Assembler {
     /** To support error recovery */
     private List<String> syntaxErrors = new ArrayList<>();
 
+    // Pseudo-op tracking flags: which helpers need to be injected
+    private boolean needsMul = false;
+    private boolean needsImul = false;
+    private boolean needsDiv = false;
+    private boolean needsIdiv = false;
+    private int pseudoLabelCounter = 0;
+
     /**
      * A String-based constructor for ease of use
      *
@@ -44,6 +54,18 @@ public class Assembler {
      */
     public Assembler(String s) {
         this((Reader)(new StringReader(s)));
+    }
+
+    /**
+     * Constructor that shares an existing Program object.
+     * Used internally for injecting pseudo-op helper snippets.
+     *
+     * @param s    The assembly source to parse
+     * @param sharedProgram The program to add instructions to
+     */
+    public Assembler(String s, Program sharedProgram) {
+        this((Reader)(new StringReader(s)));
+        this.program = sharedProgram;
     }
 
     /**
@@ -69,7 +91,7 @@ public class Assembler {
      * @param kind The token to be reached so as to continue parsing
      */
     private void error_recover(ParseException ex, int kind) {
-        syntaxErrors.add(ex.getMessage());
+        syntaxErrors.add(ParseErrorFormatter.format(ex));
         Token t;
         do {
             t = getNextToken();
@@ -105,6 +127,10 @@ public class Assembler {
             case "rol":
             case "sub":
             case "sbb":
+            case "mul":
+            case "imul":
+            case "div":
+            case "idiv":
                 return -1;
         }
 
@@ -133,6 +159,10 @@ public class Assembler {
             case "rol":
             case "sub":
             case "sbb":
+            case "mul":
+            case "imul":
+            case "div":
+            case "idiv":
                 return mnemonic;
         }
 
@@ -204,6 +234,186 @@ public class Assembler {
         }
 
         return fill;
+    }
+
+    // ===================== Pseudo-op expansion helper methods =====================
+
+    /**
+     * Emit a push instruction for a 64-bit register.
+     */
+    private void emitPushReg(int reg) throws ParseException {
+        OperandRegister r = new OperandRegister(reg, 8);
+        this.program.addInstruction(new InstructionClass1("push", r, null, -1));
+    }
+
+    /**
+     * Emit a pop instruction for a 64-bit register.
+     */
+    private void emitPopReg(int reg) throws ParseException {
+        OperandRegister r = new OperandRegister(reg, 8);
+        this.program.addInstruction(new InstructionClass1("pop", r, null, -1));
+    }
+
+    /**
+     * Emit a call instruction to the given label (adds relocation).
+     */
+    private void emitCall(String label) throws ParseException {
+        OperandMemory target = new OperandMemory(-1, -1, -1, -1, 0, -1);
+        this.program.addRelocationEntry(this.program.getLocationCounter(), label);
+        this.program.addInstruction(new InstructionClass5("call", target));
+    }
+
+    /**
+     * Emit an addq $value, %reg instruction.
+     */
+    private void emitAddImm(long value, int reg) throws ParseException {
+        OperandImmediate imm = new OperandImmediate(value);
+        imm.setSize(8);
+        OperandRegister r = new OperandRegister(reg, 8);
+        this.program.addInstruction(new InstructionClass2("add", imm, r));
+    }
+
+    /**
+     * Emit a conditional or unconditional jump, optionally with a relocation.
+     */
+    private void emitJump(String mnemonic, int displacement, String label) throws ParseException {
+        OperandMemory target = new OperandMemory(-1, -1, -1, -1, displacement, -1);
+        if (label != null) {
+            this.program.addRelocationEntry(this.program.getLocationCounter(), label);
+        }
+        if (mnemonic.equals("jmp")) {
+            this.program.addInstruction(new InstructionClass5(mnemonic, target));
+        } else {
+            this.program.addInstruction(new InstructionClass6(mnemonic, target));
+        }
+    }
+
+    /**
+     * Define an internal label at the current location counter.
+     */
+    private void emitInternalLabel(String name) throws ParseException {
+        this.program.newLabel(name, new MemoryPointer(this.program.getLocationCounter()));
+    }
+
+    /**
+     * Emit the full arithmetic pseudo-op expansion.
+     * For q-size: pushq src, call helper, addq $8 %rsp (3 instructions).
+     * For smaller sizes: additionally saves %r11, extends operands, and splits the result.
+     */
+    private void emitArithPseudoOp(String mnemonic, Operand source, int size) throws ParseException {
+        String helperLabel = "__z64_" + mnemonic;
+        boolean isSigned = mnemonic.equals("imul") || mnemonic.equals("idiv");
+        boolean isDivision = mnemonic.equals("div") || mnemonic.equals("idiv");
+        String extMnemonic = isSigned ? "movsX" : "movzX";
+
+        if (size == 8) {
+            // 64-bit: no extension needed, simple 3-instruction expansion
+            // Push 64-bit source operand value onto stack
+            Operand src64 = source;
+            if (source instanceof OperandRegister) {
+                src64 = new OperandRegister(((OperandRegister)source).getRegister(), 8);
+            }
+            this.program.addInstruction(new InstructionClass1("push", src64, null, -1));
+            // Call helper
+            emitCall(helperLabel);
+            // Clean up pushed argument
+            emitAddImm(8, Register.RSP);
+        } else {
+            // Sub-64-bit: needs extension and result splitting
+            OperandRegister r11 = new OperandRegister(Register.R11, 8);
+
+            // Save scratch register
+            emitPushReg(Register.R11);
+
+            // Extend source to 64-bit using %r11 as temp, then push
+            this.program.addInstruction(new InstructionClass1(extMnemonic, source, r11, -1));
+            emitPushReg(Register.R11);
+
+            if (isDivision) {
+                // Construct 64-bit dividend from sized halves into %rax, clear %rdx
+                // e.g., for divl: rax = (edx << 32) | zero_ext(eax), rdx = 0
+                OperandRegister rax = new OperandRegister(Register.RAX, 8);
+                OperandRegister rdx = new OperandRegister(Register.RDX, 8);
+                OperandRegister raxSized = new OperandRegister(Register.RAX, size);
+                OperandRegister rdxSized = new OperandRegister(Register.RDX, size);
+
+                // Zero/sign-extend eax/ax → r11
+                this.program.addInstruction(new InstructionClass1(extMnemonic, raxSized, r11, -1));
+                // Zero/sign-extend edx/dx → rax
+                this.program.addInstruction(new InstructionClass1(extMnemonic, rdxSized, rax, -1));
+                // Shift high half left by (size*8) bits
+                int shiftBits = size * 8;
+                this.program.addInstruction(new InstructionClass3("shl", shiftBits, rax));
+                // Combine: rax |= r11 (using or)
+                this.program.addInstruction(new InstructionClass2("or", r11, rax));
+                // Clear rdx for 128-bit dividend upper half
+                this.program.addInstruction(new InstructionClass2("xor", rdx, rdx));
+            } else {
+                // Multiplication: zero/sign-extend %rax from sized to 64-bit
+                OperandRegister rax = new OperandRegister(Register.RAX, 8);
+                OperandRegister raxSized = new OperandRegister(Register.RAX, size);
+                this.program.addInstruction(new InstructionClass1(extMnemonic, raxSized, rax, -1));
+            }
+
+            // Call helper
+            emitCall(helperLabel);
+
+            if (!isDivision) {
+                // Multiplication: split the double-width result
+                // For mull: result is in %rax (64-bit), need edx = rax >> 32, eax = rax & 0xFFFFFFFF
+                OperandRegister rax = new OperandRegister(Register.RAX, 8);
+                OperandRegister rdxSized = new OperandRegister(Register.RDX, size);
+                OperandRegister r11Sized = new OperandRegister(Register.R11, size);
+                int shiftBits = size * 8;
+
+                // Copy full result to r11, shift to get high part
+                this.program.addInstruction(new InstructionClass1("mov", rax, r11, -1));
+                this.program.addInstruction(new InstructionClass3("shr", shiftBits, r11));
+                // Move high part to %edx/%dx (sized)
+                this.program.addInstruction(new InstructionClass1("mov", r11Sized, rdxSized, -1));
+            }
+            // For division, quotient in %rax and remainder in %rdx are already correct
+            // (values fit in the sized portion)
+
+            // Clean up
+            emitAddImm(8, Register.RSP);  // pop argument
+            emitPopReg(Register.R11);     // restore scratch
+        }
+    }
+
+    /**
+     * Inject pseudo-op helper routines from resource files.
+     * Called just before finalizeProgram() so that relocations to helpers are resolved.
+     */
+    private void injectPseudoOpHelpers() {
+        if (needsMul)  injectHelper("/pseudoops/mul.asm");
+        if (needsImul) injectHelper("/pseudoops/imul.asm");
+        if (needsDiv)  injectHelper("/pseudoops/div.asm");
+        if (needsIdiv) injectHelper("/pseudoops/idiv.asm");
+    }
+
+    /**
+     * Read an assembly resource file and parse it into the shared program.
+     */
+    private void injectHelper(String resourcePath) {
+        try {
+            InputStream is = getClass().getResourceAsStream(resourcePath);
+            if (is == null) {
+                this.syntaxErrors.add("Cannot find pseudo-op helper resource: " + resourcePath);
+                return;
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String code = reader.lines().collect(java.util.stream.Collectors.joining("\n"));
+            reader.close();
+            Assembler snippetAsm = new Assembler(code, this.program);
+            snippetAsm.InjectableSnippet();
+            if (!snippetAsm.getSyntaxErrors().isEmpty()) {
+                this.syntaxErrors.addAll(snippetAsm.getSyntaxErrors());
+            }
+        } catch (Exception e) {
+            this.syntaxErrors.add("Failed to inject pseudo-op helper from "
+                + resourcePath + ": " + e.getMessage());
+        }
     }
 }
 PARSER_END(Assembler)
@@ -355,6 +565,11 @@ TOKEN:
 | <INSN_IO_S :("ins"
            | "outs")("b"|"w"|"l")>
 | <IRET: "iret"("q")?>
+| <INSN_PSEUDO_ARITH: ("mul" | "imul" | "div" | "idiv")("b"|"w"|"l"|"q")?>
+| <INSN_JCC_ALIAS: "jb" | "jnae" | "jnb" | "jae">
+| <INSN_JCC_COMPOUND: "jbe" | "jna" | "ja" | "jnbe"
+                    | "jl" | "jnge" | "jge" | "jnl"
+                    | "jle" | "jng" | "jg" | "jnle">
 }
 
 /** Label/Text/Ascii stuff */
@@ -403,7 +618,10 @@ void Program() :
         Drivers()
         <EOF>
 
-        {   // Finalize the program
+        {   // Inject pseudo-op helper routines before finalization resolves relocations
+            injectPseudoOpHelpers();
+
+            // Finalize the program
             try {
                 this.program.finalizeProgram();
             } catch(ProgramException e) {
@@ -413,6 +631,31 @@ void Program() :
     } catch (ParseException ex) {
         error_recover(ex, NEWLINE);
     }
+}
+
+
+/**
+ * Entry point for parsing injectable assembly snippets (pseudo-op helper routines).
+ * Accepts labels and instructions without .org/.data/.text/main: boilerplate.
+ */
+void InjectableSnippet() :
+{
+    Instruction i;
+    String label;
+}
+{
+    (
+        (<COMMENT> | <NEWLINE>)*
+        (
+            label = Label()
+            { this.program.newLabel(label, new MemoryPointer(this.program.getLocationCounter())); }
+        |
+            i = Instruction()
+            { if(i != null) this.program.addInstruction(i); }
+        )
+    )*
+    (<COMMENT> | <NEWLINE>)*
+    <EOF>
 }
 
 
@@ -538,6 +781,7 @@ void Code() :
 Instruction Drivers() :
 {
     Token t;
+    Instruction i;
 }
 {
     try {
@@ -555,7 +799,11 @@ Instruction Drivers() :
                 }
             }
             (<COMMENT> | <NEWLINE>)*
-            ( Statement() )+
+            ( i = Statement()
+              {if(i != null) {
+                  this.program.addInstruction(i);
+              }}
+            )+
             t = <IRET>
             {
                 this.program.addInstruction(new InstructionClass5(t.image, null));
@@ -840,6 +1088,145 @@ Instruction Instruction() :
                 throw new ParseException("Line " + t.beginLine + ": Wrong size suffix for instruction " + mnemonic);
 
             insn = new InstructionClass7(mnemonic, size, null);
+        }
+      |
+        /* ===== Pseudo-op: Alias conditional jumps (jb→jc, jnae→jc, jnb→jnc, jae→jnc) ===== */
+        t = <INSN_JCC_ALIAS> { size = -1; }
+        op1 = FormatM(size)
+        {
+            String actualMnemonic;
+            String m = t.image.toLowerCase();
+            if (m.equals("jb") || m.equals("jnae")) actualMnemonic = "jc";
+            else actualMnemonic = "jnc"; // jnb, jae
+            insn = new InstructionClass6(actualMnemonic, (OperandMemory)op1);
+        }
+      |
+        /* ===== Pseudo-op: Compound conditional jumps (multi-instruction expansion) ===== */
+        t = <INSN_JCC_COMPOUND>
+        (t2 = <LABEL_NAME> | t2 = <INTEGER>)
+        {
+            // Resolve or defer target
+            int targetDisp = 0;
+            boolean needsReloc = false;
+            String targetLbl = null;
+            if (t2.kind == LABEL_NAME) {
+                Long addr = this.program.getLabelAddress(t2.image);
+                Long equVal = this.program.getEqu(t2.image);
+                if (addr != null) targetDisp = addr.intValue();
+                else if (equVal != null) targetDisp = equVal.intValue();
+                else { needsReloc = true; targetLbl = t2.image; }
+            } else {
+                targetDisp = stringToInt(t2.image);
+            }
+
+            String jccMnemonic = t.image.toLowerCase();
+            int n = pseudoLabelCounter++;
+
+            switch(jccMnemonic) {
+                // jbe / jna: CF=1 OR ZF=1 → jc target; jz target
+                case "jbe":
+                case "jna":
+                    emitJump("jc", targetDisp, needsReloc ? targetLbl : null);
+                    emitJump("jz", targetDisp, needsReloc ? targetLbl : null);
+                    break;
+
+                // ja / jnbe: CF=0 AND ZF=0 → jc skip; jz skip; jmp target; skip:
+                case "ja":
+                case "jnbe": {
+                    String skipLbl = ".__pseudo_" + n;
+                    emitJump("jc", 0, skipLbl);
+                    emitJump("jz", 0, skipLbl);
+                    emitJump("jmp", targetDisp, needsReloc ? targetLbl : null);
+                    emitInternalLabel(skipLbl);
+                    break;
+                }
+
+                // jl / jnge: SF≠OF → js sf_lbl; jo target; jmp end; sf_lbl: jno target; end:
+                case "jl":
+                case "jnge": {
+                    String sfLbl = ".__pseudo_sf_" + n;
+                    String endLbl = ".__pseudo_end_" + n;
+                    emitJump("js", 0, sfLbl);
+                    emitJump("jo", targetDisp, needsReloc ? targetLbl : null);
+                    emitJump("jmp", 0, endLbl);
+                    emitInternalLabel(sfLbl);
+                    emitJump("jno", targetDisp, needsReloc ? targetLbl : null);
+                    emitInternalLabel(endLbl);
+                    break;
+                }
+
+                // jge / jnl: SF=OF → js sf_lbl; jno target; jmp end; sf_lbl: jo target; end:
+                case "jge":
+                case "jnl": {
+                    String sfLbl = ".__pseudo_sf_" + n;
+                    String endLbl = ".__pseudo_end_" + n;
+                    emitJump("js", 0, sfLbl);
+                    emitJump("jno", targetDisp, needsReloc ? targetLbl : null);
+                    emitJump("jmp", 0, endLbl);
+                    emitInternalLabel(sfLbl);
+                    emitJump("jo", targetDisp, needsReloc ? targetLbl : null);
+                    emitInternalLabel(endLbl);
+                    break;
+                }
+
+                // jle / jng: ZF=1 OR SF≠OF → jz target; (then jl expansion)
+                case "jle":
+                case "jng": {
+                    String sfLbl = ".__pseudo_sf_" + n;
+                    String endLbl = ".__pseudo_end_" + n;
+                    emitJump("jz", targetDisp, needsReloc ? targetLbl : null);
+                    emitJump("js", 0, sfLbl);
+                    emitJump("jo", targetDisp, needsReloc ? targetLbl : null);
+                    emitJump("jmp", 0, endLbl);
+                    emitInternalLabel(sfLbl);
+                    emitJump("jno", targetDisp, needsReloc ? targetLbl : null);
+                    emitInternalLabel(endLbl);
+                    break;
+                }
+
+                // jg / jnle: ZF=0 AND SF=OF → jz end; (then jge expansion)
+                case "jg":
+                case "jnle": {
+                    String endLbl = ".__pseudo_end_" + n;
+                    String sfLbl = ".__pseudo_sf_" + n;
+                    emitJump("jz", 0, endLbl);
+                    emitJump("js", 0, sfLbl);
+                    emitJump("jno", targetDisp, needsReloc ? targetLbl : null);
+                    emitJump("jmp", 0, endLbl);
+                    emitInternalLabel(sfLbl);
+                    emitJump("jo", targetDisp, needsReloc ? targetLbl : null);
+                    emitInternalLabel(endLbl);
+                    break;
+                }
+
+                default:
+                    throw new ParseException("Line " + t.beginLine + ": Unknown compound jump: " + jccMnemonic);
+            }
+
+            insn = null; // All instructions added directly
+        }
+      |
+        /* ===== Pseudo-op: Arithmetic (mul, imul, div, idiv) — x86 single-operand semantics ===== */
+        t = <INSN_PSEUDO_ARITH> { size = getSuffixSize(t.image); }
+        op1 = FormatE(size)
+        {
+            mnemonic = stripSuffix(t.image);
+
+            // Determine size from operand if no suffix
+            if (size == -1) {
+                if (op1 != null) size = op1.getSize();
+                else throw new ParseException("Line " + t.beginLine + ": Cannot determine operand size for " + mnemonic);
+            }
+
+            // Set the needed-helper flag
+            if (mnemonic.equals("mul"))       this.needsMul = true;
+            else if (mnemonic.equals("imul")) this.needsImul = true;
+            else if (mnemonic.equals("div"))  this.needsDiv = true;
+            else if (mnemonic.equals("idiv")) this.needsIdiv = true;
+
+            // Emit the expansion
+            emitArithPseudoOp(mnemonic, op1, size);
+            insn = null; // All instructions added directly
         }
     )
     { return insn; }

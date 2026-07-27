@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.controller;
@@ -13,13 +13,15 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
-import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
 import it.uniroma2.pellegrini.z64sim.model.CpuState;
+import it.uniroma2.pellegrini.z64sim.model.DeviceMapping;
+import it.uniroma2.pellegrini.z64sim.model.Devices;
 import it.uniroma2.pellegrini.z64sim.model.Memory;
+import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
 import it.uniroma2.pellegrini.z64sim.model.Program;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import it.uniroma2.pellegrini.z64sim.view.components.RegisterBank;
 
@@ -39,11 +41,32 @@ public class SimulatorController extends Controller {
     private Program program;
     private RegisterBank cpuView;
 
+    // Timer-driven simulation: each tick executes one instruction on the EDT,
+    // yielding between ticks so the GUI stays responsive.
+    private Timer simulationTimer;
+    private int timerDelayMs = 0;
+    private boolean devicesStarted = false;
+    private boolean halted = false;
+
     private SimulatorController() {
     }
 
     public static void init() {
         instance = new SimulatorController();
+    }
+
+    /**
+     * Load a program for execution without GUI interaction.
+     * Sets the program in memory, initialises RIP to _start and RSP to the end of memory.
+     *
+     * @param program the assembled program
+     */
+    public static void loadProgram(Program program) {
+        SimulatorController sc = getInstance();
+        sc.program = program;
+        Memory.setProgram(program);
+        sc.cpuState.setRIP(program._start.getTarget());
+        sc.cpuState.setRSP((long) program.getLargestAddress());
     }
 
     private static SimulatorController getInstance() {
@@ -53,6 +76,8 @@ public class SimulatorController extends Controller {
 
     public static void setCpuView(RegisterBank cpuView) {
         getInstance().cpuView = cpuView;
+        // Bind the view to the model for reactive updates
+        cpuView.bind(getInstance().cpuState);
     }
 
     public static void displaceRIP(int displacement) {
@@ -73,8 +98,8 @@ public class SimulatorController extends Controller {
         final int index = op.getIndex();
         final int scale = op.getScale();
 
-        final Long baseValue = base != -1 ? getInstance().cpuState.getRegisterValue((int) base) : 0;
-        final Long indexValue = index != -1 ? getInstance().cpuState.getRegisterValue(index) : 0;
+        final long baseValue = base != -1 ? getInstance().cpuState.getRegisterValue((int) base) : 0;
+        final long indexValue = index != -1 ? getInstance().cpuState.getRegisterValue(index) : 0;
 
         long address = scale != -1 ? indexValue * scale : 0;
         address += baseValue;
@@ -140,7 +165,7 @@ public class SimulatorController extends Controller {
     public static void setOperandValue(Operand destination, Long srcValue) {
         if(destination instanceof OperandRegister) {
             getInstance().cpuState.setRegisterValue(((OperandRegister) destination).getRegister(), srcValue);
-            getInstance().refreshRegisters((OperandRegister) destination);
+            // No manual UI refresh needed — PropertyChangeSupport handles it
         }
         if(destination instanceof OperandMemory) {
             long address = computeAddressingMode((OperandMemory) destination);
@@ -179,13 +204,6 @@ public class SimulatorController extends Controller {
         return getInstance().cpuState;
     }
 
-    private void refreshRegisters(OperandRegister destination) {
-        cpuView.setRegister(destination.getRegister(), cpuState.getRegisterValue(destination.getRegister()));
-    }
-
-    private void refreshFlags() {
-        cpuView.setFlags(cpuState.getFlags(), cpuState.getOF(), cpuState.getDF(), cpuState.getIF(), cpuState.getSF(), cpuState.getZF(), cpuState.getPF(), cpuState.getCF());
-    }
 
     public static void setCF(boolean value) {
         getInstance().cpuState.setCF(value);
@@ -243,99 +261,295 @@ public class SimulatorController extends Controller {
         return getInstance().cpuState.getIF();
     }
 
-    private void assembleProgram() {
+    /**
+     * Assembles the program from the editor on a background thread using SwingWorker.
+     * The editor text is captured on the EDT before dispatching to background.
+     */
+    public static void assembleProgram() {
         String code = MainWindow.getCode();
 
-        Assembler a = new Assembler(code);
-        try {
-            a.Program();
-        } catch(ParseException ignored) {
-        } catch(RuntimeException e) {
-            JOptionPane.showMessageDialog(null, PropertyBroker.getMessageFromBundle("internal.error.0", e.getClass().getSimpleName()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        }
+        new SwingWorker<Void, Void>() {
+            private Program assembledProgram;
+            private String output;
+            private boolean success;
 
-        List<String> syntaxErrors = new ArrayList<>(a.getSyntaxErrors());
+            @Override
+            protected Void doInBackground() {
+                Assembler a = new Assembler(code);
+                try {
+                    a.Program();
+                } catch(ParseException ignored) {
+                } catch(RuntimeException e) {
+                    SwingUtilities.invokeLater(() ->
+                        JOptionPane.showMessageDialog(null, PropertyBroker.getMessageFromBundle("internal.error.0", e.getClass().getSimpleName()), PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE)
+                    );
+                }
 
-        StringBuilder assemblerOutput = new StringBuilder();
-        if(syntaxErrors.isEmpty()) {
-            assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.successful"));
-            MainWindow.compileResult(assemblerOutput.toString());
-        } else {
-            assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.failed.with.0.errors", syntaxErrors.size()));
-            for(String e : syntaxErrors) {
-                assemblerOutput.append(e).append("\n");
+                List<String> syntaxErrors = new ArrayList<>(a.getSyntaxErrors());
+
+                StringBuilder assemblerOutput = new StringBuilder();
+                if(syntaxErrors.isEmpty()) {
+                    assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.successful"));
+                    this.output = assemblerOutput.toString();
+                    this.assembledProgram = a.getProgram();
+                    this.success = true;
+                } else {
+                    assemblerOutput.append(PropertyBroker.getMessageFromBundle("gui.assembly.failed.with.0.errors", syntaxErrors.size()))
+                                   .append("\n\n");
+                    for(String e : syntaxErrors) {
+                        assemblerOutput.append(e).append("\n");
+                    }
+                    this.output = assemblerOutput.toString();
+                    this.success = false;
+                }
+                return null;
             }
-            MainWindow.compileResult(assemblerOutput.toString());
+
+            @Override
+            protected void done() {
+                // Back on the EDT — update UI and model
+                MainWindow.compileResult(output);
+                if(success && assembledProgram != null) {
+                    SimulatorController sc = getInstance();
+                    sc.program = assembledProgram;
+                    Memory.setProgram(sc.program);
+
+                    long _start = sc.program._start.getTarget();
+                    // These fire PropertyChangeEvents that update the RegisterBank reactively
+                    sc.cpuState.setRIP(_start);
+                    sc.cpuState.setRSP((long) sc.program.getLargestAddress());
+                    sc.devicesStarted = false;
+
+                    // Scroll the memory table to the first instruction
+                    Memory.selectAddress(_start);
+                }
+            }
+        }.execute();
+    }
+
+    /**
+     * Execute a single instruction step directly on the EDT.
+     * A single instruction executes fast enough to not block the event dispatch thread.
+     */
+    public static void step() {
+        SimulatorController sc = getInstance();
+        sc.startDevicesIfNeeded();
+        try {
+            sc.stepInstruction();
+        } catch (SimulatorException e) {
+            sc.stopDevices();
+            showRuntimeError(e.getMessage());
+        } catch (RuntimeException e) {
+            sc.stopDevices();
+            String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            showRuntimeError(PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error,
+                    Long.toHexString(sc.cpuState.getRIP())));
+        }
+        Memory.selectAddress(sc.cpuState.getRIP());
+    }
+
+    /**
+     * Run the program continuously using a Swing Timer.
+     * Each timer tick executes one instruction on the EDT, then yields so the GUI
+     * can process other events (button clicks, repaints, etc.). This keeps the
+     * interface responsive and allows stop() to work via a normal button click.
+     */
+    public static void run() {
+        SimulatorController sc = getInstance();
+        if (sc.program == null) return;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
+
+        sc.startDevicesIfNeeded();
+
+        sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
+            try {
+                sc.stepInstruction();
+                Memory.selectAddress(sc.cpuState.getRIP());
+            } catch (SimulatorException ex) {
+                sc.simulationTimer.stop();
+                sc.stopDevices();
+                Memory.selectAddress(sc.cpuState.getRIP());
+                showRuntimeError(ex.getMessage());
+            } catch (RuntimeException ex) {
+                sc.simulationTimer.stop();
+                sc.stopDevices();
+                Memory.selectAddress(sc.cpuState.getRIP());
+                String error = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+                showRuntimeError(PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error,
+                        Long.toHexString(sc.cpuState.getRIP())));
+            }
+        });
+        sc.simulationTimer.start();
+    }
+
+    /**
+     * Update the timer delay (in milliseconds) controlling simulation speed.
+     * If a simulation is currently running, the delay is applied immediately.
+     *
+     * @param delayMs delay between steps, 0 = maximum speed
+     */
+    public static void setTimerDelay(int delayMs) {
+        SimulatorController sc = getInstance();
+        sc.timerDelayMs = delayMs;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.setDelay(delayMs);
+        }
+    }
+
+    /**
+     * Stop a running simulation by stopping the timer.
+     */
+    public static void stop() {
+        SimulatorController sc = getInstance();
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.stop();
+        }
+        sc.halted = false;
+        sc.stopDevices();
+    }
+
+    /**
+     * Notify all registered devices that the simulation has started,
+     * but only on the first call after assembly.
+     */
+    private void startDevicesIfNeeded() {
+        if (!devicesStarted) {
+            devicesStarted = true;
+            Devices.getInstance().notifySimulationStart();
+        }
+    }
+
+    /**
+     * Notify all registered devices that the simulation has stopped
+     * and reset the flag so they will be re-started on the next run.
+     */
+    private void stopDevices() {
+        if (devicesStarted) {
+            devicesStarted = false;
+            Devices.getInstance().notifySimulationStop();
+        }
+    }
+
+    private static void showRuntimeError(String message) {
+        JOptionPane.showMessageDialog(null, message,
+                PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Execute a single instruction step.
+     * <p>
+     * If the CPU is halted (by {@code hlt}), no instruction is fetched.
+     * The method still checks for pending interrupts — if one arrives,
+     * the CPU exits the halted state and the interrupt handler runs.
+     *
+     * @throws SimulatorException if an error occurs (e.g. RIP points to data)
+     */
+    void stepInstruction() throws SimulatorException {
+        if(this.program == null) return;
+
+        if (halted) {
+            // CPU is halted — skip fetch/execute, but check for interrupts
+            if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
+                halted = false;
+                handleInterrupt();
+            }
             return;
         }
 
-        this.program = a.getProgram();
-        Memory.setProgram(this.program);
+        Instruction instruction = this.fetch();
+        instruction.run();
 
-        long _start = this.program._start.getTarget();
-        setRIP(_start);
-        getInstance().cpuState.setRSP((long) this.program.getLargestAddress());
-        getInstance().cpuView.setRegister(Register.RSP, (long) this.program.getLargestAddress());
-    }
-
-    public static boolean step() {
-        return getInstance().stepInstruction();
-    }
-
-    public static void run() {
-        boolean hlt;
-        do {
-            hlt = getInstance().stepInstruction();
-        } while(!hlt);
-    }
-
-    // Return true if the program reached a halt instruction
-    private boolean stepInstruction() {
-        SimulatorController sc = getInstance();
-        if(sc.program == null) return true;
-
-        long rip = sc.cpuState.getRIP();
-        Instruction instruction = sc.fetch();
-
-        try {
-            instruction.run();
-
-            if(instruction.getMnemonic().equals("hlt")) {
-                return true;
+        if (instruction.getMnemonic().equals("hlt")) {
+            halted = true;
+            // Don't advance RIP past hlt — displaceRIP(-size) already done
+            // in InstructionClass0, so RIP stays at hlt.
+            // Check immediately for pending interrupts.
+            if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
+                halted = false;
+                handleInterrupt();
             }
-        } catch(RuntimeException e) {
-            String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
-            String message = PropertyBroker.getMessageFromBundle("runtime.error.0.at.1", error, Long.toHexString(rip));
-            JOptionPane.showMessageDialog(null, message, PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
-        } catch(SimulatorException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage() + " [RIP: " + rip + "]", PropertyBroker.getMessageFromBundle("dialog.error"), JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        return false;
+        // Check for pending hardware interrupts after each instruction
+        if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
+            handleInterrupt();
+        }
     }
 
-    private Instruction fetch() {
+    private Instruction fetch() throws SimulatorException {
         long rip = this.cpuState.getRIP();
-        Instruction instruction = (Instruction) this.program.getMemoryElementAt(rip);
-        setRIP(rip + instruction.getSize());
+        MemoryElement element = this.program.getMemoryElementAt(rip);
+        if (!(element instanceof Instruction)) {
+            throw new SimulatorException("Cannot execute data at address 0x" + Long.toHexString(rip));
+        }
+        Instruction instruction = (Instruction) element;
+        // This fires PropertyChangeEvent --> RegisterBank updates RIP reactively
+        this.cpuState.setRIP(rip + instruction.getSize());
 
         return instruction;
     }
 
+    /**
+     * Handle a pending hardware interrupt via daisy-chain polling.
+     * <p>
+     * Polls devices in registration order (daisy chain). The first device
+     * with INT_REQ set wins. The interrupt entry sequence:
+     * push RFLAGS, push RIP, clear IF, jump to IVT handler.
+     */
+    private void handleInterrupt() {
+        DeviceMapping winner = Devices.getInstance().pollInterrupt();
+        if (winner == null) return;  // spurious — counter desynchronized
+
+        long rsp = cpuState.getRSP();
+
+        // Clear IF before pushing (pushed FLAGS will have IF=0;
+        // iret explicitly re-enables interrupts at the end)
+        long savedFlags = cpuState.getFlags();
+        cpuState.setIF(false);
+
+        // Push RIP first (return address — goes deeper on stack)
+        rsp -= 8;
+        writeQwordToMemory(rsp, cpuState.getRIP());
+
+        // Push FLAGS second (goes on top of stack)
+        rsp -= 8;
+        writeQwordToMemory(rsp, savedFlags);
+
+        cpuState.setRSP(rsp);
+
+        // Jump to handler via IVT (IVN * 8)
+        int ivn = winner.getIvn();
+        long handlerAddress = readQwordFromMemory(ivn * 8L);
+        cpuState.setRIP(handlerAddress);
+    }
+
+    /**
+     * Write a 64-bit value to memory in little-endian byte order.
+     */
+    private void writeQwordToMemory(long address, long value) {
+        for (int i = 0; i < 8; i++) {
+            Memory.setValueAt(address + i, (byte) (value >> (i * 8)));
+        }
+    }
+
+    /**
+     * Read a 64-bit value from memory in little-endian byte order.
+     */
+    private long readQwordFromMemory(long address) {
+        long value = 0;
+        for (int i = 0; i < 8; i++) {
+            value |= ((long) (Memory.getValueAt(address + i) & 0xFF)) << (i * 8);
+        }
+        return value;
+    }
+
     public static void setRIP(long address) {
         getInstance().cpuState.setRIP(address);
-        getInstance().cpuView.setRIP(address);
-        Memory.selectAddress(address);
-    }
-
-    public static void updateFlagsAndRefresh(long src, long dst, long result, int size, boolean subtract) {
-        updateFlags(src, dst, result, size, subtract);
-        getInstance().refreshFlags();
-    }
-
-    // TODO: exposing this is a violation of MVC pattern
-    public static void refreshUIFlags() {
-        getInstance().refreshFlags();
+        // Memory selection is now EDT-safe; skip in headless (no GUI) mode
+        if(getInstance().cpuView != null) {
+            Memory.selectAddress(address);
+        }
     }
 
     public static void updateFlags(long src, long dst, long result, int size, boolean subtract) {
@@ -343,15 +557,15 @@ public class SimulatorController extends Controller {
         long msbMask = 0;
         switch(size) {
             case 1:
-                mask = 0xFF;
+                mask = 0xFFL;
                 msbMask = 1 << 7;
                 break;
             case 2:
-                mask = 0xFFFF;
+                mask = 0xFFFFL;
                 msbMask = 1 << 15;
                 break;
             case 4:
-                mask = 0xFFFFFFFF;
+                mask = 0xFFFFFFFFL;
                 msbMask = 1L << 31;
                 break;
             case 8:
@@ -410,13 +624,5 @@ public class SimulatorController extends Controller {
         return count;
     }
 
-    @Override
-    public boolean dispatch(Events command) {
-        switch(command) {
-            case ASSEMBLE_PROGRAM:
-                assembleProgram();
-                break;
-        }
-        return false;
-    }
+
 }

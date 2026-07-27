@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+# SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
 # SPDX-License-Identifier: CC0-1.0
 name: Build
 
@@ -10,10 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
-          java-version: 11
+          java-version: 8
       - name: Build & Test
         run: mvn -B test --file pom.xml

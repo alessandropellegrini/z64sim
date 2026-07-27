@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.controller;
@@ -7,13 +7,14 @@ package it.uniroma2.pellegrini.z64sim.controller;
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.util.log.Logger;
 import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
-import it.uniroma2.pellegrini.z64sim.util.queue.Dispatcher;
-import it.uniroma2.pellegrini.z64sim.util.queue.Events;
+
 import org.jetbrains.annotations.NonNls;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,9 +24,10 @@ import java.net.URL;
 public class UpdateController extends Controller {
     private static final Logger log = LoggerFactory.getLogger();
     private static UpdateController instance = null;
+    private static final PropertyChangeSupport pcs = new PropertyChangeSupport(UpdateController.class);
 
-    private static boolean checkCompleted = false;
-    private static String upstreamVersion = null;
+    private static volatile boolean checkCompleted = false;
+    private static volatile String upstreamVersion = null;
 
     private static final String connectionUrl = "https://api.github.com/repos/alessandropellegrini/z64sim/releases/latest";
 
@@ -68,7 +70,7 @@ public class UpdateController extends Controller {
             log.warn(e.getMessage());
         } finally {
             checkCompleted = true;
-            Dispatcher.dispatch(Events.UPDATE_CHECK_COMPLETED);
+            pcs.firePropertyChange("updateCheckCompleted", false, true);
         }
     }
 
@@ -89,8 +91,7 @@ public class UpdateController extends Controller {
         return upstreamVersion != null && !PropertyBroker.getPropertyValue("z64sim.version").equals(upstreamVersion);
     }
 
-    @Override
-    public boolean dispatch(Events command) {
-        return false;
+    public static void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(propertyName, listener);
     }
 }

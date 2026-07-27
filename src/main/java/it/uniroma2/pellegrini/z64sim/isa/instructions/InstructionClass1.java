@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.instructions;
@@ -13,30 +13,37 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.util.log.Logger;
-import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 /**
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass1 extends Instruction {
-    private static final Logger log = LoggerFactory.getLogger();
+    private static final String[] MNEMONICS = {"mov", "movsX", "movzX", "lea", "push", "pop", "pushf", "popf", "movs", "stos"};
 
     private final Operand source;
     private final Operand destination;
     private final int implicitSize; // For instructions such as pushf, popf, movs, stos
 
-    public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) throws ParseException {
+    public InstructionClass1(String mnemonic, Operand s, Operand d, int implicitSize) {
         super(mnemonic, 1);
         this.source = s;
         this.destination = d;
         this.implicitSize = implicitSize;
 
-        if(s instanceof OperandImmediate && s.getSize() == 8 || s instanceof OperandImmediate && d instanceof OperandMemory) {
+        if(s instanceof OperandImmediate && (s.getSize() == 8 || (d instanceof OperandMemory && ((OperandMemory) d).getDisplacement() != 0))) {
             this.setSize(16);
         } else {
             this.setSize(8);
         }
+    }
+
+    private int getType() {
+        return lookupType(MNEMONICS);
+    }
+
+    @Override
+    protected byte[] encode() {
+        return encodeTwoOperand(getType(), this.source, this.destination);
     }
 
 
@@ -51,9 +58,10 @@ public class InstructionClass1 extends Instruction {
                 SimulatorController.setOperandValue(this.destination, srcValue);
                 break;
             case "movsX":
+                boolean msb;
                 switch(this.source.getSize()) {
                     case 1:
-                        boolean msb = (srcValue.byteValue() & 0x80) == 0x80;
+                        msb = (srcValue.byteValue() & 0x80) == 0x80;
                         if(msb) {
                             srcValue = srcValue | 0xFFFFFFFFFFFFFF00L;
                         } else {

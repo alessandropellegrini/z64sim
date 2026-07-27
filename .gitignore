@@ -118,3 +118,16 @@ buildNumber.properties
 .classpath
 
 # End of https://www.toptal.com/developers/gitignore/api/maven,intellij+all
+
+# javacc generated files (ParserGeneratorCC 1.1.4)
+AbstractCharStream.java
+Assembler.java
+AssemblerConstants.java
+AssemblerTokenManager.java
+CharStream.java
+JavaCharStream.java
+ParseException.java
+Token.java
+TokenMgrException.java
+
+.DS_Store

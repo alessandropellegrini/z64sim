@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim.isa.operands;
@@ -43,14 +43,6 @@ public class OperandMemory extends Operand {
 
     public long getBase() {
         return base;
-    }
-
-    public int getBaseSize() {
-        return base_size;
-    }
-
-    public void setDisplacement(Integer displacement) {
-        this.displacement = new MemoryPointer(displacement);
     }
 
     public String toString() {

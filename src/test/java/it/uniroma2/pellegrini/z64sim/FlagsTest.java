@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2015-2023 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
+ * SPDX-FileCopyrightText: 2015-2026 Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  * SPDX-License-Identifier: GPL-3.0-only
  */
 package it.uniroma2.pellegrini.z64sim;
@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Test;
 
 public class FlagsTest {
     final short OF = 1 << 11;
-    final short DF = 1 << 10;
-    final short IF = 1 << 9;
     final short SF = 1 << 7;
     final short ZF = 1 << 6;
     final short PF = 1 << 2;
