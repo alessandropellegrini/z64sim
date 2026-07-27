@@ -110,8 +110,8 @@ public class MainWindow extends View {
         // The form generates editorTab with [scrollPane, statusPanel] in a GridLayout.
         // We re-layout it with BorderLayout: scroll pane CENTER, find bar + status SOUTH.
         {
-            java.awt.Component scrollPane = editorTab.getComponent(0); // editor scroll pane
-            java.awt.Component statusPanel = editorTab.getComponent(1); // position label panel
+            Component scrollPane = editorTab.getComponent(0); // editor scroll pane
+            Component statusPanel = editorTab.getComponent(1); // position label panel
             editorTab.removeAll();
             editorTab.setLayout(new BorderLayout());
             editorTab.add(scrollPane, BorderLayout.CENTER);
