@@ -38,7 +38,9 @@ public class InstructionClass0 extends Instruction {
     @Override
     public void run() {
         if(this.mnemonic.equals("hlt")) {
-            SimulatorController.displaceRIP(-this.size);
+            // Nothing to do — SimulatorController sets the halted flag and
+            // RIP is left pointing past hlt so that interrupt return addresses
+            // are correct.
         }
         if(this.mnemonic.equals("int")) {
             throw new UnsupportedOperationException("Interrupt management is not yet supported.");
