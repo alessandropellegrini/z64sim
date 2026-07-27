@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Singleton registry of devices bound to IVT entries.
  * Serves as the table model for the IVT table in the GUI.
- *
+ * <p>
  * The z64 IVT has 256 entries (IVN 0–255), each holding a 64-bit pointer
  * to a driver routine. This class tracks which device (if any) is bound
  * to each IVN.
@@ -115,23 +115,6 @@ public class Devices extends AbstractTableModel {
     }
 
     /**
-     * Remove the device bound to the given IVN.
-     *
-     * @param ivn interrupt vector number (0–255)
-     */
-    public void unregisterDevice(int ivn) {
-        if (ivn < 0 || ivn >= IVT_ENTRIES)
-            throw new IllegalArgumentException("IVN out of range: " + ivn);
-        DeviceMapping removed = devices[ivn];
-        devices[ivn] = null;
-        if (removed != null) {
-            interruptChain.remove(removed);
-            allDevicesOrdered.remove(removed);
-        }
-        fireTableRowsUpdated(ivn, ivn);
-    }
-
-    /**
      * Return the device mapping bound to the given IVN, or null if none.
      */
     public DeviceMapping getDevice(int ivn) {
@@ -179,15 +162,6 @@ public class Devices extends AbstractTableModel {
      */
     public void registerPort(long port, DeviceMapping mapping) {
         portMap.put(port, mapping);
-    }
-
-    /**
-     * Unregister the device on a specific I/O port.
-     *
-     * @param port the I/O port address to free
-     */
-    public void unregisterPort(long port) {
-        portMap.remove(port);
     }
 
     /**
@@ -284,11 +258,6 @@ public class Devices extends AbstractTableModel {
     @Override
     public Class<?> getColumnClass(int col) {
         return String.class;
-    }
-
-    @Override
-    public boolean isCellEditable(int row, int col) {
-        return false;
     }
 
     @Override

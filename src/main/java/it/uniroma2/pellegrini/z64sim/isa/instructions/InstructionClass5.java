@@ -10,15 +10,12 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
-import it.uniroma2.pellegrini.z64sim.util.log.Logger;
-import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 /**
  *
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass5 extends Instruction {
-    private static final Logger log = LoggerFactory.getLogger();
 
     private static final String[] MNEMONICS = {"jmp", "call", "ret", "iret"};
 
@@ -30,7 +27,6 @@ public class InstructionClass5 extends Instruction {
         this.setSize(8);
     }
 
-    @Override
     public int getType() {
         if ("retq".equals(this.mnemonic)) {
             return 2;

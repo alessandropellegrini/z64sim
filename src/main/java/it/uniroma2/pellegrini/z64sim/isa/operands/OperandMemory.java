@@ -45,14 +45,6 @@ public class OperandMemory extends Operand {
         return base;
     }
 
-    public int getBaseSize() {
-        return base_size;
-    }
-
-    public void setDisplacement(Integer displacement) {
-        this.displacement = new MemoryPointer(displacement);
-    }
-
     public String toString() {
         String representation = "";
 

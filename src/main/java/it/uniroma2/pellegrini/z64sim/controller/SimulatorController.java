@@ -98,8 +98,8 @@ public class SimulatorController extends Controller {
         final int index = op.getIndex();
         final int scale = op.getScale();
 
-        final Long baseValue = base != -1 ? getInstance().cpuState.getRegisterValue((int) base) : 0;
-        final Long indexValue = index != -1 ? getInstance().cpuState.getRegisterValue(index) : 0;
+        final long baseValue = base != -1 ? getInstance().cpuState.getRegisterValue((int) base) : 0;
+        final long indexValue = index != -1 ? getInstance().cpuState.getRegisterValue(index) : 0;
 
         long address = scale != -1 ? indexValue * scale : 0;
         address += baseValue;
@@ -557,15 +557,15 @@ public class SimulatorController extends Controller {
         long msbMask = 0;
         switch(size) {
             case 1:
-                mask = 0xFF;
+                mask = 0xFFL;
                 msbMask = 1 << 7;
                 break;
             case 2:
-                mask = 0xFFFF;
+                mask = 0xFFFFL;
                 msbMask = 1 << 15;
                 break;
             case 4:
-                mask = 0xFFFFFFFF;
+                mask = 0xFFFFFFFFL;
                 msbMask = 1L << 31;
                 break;
             case 8:

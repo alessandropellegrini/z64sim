@@ -62,12 +62,10 @@ public class DmacTest {
 
         SequentialInputDevice() {
             // STATUS write: start device --> produce next value
-            onWrite("STATUS", data -> {
-                scheduleAfterDelay(() -> {
-                    dataOut = nextValue & 0xFF;
-                    nextValue++;
-                }, 100);
-            });
+            onWrite("STATUS", data -> scheduleAfterDelay(() -> {
+                dataOut = nextValue & 0xFF;
+                nextValue++;
+            }, 100));
 
             // STATUS read: always ready (1) — we process synchronously in DMA mode
             onRead("STATUS", () -> 1L);

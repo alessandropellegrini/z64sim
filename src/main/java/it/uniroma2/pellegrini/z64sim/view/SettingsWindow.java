@@ -69,12 +69,9 @@ public class SettingsWindow extends JDialog {
 
         // call onCancel() on ESCAPE
         contentPane.registerKeyboardAction(e -> onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        languageComboBox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent itemEvent) {
-                needRestart = languageComboBox.getSelectedIndex() != currentLanguageIdx;
-                warningLabel.setVisible(needRestart);
-            }
+        languageComboBox.addItemListener(itemEvent -> {
+            needRestart = languageComboBox.getSelectedIndex() != currentLanguageIdx;
+            warningLabel.setVisible(needRestart);
         });
     }
 
@@ -83,7 +80,7 @@ public class SettingsWindow extends JDialog {
         SettingsController.setUiLangIdx(languageComboBox.getSelectedIndex());
         SettingsController.setThemeIdx(themeComboBox.getSelectedIndex());
         SettingsController.setLogShowDateTime(logDateTimeCheckBox.isSelected());
-        SettingsController.setLogFile(logFile.getSelectedFilePath().equals("") ? null : logFile.getSelectedFilePath());
+        SettingsController.setLogFile(logFile.getSelectedFilePath().isEmpty() ? null : logFile.getSelectedFilePath());
         SettingsController.setShowLineNumbers(showLineNumbers.isSelected());
         SettingsController.persist();
 

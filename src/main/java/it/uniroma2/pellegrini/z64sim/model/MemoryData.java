@@ -21,10 +21,6 @@ public class MemoryData implements MemoryElement {
         return 1;
     }
 
-    public void setValue(byte value) {
-        this.value = value;
-    }
-
     @Override
     public String toString() {
         return String.format("%02x", this.value);

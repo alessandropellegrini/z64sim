@@ -20,7 +20,6 @@ public class InstructionClass4 extends Instruction {
         this.setSize(8);
     }
 
-    @Override
     public int getType() {
         return lookupType(MNEMONICS);
     }

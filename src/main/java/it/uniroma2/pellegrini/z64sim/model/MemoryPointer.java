@@ -19,7 +19,4 @@ public class MemoryPointer {
         this.target = target;
     }
 
-    public MemoryElement dereference() throws Exception {
-        throw new Exception("unimplemented");
-    }
 }

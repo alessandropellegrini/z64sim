@@ -24,7 +24,7 @@ public class InstructionClass2 extends Instruction {
     @NonNls
     private static final String[] opcodes = {"add", "sub", "adc", "sbb", "cmp", "test", "neg", "and", "or", "xor", "not", "bt"};
 
-    public InstructionClass2(String mnemonic, Operand s, Operand d) throws ParseException {
+    public InstructionClass2(String mnemonic, Operand s, Operand d) {
         super(mnemonic, 2);
         this.source = s;
         this.destination = d;
@@ -36,7 +36,6 @@ public class InstructionClass2 extends Instruction {
         }
     }
 
-    @Override
     public int getType() {
         return lookupType(opcodes);
     }
@@ -67,7 +66,7 @@ public class InstructionClass2 extends Instruction {
                 break;
         }
 
-        Long result = 0L;
+        long result = 0L;
 
         switch(mnemonic) {
             case "add":

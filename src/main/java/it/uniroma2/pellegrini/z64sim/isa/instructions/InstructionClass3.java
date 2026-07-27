@@ -8,8 +8,6 @@ import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.DisassembleException;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
-import it.uniroma2.pellegrini.z64sim.util.log.Logger;
-import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 
 /**
@@ -17,7 +15,6 @@ import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
  * @author Alessandro Pellegrini <a.pellegrini@ing.uniroma2.it>
  */
 public class InstructionClass3 extends Instruction {
-    private static final Logger log = LoggerFactory.getLogger();
 
     private static final String[] MNEMONICS = {"sal", "sar", "shr", "rcl", "rcr", "rol", "ror"};
 
@@ -40,7 +37,6 @@ public class InstructionClass3 extends Instruction {
         return this.reg;
     }
 
-    @Override
     public int getType() {
         if ("shl".equals(this.mnemonic)) {
             return 0;
@@ -67,13 +63,13 @@ public class InstructionClass3 extends Instruction {
         long mask = 0;
         switch(this.reg.getSize()) {
             case 1:
-                mask = 0xFF;
+                mask = 0xFFL;
                 break;
             case 2:
-                mask = 0xFFFF;
+                mask = 0xFFFFL;
                 break;
             case 4:
-                mask = 0xFFFFFFFF;
+                mask = 0xFFFFFFFFL;
                 break;
             case 8:
                 mask = 0xFFFFFFFFFFFFFFFFL;
@@ -141,7 +137,7 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     long resultMsb = result & msbMask;
                     long resultMsb1 = result & (msbMask >>> 1);
-                    SimulatorController.setOF((resultMsb != 0) != (resultMsb1 != 0));
+                    SimulatorController.setOF((resultMsb == 0) == (resultMsb1 != 0));
                 }
                 break;
             }
@@ -151,7 +147,7 @@ public class InstructionClass3 extends Instruction {
                 result = ((value << count) | (value >>> (bitWidth - count))) & mask;
                 SimulatorController.setCF((result & 1) != 0);
                 if(places == 1) {
-                    SimulatorController.setOF(((result & msbMask) != 0) != ((result & 1) != 0));
+                    SimulatorController.setOF(((result & msbMask) == 0) == ((result & 1) != 0));
                 }
                 break;
             }
@@ -163,7 +159,7 @@ public class InstructionClass3 extends Instruction {
                 if(places == 1) {
                     long resultMsb = result & msbMask;
                     long resultMsb1 = result & (msbMask >>> 1);
-                    SimulatorController.setOF((resultMsb != 0) != (resultMsb1 != 0));
+                    SimulatorController.setOF((resultMsb == 0) == (resultMsb1 != 0));
                 }
                 break;
             }

@@ -37,7 +37,7 @@ public class InstructionClass7Test {
 
     @Test
     @DisplayName("out to unmapped port is a no-op")
-    public void testOut() throws ParseException, SimulatorException {
+    public void testOut() throws ParseException {
         OperandImmediate ioport = new OperandImmediate(0x123);
         Instruction out = new InstructionClass7("out", 4, ioport);
         // Should not throw — just a no-op when no device is mapped

@@ -60,7 +60,4 @@ public class JFilePicker extends JPanel {
         filePath.setText(path);
     }
 
-    public JFileChooser getFileChooser() {
-        return this.fileChooser;
-    }
 }

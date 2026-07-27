@@ -233,7 +233,7 @@ public class MicrocodeGenerator {
         } else if ("push".equals(mn)) {
             generatePush(ops, insn, src);
         } else if ("pop".equals(mn)) {
-            generatePop(ops, insn, dst);
+            generatePop(ops, dst);
         } else if ("pushf".equals(mn)) {
             ops.add("MDR" + ARROW + "FLAGS");
             addStackPush(ops);
@@ -355,7 +355,7 @@ public class MicrocodeGenerator {
         addStackPush(ops);
     }
 
-    private static void generatePop(List<String> ops, InstructionClass1 insn, Operand dst) {
+    private static void generatePop(List<String> ops, Operand dst) {
         addStackPop(ops);
         if (dst instanceof OperandMemory) {
             // Save popped value, compute address, store
@@ -406,21 +406,16 @@ public class MicrocodeGenerator {
         String aluOp = getClass2AluOp(mn);
 
         // Unary operations: neg, not
-        if ("neg".equals(mn) || "not".equals(mn)) {
-            generateUnary(ops, dst, aluOp);
-            return ops;
-        }
+        switch (mn) {
+            case "neg":
+            case "not":
+                generateUnary(ops, dst, aluOp);
+                return ops;
 
-        // bt (bit test)
-        if ("bt".equals(mn)) {
-            generateBitTest(ops, src, dst);
-            return ops;
-        }
-
-        // mul, imul, div, idiv
-        if ("mul".equals(mn) || "imul".equals(mn) || "div".equals(mn) || "idiv".equals(mn)) {
-            generateMulDiv(ops, mn, src, dst);
-            return ops;
+            // bt (bit test)
+            case "bt":
+                generateBitTest(ops, src, dst);
+                return ops;
         }
 
         // Discard result for cmp and test
@@ -537,38 +532,7 @@ public class MicrocodeGenerator {
         ops.add("ALU_OUT[BIT_TEST]");
     }
 
-    private static void generateMulDiv(List<String> ops, String mn, Operand src, Operand dst) {
-        // Source operand is in dst field (single-operand), implicit RAX
-        if (dst instanceof OperandMemory) {
-            addAddressCalc(ops, (OperandMemory) dst);
-            addMemoryRead(ops);
-            ops.add("TEMP1" + ARROW + "MDR");
-        } else if (dst instanceof OperandRegister) {
-            ops.add("TEMP1" + ARROW + regName((OperandRegister) dst));
-        }
-        ops.add("TEMP2" + ARROW + "RAX");
-
-        switch (mn) {
-            case "mul":
-                ops.add("RAX" + ARROW + "ALU_OUT[MUL, LOW]");
-                ops.add("RDX" + ARROW + "ALU_OUT[MUL, HIGH]");
-                break;
-            case "imul":
-                ops.add("RAX" + ARROW + "ALU_OUT[IMUL, LOW]");
-                ops.add("RDX" + ARROW + "ALU_OUT[IMUL, HIGH]");
-                break;
-            case "div":
-                ops.add("RAX" + ARROW + "ALU_OUT[DIV, QUOT]");
-                ops.add("RDX" + ARROW + "ALU_OUT[DIV, REM]");
-                break;
-            case "idiv":
-                ops.add("RAX" + ARROW + "ALU_OUT[IDIV, QUOT]");
-                ops.add("RDX" + ARROW + "ALU_OUT[IDIV, REM]");
-                break;
-        }
-    }
-
-    // =====================================================================
+        // =====================================================================
     // Class 3: Shift and Rotate
     // =====================================================================
 
@@ -579,18 +543,9 @@ public class MicrocodeGenerator {
         String regN = regName(insn.getReg());
         String mn = insn.getMnemonic();
 
-        // Map mnemonic to shifter operation
-        String shiftOp;
-        switch (mn) {
-            case "sal": case "shl": shiftOp = "SHL"; break;
-            case "sar": shiftOp = "SAR"; break;
-            case "shr": shiftOp = "SHR"; break;
-            case "rcl": shiftOp = "RCL"; break;
-            case "rcr": shiftOp = "RCR"; break;
-            case "rol": shiftOp = "ROL"; break;
-            case "ror": shiftOp = "ROR"; break;
-            default: shiftOp = mn.toUpperCase(); break;
-        }
+        String shiftOp = mn.toUpperCase();;
+        if(shiftOp.equals("SAL"))
+            shiftOp = "SHL";
 
         ops.add("TEMP2" + ARROW + regN);
         ops.add(regN + ARROW + "SHIFTER_OUT[" + shiftOp + ", " + insn.getPlaces() + "]");
@@ -601,8 +556,6 @@ public class MicrocodeGenerator {
     // =====================================================================
     // Class 4: Flag manipulation
     // =====================================================================
-
-    private static final String[] FLAG_NAMES = {"CF", "PF", "ZF", "SF", "IF", "DF", "OF"};
 
     private static List<String> generateClass4(InstructionClass4 insn) {
         List<String> ops = new ArrayList<>();
@@ -680,8 +633,6 @@ public class MicrocodeGenerator {
     // =====================================================================
     // Class 6: Conditional jumps
     // =====================================================================
-
-    private static final String[] COND_FLAGS = {"CF", "PF", "ZF", "SF", "OF"};
 
     private static List<String> generateClass6(InstructionClass6 insn) {
         List<String> ops = new ArrayList<>();

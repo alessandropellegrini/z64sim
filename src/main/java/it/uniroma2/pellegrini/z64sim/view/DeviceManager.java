@@ -33,7 +33,6 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -118,12 +117,7 @@ public class DeviceManager extends JDialog {
         discoverFromWorkingDirectory();
 
         // Sort alphabetically and populate combo box
-        discoveredClasses.sort(new Comparator<Class<? extends Device>>() {
-            @Override
-            public int compare(Class<? extends Device> a, Class<? extends Device> b) {
-                return a.getSimpleName().compareTo(b.getSimpleName());
-            }
-        });
+        discoveredClasses.sort(Comparator.comparing(Class::getSimpleName));
         for (Class<? extends Device> cls : discoveredClasses) {
             deviceEnumeration.addItem(cls.getSimpleName());
         }
@@ -238,13 +232,13 @@ public class DeviceManager extends JDialog {
     // ---- DeviceEntry: one row in devicesTable ----
 
     private static class DeviceEntry {
-        Device device;
+        final Device device;
         int ivn;
-        boolean removable;
+        final boolean removable;
         /**
          * element name --> I/O port address (-1 = unassigned)
          */
-        Map<String, Long> portAssignments;
+        final Map<String, Long> portAssignments;
 
         DeviceEntry(Device device, int ivn, boolean removable) {
             this.device = device;

@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class DisassemblerTest {
 
-    private void assembleAndDisassemble(String testProgram) throws ParseException, IOException {
+    private void assembleAndDisassemble(String testProgram) throws ParseException {
         InputStream is = getClass().getResourceAsStream(testProgram);
         InputStreamReader isr = new InputStreamReader(Objects.requireNonNull(is));
         Assembler a = new Assembler(isr);

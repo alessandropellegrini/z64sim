@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Test;
 
 public class FlagsTest {
     final short OF = 1 << 11;
-    final short DF = 1 << 10;
-    final short IF = 1 << 9;
     final short SF = 1 << 7;
     final short ZF = 1 << 6;
     final short PF = 1 << 2;

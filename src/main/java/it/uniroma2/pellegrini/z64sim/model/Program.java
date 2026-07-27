@@ -32,7 +32,7 @@ public class Program {
     private ArrayList<RelocationEntry> relocations = new ArrayList<>();
     private Integer locationCounter = 0;
 
-    public MemoryPointer text = new MemoryPointer(0);
+    public final MemoryPointer text = new MemoryPointer(0);
     public MemoryPointer _start = null;
 
     public Program() {
@@ -89,7 +89,7 @@ public class Program {
         return true;
     }
 
-    public Long getLabelAddress(String name) throws ParseException {
+    public Long getLabelAddress(String name) {
         final MemoryPointer mp = labels.get(name);
         if(mp == null)
             return null;
@@ -181,7 +181,7 @@ public class Program {
             this.label = label;
         }
 
-        private void relocateImmediate(OperandImmediate op, Instruction insn) throws ProgramException {
+        private void relocateImmediate(OperandImmediate op) throws ProgramException {
             // Get target address of the relocation
             MemoryPointer target = findLabelAddress(this.label);
             if (target == null) {
@@ -191,7 +191,7 @@ public class Program {
             op.relocate(target);
         }
 
-        private void relocateMemory(OperandMemory op, Instruction insn) throws ProgramException {
+        private void relocateMemory(OperandMemory op) throws ProgramException {
             // Get target address of the relocation
             MemoryPointer target = findLabelAddress(this.label);
             if (target == null) {
@@ -234,39 +234,39 @@ public class Program {
                     source = ((InstructionClass1) insn).getSource();
                     destination = ((InstructionClass1) insn).getDestination();
                     if (source instanceof OperandImmediate) {
-                        relocateImmediate((OperandImmediate) source, insn);
+                        relocateImmediate((OperandImmediate) source);
                     }
                     if (source instanceof OperandMemory) {
-                        relocateMemory((OperandMemory) source, insn);
+                        relocateMemory((OperandMemory) source);
                     }
                     if (destination instanceof OperandMemory) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
                 case 2:
                     source = ((InstructionClass2) insn).getSource();
                     destination = ((InstructionClass2) insn).getDestination();
                     if (source instanceof OperandImmediate) {
-                        relocateImmediate((OperandImmediate) source, insn);
+                        relocateImmediate((OperandImmediate) source);
                     }
                     if (source instanceof OperandMemory) {
-                        relocateMemory((OperandMemory) source, insn);
+                        relocateMemory((OperandMemory) source);
                     }
                     if (destination != null) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
 
                 case 5:
                     destination = ((InstructionClass5) insn).getTarget();
                     if (destination != null) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
                 case 6:
                     destination = ((InstructionClass6) insn).getTarget();
                     if (destination != null) {
-                        relocateMemory((OperandMemory) destination, insn);
+                        relocateMemory((OperandMemory) destination);
                     }
                     break;
                 default:

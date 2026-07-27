@@ -34,7 +34,7 @@ public class AssemblerTest {
 
     @Test
     @DisplayName("Testing Assembler")
-    public void testAssembler() throws ParseException {
+    public void testAssembler() {
         assertDoesNotThrow(() -> assemble("/test.asm"));
         assertDoesNotThrow(() -> assemble("/relocations.asm"));
         assertDoesNotThrow(() -> assemble("/isa.asm"));

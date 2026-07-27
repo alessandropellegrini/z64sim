@@ -49,7 +49,7 @@ public class InstructionInspector extends JDialog {
     private final ListSelectionListener selectionListener;
     private Instruction currentInsn;
 
-    public InstructionInspector(Window owner, Instruction insn, long address, JTable memoryView) {
+    public InstructionInspector(Window owner, Instruction insn, JTable memoryView) {
         super(owner, "Instruction Inspector", ModalityType.MODELESS);
         this.memoryView = memoryView;
 

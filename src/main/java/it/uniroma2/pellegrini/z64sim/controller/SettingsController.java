@@ -91,10 +91,6 @@ public class SettingsController extends Controller {
         pcs.addPropertyChangeListener(propertyName, listener);
     }
 
-    public static void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(propertyName, listener);
-    }
-
     private static SettingsController getInstance() {
         if(instance == null)
             init();
@@ -200,7 +196,7 @@ public class SettingsController extends Controller {
 
     public static List<DeviceConfig> getDeviceConfigs() {
         List<DeviceConfig> configs = getInstance().settings.getDeviceConfigs();
-        return configs != null ? configs : new ArrayList<DeviceConfig>();
+        return configs != null ? configs : new ArrayList<>();
     }
 
     public static void setDeviceConfigs(List<DeviceConfig> configs) {
@@ -211,7 +207,6 @@ public class SettingsController extends Controller {
      * Reconstruct live Device instances from saved configuration
      * and register them in the Devices singleton.
      */
-    @SuppressWarnings("unchecked")
     public static void applyDeviceConfig() {
         List<DeviceConfig> configs = getDeviceConfigs();
         if (configs.isEmpty()) return;
@@ -253,16 +248,16 @@ public class SettingsController extends Controller {
         public String className;
         public int ivn;
         /** element name --> I/O port address (-1 = unassigned) */
-        public HashMap<String, Long> portAssignments;
+        public final HashMap<String, Long> portAssignments;
 
         public DeviceConfig() {
-            this.portAssignments = new HashMap<String, Long>();
+            this.portAssignments = new HashMap<>();
         }
 
         public DeviceConfig(String className, int ivn, Map<String, Long> ports) {
             this.className = className;
             this.ivn = ivn;
-            this.portAssignments = new HashMap<String, Long>(ports);
+            this.portAssignments = new HashMap<>(ports);
         }
     }
 
@@ -296,7 +291,7 @@ public class SettingsController extends Controller {
             this.windowSizeY = Integer.parseInt(PropertyBroker.getPropertyValue("z64sim.ui.minSizeY"));
             this.fileLastDir = null;
             this.showLineNumbers = true;
-            this.deviceConfigs = new ArrayList<DeviceConfig>();
+            this.deviceConfigs = new ArrayList<>();
         }
 
         protected static Settings loadConfiguration() throws SettingsException {
@@ -343,9 +338,9 @@ public class SettingsController extends Controller {
             try {
                 @SuppressWarnings("unchecked")
                 List<DeviceConfig> saved = (List<DeviceConfig>) fields.get("deviceConfigs", null);
-                this.deviceConfigs = saved != null ? saved : new ArrayList<DeviceConfig>();
+                this.deviceConfigs = saved != null ? saved : new ArrayList<>();
             } catch (Exception e) {
-                this.deviceConfigs = new ArrayList<DeviceConfig>();
+                this.deviceConfigs = new ArrayList<>();
             }
         }
 

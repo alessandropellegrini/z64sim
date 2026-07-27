@@ -57,27 +57,27 @@ everything the simulator needs to know about the device's I/O interface.
 
 ### Builder Methods
 
-| Method | Effect |
-|--------|--------|
-| `Builder(String name)` | Sets the device display name. |
-| `.busyWaiting()` | Enables the busy-waiting protocol. Automatically adds a `STATUS` flip-flop (readable + writable). |
-| `.interrupts()` | Enables interrupt-driven I/O. Automatically adds an `INT_REQ` flip-flop (writable). The IVN (Interrupt Vector Number) is hardwired at device registration time. |
-| `.ioPort(name, flags, widthBytes)` | Adds a custom register element with the given width (1, 2, 4, or 8 bytes). |
-| `.ioPort(name, flags)` | Adds a custom flip-flop element (width defaults to 1 byte). |
-| `.build()` | Returns the immutable `DeviceDescriptor`. |
+| Method                             | Effect                                                                                                                                                          |
+|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Builder(String name)`             | Sets the device display name.                                                                                                                                   |
+| `.busyWaiting()`                   | Enables the busy-waiting protocol. Automatically adds a `STATUS` flip-flop (readable + writable).                                                               |
+| `.interrupts()`                    | Enables interrupt-driven I/O. Automatically adds an `INT_REQ` flip-flop (writable). The IVN (Interrupt Vector Number) is hardwired at device registration time. |
+| `.ioPort(name, flags, widthBytes)` | Adds a custom register element with the given width (1, 2, 4, or 8 bytes).                                                                                      |
+| `.ioPort(name, flags)`             | Adds a custom flip-flop element (width defaults to 1 byte).                                                                                                     |
+| `.build()`                         | Returns the immutable `DeviceDescriptor`.                                                                                                                       |
 
 ### I/O Port Flags
 
 Flags are defined as constants on `IoPortDescriptor` and combined with
 bitwise OR:
 
-| Flag | Value | Meaning |
-|------|-------|---------|
-| `FLIP_FLOP` | `0x01` | Element is a 1-bit flip-flop. |
-| `REGISTER` | `0x02` | Element is a multi-byte register. |
-| `READABLE` | `0x04` | CPU can read from this element (`in` instruction). |
-| `WRITABLE` | `0x08` | CPU can write to this element (`out` instruction). |
-| `CONNECTED_TO_CU` | `0x10` | Element output feeds the Control Unit (schematic rendering hint). |
+| Flag              | Value  | Meaning                                                              |
+|-------------------|--------|----------------------------------------------------------------------|
+| `FLIP_FLOP`       | `0x01` | Element is a 1-bit flip-flop.                                        |
+| `REGISTER`        | `0x02` | Element is a multi-byte register.                                    |
+| `READABLE`        | `0x04` | CPU can read from this element (`in` instruction).                   |
+| `WRITABLE`        | `0x08` | CPU can write to this element (`out` instruction).                   |
+| `CONNECTED_TO_CU` | `0x10` | Element output feeds the Control Unit (schematic rendering hint).    |
 | `CONNECTED_TO_PU` | `0x20` | Element output feeds the Processing Unit (schematic rendering hint). |
 
 `FLIP_FLOP` and `REGISTER` are mutually exclusive. Every element should have at least
@@ -228,8 +228,7 @@ The schematic shows:
 
 - The CPU and its three buses (I/O Address Bus, I/O Data Bus, I/O Control Bus)
 - The address decoder with selector outputs
-- All flip-flops with their S/R logic gates (AND gates gating WR, IO,
-  decoder select, and data bus bits as appropriate)
+- All flip-flops with their S/R logic gates
 - All registers with their tri-state buffers and load logic
 - The Control Unit hexagon (if applicable)
 - Interrupt request logic and daisy-chain wiring (if interrupt-capable)

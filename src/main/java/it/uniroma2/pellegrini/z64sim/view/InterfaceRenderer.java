@@ -41,14 +41,10 @@ public class InterfaceRenderer {
             }
         }
 
-        boolean hasMode = false;
         List<IoPortDescriptor> customFfs = new ArrayList<>();
         for (IoPortDescriptor p : desc.getIoPorts()) {
             if (p.isFlipFlop() && !p.getName().equals("STATUS") && !p.getName().equals("INT_REQ")) {
                 customFfs.add(p);
-                if (p.getName().equals("MODE")) {
-                    hasMode = true;
-                }
                 // Reserve more space for writable FFs (AND4 gates + 4 drop wires)
                 tempX += p.isWritable() ? 380 : 280;
             }
@@ -81,7 +77,6 @@ public class InterfaceRenderer {
 
         int busEnd = xCu + 100;
         int textEnd = xCu + 110;
-        int decEnd = busEnd;
 
         drawLine(g2, 120, yAb, busEnd, yAb);
         drawText(g2, textEnd, yAb, "I/OAB", TextAlign.START, false);
@@ -120,7 +115,7 @@ public class InterfaceRenderer {
             int xOut = startX + i * 15;
             int yBus = yDecBusStart + i * decBusSpacing;
             compDecY.put(c, yBus);
-            drawOrthogonal(g2, new int[][]{ {xOut, decOutY}, {xOut, yBus}, {decEnd, yBus} });
+            drawOrthogonal(g2, new int[][]{ {xOut, decOutY}, {xOut, yBus}, {busEnd, yBus} });
             drawNode(g2, xOut, decOutY);
         }
 
@@ -228,7 +223,7 @@ public class InterfaceRenderer {
             drawText(g2, xRight - 15, yBox + 15, "Q", TextAlign.START, false);
             drawText(g2, xRight - 20, yBox + boxH - 15, "Q", TextAlign.START, true);
 
-            int decY = compDecY.containsKey(name) ? compDecY.get(name) : yDecBusStart;
+            int decY = compDecY.getOrDefault(name, yDecBusStart);
 
             if (p.isWritable()) {
                 // Writable FF: CPU writes 0/1 via data bus.
@@ -749,38 +744,40 @@ public class InterfaceRenderer {
         g2.setStroke(new BasicStroke(2));
         g2.draw(path);
 
+        int[] in1;
+        int[] in2;
+        int[] in3;
+        int[] in4;
+        int[] out;
         if (dir == Direction.RIGHT) {
-            int[] in1 = {x - 15, y - 12};
-            int[] in2 = {x - 15, y - 4};
-            int[] in3 = {x - 15, y + 4};
-            int[] in4 = {x - 15, y + 12};
-            int[] out = {x + 20, y};
+            in1 = new int[]{x - 15, y - 12};
+            in2 = new int[]{x - 15, y - 4};
+            in3 = new int[]{x - 15, y + 4};
+            in4 = new int[]{x - 15, y + 12};
+            out = new int[]{x + 20, y};
             if (invertIn4) {
                 drawWhiteNode(g2, in4[0] - 4, in4[1]);
                 in4 = new int[]{in4[0] - 8, in4[1]};
             }
-            return new int[][]{in1, in2, in3, in4, out};
         } else {
-            int[] in1 = {x + 15, y - 12};
-            int[] in2 = {x + 15, y - 4};
-            int[] in3 = {x + 15, y + 4};
-            int[] in4 = {x + 15, y + 12};
-            int[] out = {x - 20, y};
+            in1 = new int[]{x + 15, y - 12};
+            in2 = new int[]{x + 15, y - 4};
+            in3 = new int[]{x + 15, y + 4};
+            in4 = new int[]{x + 15, y + 12};
+            out = new int[]{x - 20, y};
             if (invertIn4) {
                 drawWhiteNode(g2, in4[0] + 4, in4[1]);
                 in4 = new int[]{in4[0] + 8, in4[1]};
             }
-            return new int[][]{in1, in2, in3, in4, out};
         }
+        return new int[][]{in1, in2, in3, in4, out};
     }
 
     private int[] getDropXs(int startX, String[] labels, Direction dir, int padding) {
         int[] xs = new int[labels.length];
         double currX = startX;
         for (int i = 0; i < labels.length; i++) {
-            if (i == 0) {
-                xs[i] = (int) currX;
-            } else {
+            if (i != 0) {
                 int prevLen = labels[i - 1].length();
                 int currLen = labels[i].length();
                 double dist = (prevLen + currLen) / 2.0 * 9 + padding;
@@ -789,8 +786,8 @@ public class InterfaceRenderer {
                 } else {
                     currX += dist;
                 }
-                xs[i] = (int) currX;
             }
+            xs[i] = (int) currX;
         }
         return xs;
     }

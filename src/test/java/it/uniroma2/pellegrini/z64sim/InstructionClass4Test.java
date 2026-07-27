@@ -23,7 +23,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("clc/stc: clear and set carry flag")
-    public void testClcStc() throws SimulatorException {
+    public void testClcStc() {
         SimulatorController.setCF(true);
         new InstructionClass4("clc").run();
         assertFalse(SimulatorController.getCF());
@@ -34,7 +34,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("clz/stz: clear and set zero flag")
-    public void testClzStz() throws SimulatorException {
+    public void testClzStz() {
         SimulatorController.setZF(true);
         new InstructionClass4("clz").run();
         assertFalse(SimulatorController.getZF());
@@ -45,7 +45,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("cls/sts: clear and set sign flag")
-    public void testClsSts() throws SimulatorException {
+    public void testClsSts() {
         SimulatorController.setSF(true);
         new InstructionClass4("cls").run();
         assertFalse(SimulatorController.getSF());
@@ -56,7 +56,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("clp/stp: clear and set parity flag")
-    public void testClpStp() throws SimulatorException {
+    public void testClpStp() {
         SimulatorController.setPF(true);
         new InstructionClass4("clp").run();
         assertFalse(SimulatorController.getPF());
@@ -67,7 +67,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("clo/sto: clear and set overflow flag")
-    public void testCloSto() throws SimulatorException {
+    public void testCloSto() {
         SimulatorController.setOF(true);
         new InstructionClass4("clo").run();
         assertFalse(SimulatorController.getOF());
@@ -78,7 +78,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("cli/sti: clear and set interrupt flag")
-    public void testCliSti() throws SimulatorException {
+    public void testCliSti() {
         SimulatorController.setIF(true);
         new InstructionClass4("cli").run();
         assertFalse(SimulatorController.getIF());
@@ -89,7 +89,7 @@ public class InstructionClass4Test {
 
     @Test
     @DisplayName("cld/std: clear and set direction flag")
-    public void testCldStd() throws SimulatorException {
+    public void testCldStd() {
         SimulatorController.setDF(true);
         new InstructionClass4("cld").run();
         assertFalse(SimulatorController.getDF());

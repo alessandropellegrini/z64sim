@@ -63,7 +63,7 @@ public class MuOpOverlayMapper {
         }
         // Memory read: 3 clock cycles
         else if (muOp.equals("MDR \u2190 (MAR) [1/3]")) {
-            ov.addAll(Arrays.asList("mar-read"));
+            ov.add("mar-read");
             signals = "B_AB = 1";
         } else if (muOp.equals("MDR \u2190 (MAR) [2/3]")) {
             ov.addAll(Arrays.asList("mar-read", "rd", "control-bus"));
@@ -79,7 +79,7 @@ public class MuOpOverlayMapper {
         }
         // Memory write: 3 clock cycles
         else if (muOp.equals("(MAR) \u2190 MDR [1/3]")) {
-            ov.addAll(Arrays.asList("mar-read"));
+            ov.add("mar-read");
             signals = "B_AB = 1";
         } else if (muOp.equals("(MAR) \u2190 MDR [2/3]")) {
             ov.addAll(Arrays.asList("mar-read", "wr", "control-bus"));
@@ -106,7 +106,7 @@ public class MuOpOverlayMapper {
             ov.addAll(Arrays.asList("flags-write", "reg-read", "t1-write", "data-bus"));
             signals = "W_FLAGS = 1, R_M = 1, W_T1 = 1";
         } else if (muOp.startsWith("FLAGS") && (muOp.endsWith(" \u2190 0") || muOp.endsWith(" \u2190 1"))) {
-            ov.addAll(Arrays.asList("flags-write"));
+            ov.add("flags-write");
             signals = "W_FLAGS = 1";
         } else if (muOp.equals("MDR \u2190 FLAGS")) {
             ov.addAll(Arrays.asList("flags-read", "alu-shifter-flags-bus", "mdr-write-inside", "mdr-write", "data-bus"));
@@ -213,7 +213,7 @@ public class MuOpOverlayMapper {
             ov.addAll(Arrays.asList("rip-read", "t1-write", "data-bus"));
             signals = "B_RIP = 1, W_T1 = 1";
         } else if (muOp.matches("TEMP2 \u2190 -?\\d+")) {
-            ov.addAll(Arrays.asList("t2-write"));
+            ov.add("t2-write");
             signals = "W_T2 = 1";
         }
         // Register Operations

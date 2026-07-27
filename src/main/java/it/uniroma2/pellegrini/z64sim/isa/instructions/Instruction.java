@@ -10,11 +10,8 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandRegister;
 import it.uniroma2.pellegrini.z64sim.model.MemoryElement;
-import it.uniroma2.pellegrini.z64sim.util.log.Logger;
-import it.uniroma2.pellegrini.z64sim.util.log.LoggerFactory;
 
 public abstract class Instruction implements MemoryElement {
-    private static final Logger log = LoggerFactory.getLogger();
 
     protected final String mnemonic;
     protected final byte clas;
@@ -38,13 +35,6 @@ public abstract class Instruction implements MemoryElement {
     }
 
     public abstract void run() throws SimulatorException;
-
-    /**
-     * Returns the Type index of this instruction within its class.
-     * Each subclass must implement this by looking up the mnemonic
-     * in its class-specific opcode table.
-     */
-    public abstract int getType();
 
     @Override
     public byte[] getValue() {

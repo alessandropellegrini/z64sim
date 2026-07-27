@@ -68,8 +68,7 @@ public class ControlFlowTest {
     @DisplayName("Step through relocations.asm — var=1 dispatches to case1")
     public void testControlFlowCase1() throws SimulatorException {
         long startRIP = SimulatorController.getCpuState().getRIP();
-        assertTrue(program.getMemoryElementAt(startRIP) instanceof Instruction,
-                "RIP=0x" + Long.toHexString(startRIP) + " should point to an Instruction");
+        assertInstanceOf(Instruction.class, program.getMemoryElementAt(startRIP), "RIP=0x" + Long.toHexString(startRIP) + " should point to an Instruction");
 
         // Collect all mnemonics by stepping until hlt or failure
         List<String> trace = new ArrayList<>();

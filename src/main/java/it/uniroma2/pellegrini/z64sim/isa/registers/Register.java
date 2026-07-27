@@ -52,33 +52,9 @@ public class Register {
         this.pcs.addPropertyChangeListener(listener);
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        this.pcs.removePropertyChangeListener(listener);
-    }
-
     // Constructor of the register
     public Register() {
         this.value = 0L;
-    }
-
-    // Everything in java is signed, so simple casts won't work, as we then
-    // re-cast to long, for uniformity
-    // Hex masks are "unsigned", as in C
-    // Declaring a long mask of wanted 1's does the job.
-    private long subRegister(int size, long value) {
-
-        switch (size) {
-            case 1:
-                return value & 0xFFL;
-            case 2:
-                return value & 0xFFFFL;
-            case 4:
-                return value & 0xFFFFFFFFL;
-            case 8:
-                return value;
-            default:
-                throw new RuntimeException("Wrong register size in runtime access");
-        }
     }
 
     // Read the value of a register
@@ -86,56 +62,16 @@ public class Register {
         return this.value;
     }
 
-    public int getLongword() {
-        return (int) (this.value & 0xFFFFFFFFL);
-    }
-
-    public short getWord() {
-        return (short) (this.value & 0xFFFFL);
-    }
-
-    public byte getByte() {
-        return (byte) (this.value & 0xFFL);
-    }
-
     // Returns the old value of the register, before updating
-    public long setQuadword(long val) {
+    public void setQuadword(long val) {
         long oldValue = this.value;
         this.value = val;
         pcs.firePropertyChange("value", oldValue, val);
-        return oldValue;
-    }
-
-    // Returns the old value of the register, before updating
-    public long setLongword(int val) {
-        long oldValue = this.value;
-        // We mask val as it gets sign extended to long before the bitwise or
-        this.value = (oldValue & 0xFFFFFFFF00000000L) | (val & 0xFFFFFFFFL);
-        pcs.firePropertyChange("value", oldValue, this.value);
-        return oldValue;
-    }
-
-    // Returns the old value of the register, before updating
-    public long setWord(short val) {
-        long oldValue = this.value;
-        // We mask val as it gets sign extended to long before the bitwise or
-        this.value = (oldValue & 0xFFFFFFFFFFFF0000L) | (val & 0xFFFFL);
-        pcs.firePropertyChange("value", oldValue, this.value);
-        return oldValue;
-    }
-
-    // Returns the old value of the register, before updating
-    public long setByte(byte val) {
-        long oldValue = this.value;
-        // We mask val as it gets sign extended to long before the bitwise or
-        this.value = (oldValue & 0xFFFFFFFFFFFFFF00L) | (val & 0xFFL);
-        pcs.firePropertyChange("value", oldValue, this.value);
-        return oldValue;
     }
 
     /* This works only because registers are placed in the registers[][] array
      * in code order (compare that to the constants at the beginning of the
-     * class.
+     * class).
      */
     private static int scanRegister(int size, String name) {
         int i;

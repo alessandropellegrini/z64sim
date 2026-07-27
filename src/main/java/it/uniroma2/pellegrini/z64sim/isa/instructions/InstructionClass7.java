@@ -25,9 +25,9 @@ public class InstructionClass7 extends Instruction {
     private static final String[] MNEMONICS = {"in", "out", "ins", "outs"};
 
     private final int transferSize; // The size of a data transfer
-    private Operand ioport; // The I/O port number in case of an explicit I/O port
+    private final Operand ioport; // The I/O port number in case of an explicit I/O port
 
-    public InstructionClass7(String mnemonic, int size, Operand ioport) throws ParseException {
+    public InstructionClass7(String mnemonic, int size, Operand ioport) {
         super(mnemonic, 7);
         this.setSize(8);
 
@@ -43,7 +43,6 @@ public class InstructionClass7 extends Instruction {
         return this.ioport;
     }
 
-    @Override
     public int getType() {
         return lookupType(MNEMONICS);
     }

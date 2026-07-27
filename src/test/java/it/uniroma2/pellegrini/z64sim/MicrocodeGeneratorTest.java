@@ -190,7 +190,7 @@ public class MicrocodeGeneratorTest {
 
     @Test
     @DisplayName("shl: shift left operation")
-    public void testShl() throws ParseException {
+    public void testShl() {
         OperandRegister reg = new OperandRegister(Register.RAX, 8);
         Instruction insn = new InstructionClass3("shl", 4, reg);
 
@@ -228,7 +228,7 @@ public class MicrocodeGeneratorTest {
 
     @Test
     @DisplayName("ret: fetch + pop RIP from stack")
-    public void testRet() throws ParseException {
+    public void testRet() {
         Instruction insn = new InstructionClass5("ret", null);
         List<String> ops = MicrocodeGenerator.generate(insn);
         assertTrue(ops.contains("MAR \u2190 RSP"), "ret should set MAR to RSP");
@@ -239,7 +239,7 @@ public class MicrocodeGeneratorTest {
 
     @Test
     @DisplayName("iret: fetch + pop FLAGS + pop RIP + re-enable interrupts")
-    public void testIret() throws ParseException {
+    public void testIret() {
         Instruction insn = new InstructionClass5("iret", null);
         List<String> ops = MicrocodeGenerator.generate(insn);
         assertTrue(ops.contains("FLAGS \u2190 MDR"), "iret should restore FLAGS");

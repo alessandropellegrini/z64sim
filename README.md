@@ -44,7 +44,7 @@ The toolbar contains the following buttons to interact with the simulator:
   execution of the program. This is equivalent to repeatedly pressing the
   Step button.
 * ![](src/main/resources/images/stop24.png): **Stop** — halts a running
-  program. This is useful when execution is in progress and you want to
+  program. This is useful when execution is in progress, and you want to
   regain control of the simulator.
 * ![](src/main/resources/images/iodevice24.png): Open the **Device Manager**
   — see below.

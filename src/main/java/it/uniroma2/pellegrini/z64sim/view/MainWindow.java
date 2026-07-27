@@ -27,8 +27,6 @@ import it.uniroma2.pellegrini.z64sim.view.editor.AsmSyntaxHighlighter;
 import it.uniroma2.pellegrini.z64sim.view.editor.LineNumberPanel;
 
 import javax.swing.*;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.FontUIResource;
@@ -54,7 +52,7 @@ import java.util.ResourceBundle;
 public class MainWindow extends View {
     private static final Logger log = LoggerFactory.getLogger();
     private static MainWindow instance = null;
-    private JFrame mainFrame;
+    private final JFrame mainFrame;
     private JPanel mainPanel;
     private JButton assembleButton;
     private JTable memoryView;
@@ -118,7 +116,7 @@ public class MainWindow extends View {
                     MemoryElement elem = Memory.getMemoryElementAt(address);
                     if (elem instanceof Instruction) {
                         InstructionInspector dialog = new InstructionInspector(
-                                mainFrame, (Instruction) elem, address, memoryView);
+                                mainFrame, (Instruction) elem, memoryView);
                         dialog.setVisible(true);
                     }
                 }
@@ -177,16 +175,13 @@ public class MainWindow extends View {
             @Override
             public void changedUpdate(DocumentEvent e) { /* attribute changes, not content */ }
         });
-        editor.addCaretListener(new CaretListener() {
-            @Override
-            public void caretUpdate(CaretEvent e) {
-                // update the line number view
-                Element root = editor.getDocument().getDefaultRootElement();
-                int line = root.getElementIndex(e.getDot());
-                int col = e.getDot() - root.getElement(line).getStartOffset();
-                // both are starting to 1
-                editorPositionLabel.setText((line + 1) + ":" + (col + 1));
-            }
+        editor.addCaretListener(e -> {
+            // update the line number view
+            Element root = editor.getDocument().getDefaultRootElement();
+            int line = root.getElementIndex(e.getDot());
+            int col = e.getDot() - root.getElement(line).getStartOffset();
+            // both are starting to 1
+            editorPositionLabel.setText((line + 1) + ":" + (col + 1));
         });
         SimulatorController.setCpuView(this.cpuView);
         stepButton.addActionListener(AppActions.STEP);

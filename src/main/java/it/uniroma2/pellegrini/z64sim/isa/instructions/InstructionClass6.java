@@ -7,7 +7,6 @@ package it.uniroma2.pellegrini.z64sim.isa.instructions;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
-import it.uniroma2.pellegrini.z64sim.isa.operands.Operand;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 
 
@@ -21,13 +20,12 @@ public class InstructionClass6 extends Instruction {
 
     private final OperandMemory target;
 
-    public InstructionClass6(String mnemonic, OperandMemory t) throws ParseException {
+    public InstructionClass6(String mnemonic, OperandMemory t) {
         super(mnemonic, 6);
         this.target = t;
         this.setSize(8);
     }
 
-    @Override
     public int getType() {
         return lookupType(MNEMONICS);
     }

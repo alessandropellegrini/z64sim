@@ -12,9 +12,9 @@ public class InstructionClass0 extends Instruction {
 
     private static final String[] MNEMONICS = {null, "hlt", "nop", "int"}; // index 0 unused
 
-    OperandImmediate ivn;
+    final OperandImmediate ivn;
 
-    public InstructionClass0(String mnemonic, OperandImmediate ivn) throws ParseException {
+    public InstructionClass0(String mnemonic, OperandImmediate ivn) {
         super(mnemonic, 0);
         this.ivn = ivn;
 
@@ -26,7 +26,6 @@ public class InstructionClass0 extends Instruction {
         return this.ivn;
     }
 
-    @Override
     public int getType() {
         for (int i = 0; i < MNEMONICS.length; i++) {
             if (this.mnemonic.equals(MNEMONICS[i])) {

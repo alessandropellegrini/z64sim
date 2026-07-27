@@ -45,14 +45,6 @@ public class CpuState implements Serializable {
         this.pcs.addPropertyChangeListener(listener);
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        this.pcs.removePropertyChangeListener(listener);
-    }
-
-    public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        this.pcs.addPropertyChangeListener(propertyName, listener);
-    }
-
     // Fields
     private final Register RAX = new Register();
     private final Register RCX = new Register();

@@ -13,7 +13,6 @@ import com.github.weisj.jsvg.SVGDocument;
 import com.github.weisj.jsvg.parser.LoaderContext;
 import com.github.weisj.jsvg.parser.SVGLoader;
 import com.github.weisj.jsvg.view.FloatSize;
-import com.github.weisj.jsvg.view.ViewBox;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,12 +26,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +61,7 @@ public class MuOpAnimationDialog extends JDialog {
     }
 
     /**
-     * Creates the dialog pre-loaded with a specific instruction's µ-ops.
+     * Creates the dialog preloaded with a specific instruction's µ-ops.
      * The instruction combobox is hidden since the instruction is fixed.
      */
     public MuOpAnimationDialog(Window parent, Instruction insn) {
@@ -331,14 +328,14 @@ public class MuOpAnimationDialog extends JDialog {
         String base = m.endsWith("q") ? m.substring(0, m.length()-1) : m;
         instructionCombo.addItem(new ComboItem(false, txt, new InstructionClass2(base, s, d)));
     }
-    private void addC3(String m, int p, OperandRegister r) throws Exception {
+    private void addC3(String m, int p, OperandRegister r) {
         String base = m.endsWith("q") ? m.substring(0, m.length()-1) : m;
         instructionCombo.addItem(new ComboItem(false, m + " $" + p + ", " + r, new InstructionClass3(base, p, r)));
     }
-    private void addC4(String m) throws Exception {
+    private void addC4(String m) {
         instructionCombo.addItem(new ComboItem(false, m, new InstructionClass4(m)));
     }
-    private void addC5(String m, Operand t) throws Exception {
+    private void addC5(String m, Operand t) {
         String txt;
         if (t instanceof OperandImmediate) {
             txt = m + " 0x" + Long.toHexString(((OperandImmediate) t).getValue());
@@ -359,9 +356,9 @@ public class MuOpAnimationDialog extends JDialog {
     }
 
     private static class ComboItem {
-        boolean isSeparator;
-        String text;
-        Instruction insn;
+        final boolean isSeparator;
+        final String text;
+        final Instruction insn;
 
         ComboItem(boolean isSeparator, String text, Instruction insn) {
             this.isSeparator = isSeparator;

@@ -54,13 +54,13 @@ public class Logger {
     }
 
     public static synchronized void doLog(String className, int levelInt, String msg) {
+        Object[] args;
         if(showDateTime) {
-            Object[] args = {new Date(), className, LogLevel.intToLevel(levelInt), msg};
-            logFile.println(messageFormatter.format(args));
+            args = new Object[]{new Date(), className, LogLevel.intToLevel(levelInt), msg};
         } else {
-            Object[] args = {className, LogLevel.intToLevel(levelInt), msg};
-            logFile.println(messageFormatter.format(args));
+            args = new Object[]{className, LogLevel.intToLevel(levelInt), msg};
         }
+        logFile.println(messageFormatter.format(args));
     }
 
     public void trace(String msg) {

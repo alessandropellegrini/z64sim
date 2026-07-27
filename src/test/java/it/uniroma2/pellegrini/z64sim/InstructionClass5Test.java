@@ -7,7 +7,6 @@ package it.uniroma2.pellegrini.z64sim;
 import it.uniroma2.pellegrini.z64sim.assembler.ParseException;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.exceptions.SimulatorException;
-import it.uniroma2.pellegrini.z64sim.isa.instructions.Instruction;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.InstructionClass5;
 import it.uniroma2.pellegrini.z64sim.isa.operands.OperandMemory;
 import it.uniroma2.pellegrini.z64sim.isa.registers.Register;
@@ -39,7 +38,7 @@ public class InstructionClass5Test {
 
     @Test
     @DisplayName("call pushes return address and jumps; ret pops and returns")
-    public void testCallRet() throws ParseException, SimulatorException {
+    public void testCallRet() throws SimulatorException {
         Program program = new Program();
         program.textSectionStart(0x800);
         Memory.setProgram(program);
@@ -62,7 +61,7 @@ public class InstructionClass5Test {
 
     @Test
     @DisplayName("iret pops RIP and RFLAGS from stack")
-    public void testIret() throws ParseException, SimulatorException {
+    public void testIret() throws SimulatorException {
         Program program = new Program();
         program.textSectionStart(0x800);
         Memory.setProgram(program);

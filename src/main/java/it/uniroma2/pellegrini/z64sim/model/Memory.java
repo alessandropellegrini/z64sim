@@ -13,7 +13,6 @@ import it.uniroma2.pellegrini.z64sim.isa.operands.OperandImmediate;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 /**

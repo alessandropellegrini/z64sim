@@ -60,10 +60,6 @@ public class IoPortDescriptor {
         return name;
     }
 
-    public int getFlags() {
-        return flags;
-    }
-
     public int getWidthBytes() {
         return widthBytes;
     }

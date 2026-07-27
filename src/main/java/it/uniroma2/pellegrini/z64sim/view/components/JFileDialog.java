@@ -10,7 +10,7 @@ import java.io.File;
 public class JFileDialog extends JPanel {
     private final JFileChooser fileChooser;
 
-    private int mode;
+    private final int mode;
     public static final int MODE_OPEN = 1;
     public static final int MODE_SAVE = 2;
 
