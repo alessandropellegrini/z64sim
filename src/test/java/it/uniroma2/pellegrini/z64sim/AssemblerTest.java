@@ -44,6 +44,7 @@ public class AssemblerTest {
         assertDoesNotThrow(() -> assemble("/async_prodcons.asm"));
         assertDoesNotThrow(() -> assemble("/alarm.asm"));
         assertDoesNotThrow(() -> assemble("/timer.asm"));
+        assertDoesNotThrow(() -> assemble("/scheduler-round-robin.asm"));
     }
 
 }
