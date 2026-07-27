@@ -177,9 +177,13 @@ public abstract class Device {
             action.run();
             return;
         }
-        javax.swing.Timer timer = new javax.swing.Timer(delayMs, e -> action.run());
-        timer.setRepeats(false);
-        timer.start();
+        java.util.Timer timer = new java.util.Timer(true); // daemon thread
+        timer.schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                action.run();
+            }
+        }, delayMs);
     }
 
     // ---- Simulation lifecycle ----

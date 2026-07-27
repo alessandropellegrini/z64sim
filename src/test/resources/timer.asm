@@ -7,7 +7,7 @@
 .text
   main:
     sti
-    movl $2000, %eax
+    movl $200, %eax
     outl %eax, $TIMER_DELAY
     outb %al, $TIMER_STATUS
    .wait:
