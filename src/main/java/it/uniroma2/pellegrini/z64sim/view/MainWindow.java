@@ -610,8 +610,6 @@ public class MainWindow extends View {
         Font scrollPane1Font = UIManager.getFont("Panel.font");
         if (scrollPane1Font != null) scrollPane1.setFont(scrollPane1Font);
         editorTab.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        Font editorFont = UIManager.getFont("EditorPane.font");
-        if (editorFont != null) editor.setFont(editorFont);
         scrollPane1.setViewportView(editor);
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
