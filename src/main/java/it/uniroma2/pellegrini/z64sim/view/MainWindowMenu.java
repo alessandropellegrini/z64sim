@@ -33,6 +33,14 @@ public class MainWindowMenu extends JMenuBar {
         JMenuItem redoMenu = new JMenuItem(AppActions.REDO);
         menuEdit.add(redoMenu);
 
+        menuEdit.addSeparator();
+
+        JMenuItem findMenu = new JMenuItem(AppActions.FIND);
+        menuEdit.add(findMenu);
+
+        JMenuItem findReplaceMenu = new JMenuItem(AppActions.FIND_REPLACE);
+        menuEdit.add(findReplaceMenu);
+
         this.add(menuEdit);
     }
 }
