@@ -53,15 +53,17 @@ The toolbar contains the following buttons to interact with the simulator:
 
 ### Keyboard shortcuts
 
-| Shortcut      | Action              |
-|---------------|---------------------|
-| Ctrl+N        | New file            |
-| Ctrl+O        | Open file           |
-| Ctrl+S        | Save file           |
-| Ctrl+B        | Assemble program    |
-| F8            | Step instruction    |
-| F5            | Run program         |
-| Shift+F5      | Stop program        |
+| Shortcut | Action           |
+|----------|------------------|
+| Ctrl+N   | New file         |
+| Ctrl+O   | Open file        |
+| Ctrl+S   | Save file        |
+| Ctrl+F   | Find             |
+| Ctrl+H   | Find & Replace   |
+| Ctrl+B   | Assemble program |
+| F8       | Step instruction |
+| F5       | Run program      |
+| Shift+F5 | Stop program     |
 
 ## Managing Devices
 
@@ -117,6 +119,16 @@ hardware-level schematic of the device's I/O interface. You can zoom in/out
 
 The **IVT** (Interrupt Vector Table) panel in the main window shows only
 interrupt-capable devices at their assigned IVN slots.
+
+### Example programs using devices
+
+In [examples](examples/) you can find several assembly programs using the
+provided devices, for you to play with the simulator.
+
+Remember that the configuration of devices (IVN, I/O ports) must match the
+definitions in the assembly programs, otherwise you will likely read/write
+incorrectly or jump to non-existing drivers (in which case, the simulator
+will likely fire an error).
 
 ## Custom Devices
 

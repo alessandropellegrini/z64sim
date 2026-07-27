@@ -25,12 +25,12 @@ public class InstructionClass0Test {
     }
 
     @Test
-    @DisplayName("hlt displaces RIP backward by instruction size")
+    @DisplayName("hlt leaves RIP unchanged (halted flag prevents re-fetch)")
     public void testHlt() throws ParseException, SimulatorException {
         SimulatorController.getCpuState().setRIP(0x1000L);
         Instruction inst = new InstructionClass0("hlt", null);
         inst.run();
-        assertEquals(0x1000L - 8, SimulatorController.getCpuState().getRIP());
+        assertEquals(0x1000L, SimulatorController.getCpuState().getRIP());
     }
 
     @Test

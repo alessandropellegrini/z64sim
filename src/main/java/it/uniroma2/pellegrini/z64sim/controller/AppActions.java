@@ -124,4 +124,30 @@ public final class AppActions {
             MainWindow.redo();
         }
     };
+
+    public static final Action FIND = new AbstractAction(
+            PropertyBroker.getMessageFromBundle("menu.edit.find")) {
+        {
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F,
+                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            MainWindow.find();
+        }
+    };
+
+    public static final Action FIND_REPLACE = new AbstractAction(
+            PropertyBroker.getMessageFromBundle("menu.edit.replace")) {
+        {
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_H,
+                    java.awt.Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            MainWindow.findReplace();
+        }
+    };
 }

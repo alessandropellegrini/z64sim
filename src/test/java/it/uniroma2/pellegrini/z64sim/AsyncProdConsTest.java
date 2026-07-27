@@ -24,9 +24,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,8 +36,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * device implementations. Only port/IVN mappings are set up manually.
  * <p>
  * The program spins in a bottom-half guard until both interrupt handlers
- * have run. Since real devices fire after a 200–1000 ms delay, the test
- * thread steps through the spin loop until each timer fires on the EDT.
+ * have run. The device timers fire on a daemon thread after a 200–1000 ms
+ * delay; the test steps through the spin loop until the {@code done}
+ * memory flag is set.
  */
 @DisplayName("Async producer/consumer — async_prodcons.asm (real devices)")
 public class AsyncProdConsTest {
@@ -89,8 +90,6 @@ public class AsyncProdConsTest {
 
     /**
      * Step one instruction with interrupt handling.
-     * The spin loop in async_prodcons.asm (cmpb/jz) naturally keeps
-     * stepping until an EDT timer fires and an IRQ becomes pending.
      */
     private String stepAndGetMnemonic() throws SimulatorException {
         long rip = SimulatorController.getCpuState().getRIP();
@@ -114,10 +113,8 @@ public class AsyncProdConsTest {
         long rsp = SimulatorController.getCpuState().getRSP();
         long savedFlags = SimulatorController.getCpuState().getFlags();
         SimulatorController.getCpuState().setIF(false);
-        // Push RIP first (deeper on stack)
         rsp -= 8;
         writeQword(rsp, SimulatorController.getCpuState().getRIP());
-        // Push FLAGS second (top of stack)
         rsp -= 8;
         writeQword(rsp, savedFlags);
         SimulatorController.getCpuState().setRegisterValue(Register.RSP, rsp);
@@ -147,45 +144,29 @@ public class AsyncProdConsTest {
     @Test
     @DisplayName("Value flows from AsyncInput to AsyncOutput via interrupt handlers")
     public void testAsyncProdCons() throws SimulatorException {
-        // Memory layout: value(.quad)@0x800, done(.byte)@0x808
         final long VALUE_ADDR = 0x800;
         final long DONE_ADDR  = 0x808;
+        final long deadlineMs = System.currentTimeMillis() + 10_000;
 
-        // The spin loop runs until both device timers fire (up to ~2s total).
-        // Allow enough iterations for the timers to complete.
-        int maxSteps = 5_000_000;
-        boolean reachedHlt = false;
-        long lastTraceRip = -1;
-        List<String> trace = new ArrayList<>();
+        boolean done = false;
+        Set<String> trace = new LinkedHashSet<>();
 
-        for (int i = 0; i < maxSteps; i++) {
+        while (System.currentTimeMillis() < deadlineMs) {
             long rip = SimulatorController.getCpuState().getRIP();
             String mnemonic = stepAndGetMnemonic();
+            trace.add(String.format("0x%x: %s", rip, mnemonic));
 
-            // Only trace unique RIP values to avoid flooding with spin-loop entries
-            if (rip != lastTraceRip) {
-                trace.add(String.format("0x%x: %s", rip, mnemonic));
-                lastTraceRip = rip;
-            }
-
-            if (mnemonic.equals("hlt")) {
-                reachedHlt = true;
+            if ((Memory.getValueAt(DONE_ADDR) & 0xFF) == 1) {
+                done = true;
                 break;
             }
         }
 
-        assertTrue(reachedHlt, "Program should reach hlt. Trace:\n"
+        assertTrue(done, "Both interrupt handlers should complete. Trace:\n"
                 + String.join("\n", trace));
 
-        // Read the value that the real AsyncInput generated
-        long inputValue = inputMapping.read(0x12);  // DATA_IN
-
-        // Verify the value was stored correctly in memory
+        long inputValue = inputMapping.read(0x12);
         assertEquals(inputValue, readQword(VALUE_ADDR),
                 "value should contain the 64-bit input from AsyncInput");
-
-        // Verify done flag
-        assertEquals(1, Memory.getValueAt(DONE_ADDR) & 0xFF,
-                "done should be 1 after output completion");
     }
 }

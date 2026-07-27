@@ -20,6 +20,5 @@
     pushq %rax
     movb $1, fired
     outb %al, $TIMER_IRQ
-    outb %al, $TIMER_STATUS
     popq %rax
     iret

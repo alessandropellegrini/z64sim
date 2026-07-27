@@ -207,7 +207,19 @@ public class Program {
             if(labelAddress == null) {
                 throw new ProgramException("Label " + this.label + " was not defined in the program");
             }
-            long target = labelAddress.getTarget();
+
+            // Read the existing value at dataOffset (e.g., the constant offset
+            // from an expression like "label + 256").
+            long existing = 0;
+            for(int i = 0; i < 8; i++) {
+                MemoryElement me = program.binary.get(dataOffset + i);
+                if(me != null) {
+                    existing |= ((long)(me.getValue()[0] & 0xFF)) << (i * 8);
+                }
+            }
+
+            // Add the resolved label address to the existing value
+            long target = labelAddress.getTarget() + existing;
             for(int i = 0; i < 8; i++) { // TODO: 8 bytes are common, but relocation should be more flexible
                 byte currByte = (byte)((target >> (i * 8)) & 0xFF);
                 program.binary.put(dataOffset + i, new MemoryData(currByte));
