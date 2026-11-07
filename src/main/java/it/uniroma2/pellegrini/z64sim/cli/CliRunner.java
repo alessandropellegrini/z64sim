@@ -24,8 +24,10 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -410,7 +412,7 @@ public class CliRunner {
         JSONObject report = buildReport(steps, sc, watchList, terminalDevice, alarmMapping, alarmPort);
 
         if (outPath != null) {
-            try (FileWriter writer = new FileWriter(outPath, StandardCharsets.UTF_8)) {
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(outPath), StandardCharsets.UTF_8)) {
                 writer.write(report.toJSONString());
             } catch (Exception e) {
                 System.err.println("Error writing report to " + outPath + ": " + e.getMessage());

@@ -11,8 +11,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -47,7 +51,7 @@ public class CliRunnerTest {
     public void testAssembleInvalid() throws Exception {
         File badAsm = File.createTempFile("z64_bad_", ".asm");
         badAsm.deleteOnExit();
-        try (FileWriter fw = new FileWriter(badAsm, StandardCharsets.UTF_8)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(badAsm), StandardCharsets.UTF_8)) {
             fw.write(".org 0x800\n.text\nmain:\n  invalid_instruction_here\n");
         }
         int code = CliRunner.run(new String[]{"CLI", "assemble", "-asm", badAsm.getAbsolutePath()});
@@ -85,7 +89,7 @@ public class CliRunnerTest {
                 + "  ]\n"
                 + "}\n";
 
-        try (FileWriter fw = new FileWriter(tempConfig, StandardCharsets.UTF_8)) {
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(tempConfig), StandardCharsets.UTF_8)) {
             fw.write(configJson);
         }
 
@@ -101,7 +105,7 @@ public class CliRunnerTest {
         // Parse and verify output JSON
         JSONParser parser = new JSONParser();
         JSONObject report;
-        try (FileReader fr = new FileReader(tempOut, StandardCharsets.UTF_8)) {
+        try (Reader fr = new InputStreamReader(new FileInputStream(tempOut), StandardCharsets.UTF_8)) {
             report = (JSONObject) parser.parse(fr);
         }
 
