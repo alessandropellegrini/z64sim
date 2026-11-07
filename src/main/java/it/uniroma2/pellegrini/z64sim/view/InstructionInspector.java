@@ -44,10 +44,12 @@ public class InstructionInspector extends JDialog {
     private JLabel immediate;
     private JPanel mainPanel;
     private JLabel hexEncoding;
+    private JButton muOpsAnimButton;
 
     private final JTable memoryView;
     private final ListSelectionListener selectionListener;
     private Instruction currentInsn;
+    private MuOpAnimationDialog muOpDialog;
 
     public InstructionInspector(Window owner, Instruction insn, JTable memoryView) {
         super(owner, "Instruction Inspector", ModalityType.MODELESS);
@@ -71,22 +73,18 @@ public class InstructionInspector extends JDialog {
         muOps.setEditable(false);
 
         // µ-ops animation button below the micro-ops area
-        JButton muOpsAnimButton = new JButton();
-        muOpsAnimButton.setIcon(new ImageIcon(getClass().getResource("/images/mu.png")));
         muOpsAnimButton.setToolTipText(PropertyBroker.getMessageFromBundle("inspect.muops"));
         muOpsAnimButton.addActionListener(e -> {
             if (currentInsn != null) {
-                MuOpAnimationDialog dialog = new MuOpAnimationDialog(this, currentInsn);
-                dialog.setVisible(true);
+                if (muOpDialog == null || !muOpDialog.isDisplayable()) {
+                    muOpDialog = new MuOpAnimationDialog(this, currentInsn);
+                } else {
+                    muOpDialog.setInstruction(currentInsn);
+                }
+                muOpDialog.setVisible(true);
+                muOpDialog.toFront();
             }
         });
-        // Add right-aligned button panel after the µ-ops scroll pane
-        JPanel muOpsButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        muOpsButtonPanel.add(muOpsAnimButton);
-        mainPanel.add(muOpsButtonPanel, new GridConstraints(5, 0, 1, 1,
-                GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE,
-                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                null, null, null, 0, false));
 
         // Populate from the initially double-clicked instruction
         populateFromInstruction(insn);
@@ -169,6 +167,9 @@ public class InstructionInspector extends JDialog {
         this.muOps.setText(muOpsText.toString());
         this.muOps.setCaretPosition(0);
         this.currentInsn = insn;
+        if (this.muOpDialog != null && this.muOpDialog.isDisplayable()) {
+            this.muOpDialog.setInstruction(insn);
+        }
 
         pack();
     }
@@ -199,6 +200,10 @@ public class InstructionInspector extends JDialog {
 
     private void cleanup() {
         memoryView.getSelectionModel().removeListSelectionListener(selectionListener);
+        if (muOpDialog != null) {
+            muOpDialog.dispose();
+            muOpDialog = null;
+        }
     }
 
     @Override
@@ -259,8 +264,16 @@ public class InstructionInspector extends JDialog {
         final JScrollPane scrollPane1 = new JScrollPane();
         mainPanel.add(scrollPane1, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         scrollPane1.setViewportView(muOps);
+        final JPanel panel7 = new JPanel();
+        panel7.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mainPanel.add(panel7, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        mainPanel.add(spacer1, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        panel7.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        muOpsAnimButton = new JButton();
+        muOpsAnimButton.setIcon(new ImageIcon(getClass().getResource("/images/mu.png")));
+        muOpsAnimButton.setText("");
+        muOpsAnimButton.setToolTipText(this.$$$getMessageFromBundle$$$("i18n", "inspect.muops"));
+        panel7.add(muOpsAnimButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         insnMnemonic = new JLabel();
         Font insnMnemonicFont = this.$$$getFont$$$(null, Font.BOLD, 16, insnMnemonic.getFont());
         if (insnMnemonicFont != null) insnMnemonic.setFont(insnMnemonicFont);

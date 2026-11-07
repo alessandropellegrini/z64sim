@@ -7,6 +7,7 @@ package it.uniroma2.pellegrini.z64sim;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import it.uniroma2.pellegrini.z64sim.cli.CliRunner;
 import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.controller.SimulatorController;
 import it.uniroma2.pellegrini.z64sim.controller.UpdateController;
@@ -15,10 +16,16 @@ import it.uniroma2.pellegrini.z64sim.view.MainWindow;
 import it.uniroma2.pellegrini.z64sim.view.Splash;
 
 import javax.swing.*;
+import java.awt.GraphicsEnvironment;
 
 public class z64sim {
 
     public static void main(String[] args) {
+        if (GraphicsEnvironment.isHeadless() || (args != null && args.length > 0 && isCliInvocation(args[0]))) {
+            CliRunner.main(args);
+            return;
+        }
+
         // Capture the application classloader from the main thread.
         // On JBR 11, the EDT may have a different context classloader which
         // prevents UIDefaults from finding FlatLaf's UI delegate classes in fat JARs.
@@ -52,4 +59,12 @@ public class z64sim {
             UpdateController.init();
         });
     }
+
+    private static boolean isCliInvocation(String arg) {
+        if (arg == null) return false;
+        return "CLI".equalsIgnoreCase(arg) || "--cli".equalsIgnoreCase(arg) || "--headless".equalsIgnoreCase(arg)
+                || "-h".equalsIgnoreCase(arg) || "--help".equalsIgnoreCase(arg)
+                || "assemble".equalsIgnoreCase(arg) || "run".equalsIgnoreCase(arg);
+    }
 }
+

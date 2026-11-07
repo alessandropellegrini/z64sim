@@ -5,15 +5,24 @@
 package it.uniroma2.pellegrini.z64sim.view;
 
 import it.uniroma2.pellegrini.z64sim.PropertyBroker;
+import it.uniroma2.pellegrini.z64sim.controller.SettingsController;
 import it.uniroma2.pellegrini.z64sim.isa.instructions.*;
 import it.uniroma2.pellegrini.z64sim.isa.operands.*;
 import it.uniroma2.pellegrini.z64sim.isa.registers.*;
+import it.uniroma2.pellegrini.z64sim.view.components.FileTypeFilter;
 
 import com.github.weisj.jsvg.SVGDocument;
 import com.github.weisj.jsvg.parser.LoaderContext;
 import com.github.weisj.jsvg.parser.SVGLoader;
 import com.github.weisj.jsvg.view.FloatSize;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -26,12 +35,16 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -42,13 +55,14 @@ public class MuOpAnimationDialog extends JDialog {
     private JLabel muOpLabel;
     private JLabel signalsLabel;
     private JLabel stepLabel;
-    private JButton prevBtn, nextBtn, playBtn;
+    private JButton prevBtn, nextBtn, playBtn, exportBtn, exportGifBtn;
     private JSlider speedSlider;
     private JPanel topPanel;
     private Timer timer;
 
     private List<String> currentOps = new ArrayList<>();
     private int currentStep = -1;
+    private Instruction currentInstruction;
 
     public MuOpAnimationDialog(Window parent) {
         super(parent, PropertyBroker.getMessageFromBundle("muop.dialog.title"), ModalityType.MODELESS);
@@ -74,6 +88,22 @@ public class MuOpAnimationDialog extends JDialog {
         loadMicrocode(insn);
         pack();
         setLocationRelativeTo(parent);
+    }
+
+    /**
+     * Updates the dialog to display the µ-ops for the given instruction.
+     */
+    public void setInstruction(Instruction insn) {
+        setTitle(PropertyBroker.getMessageFromBundle("muop.dialog.title") + " \u2014 " + insn.toString());
+        loadMicrocode(insn);
+    }
+
+    @Override
+    public void dispose() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+        super.dispose();
     }
 
     private void initUI() {
@@ -139,6 +169,16 @@ public class MuOpAnimationDialog extends JDialog {
         speedSlider = new JSlider(100, 3000, 1000);
         speedSlider.setInverted(true); // Left=Fast, Right=Slow
 
+        exportBtn = new JButton(PropertyBroker.getMessageFromBundle("muop.export.png"));
+        exportBtn.setIcon(new ImageIcon(getClass().getResource("/images/save.png")));
+        exportBtn.setToolTipText(PropertyBroker.getMessageFromBundle("muop.export.png.tooltip"));
+        exportBtn.addActionListener(e -> exportPng());
+
+        exportGifBtn = new JButton(PropertyBroker.getMessageFromBundle("muop.export.gif"));
+        exportGifBtn.setIcon(new ImageIcon(getClass().getResource("/images/save.png")));
+        exportGifBtn.setToolTipText(PropertyBroker.getMessageFromBundle("muop.export.gif.tooltip"));
+        exportGifBtn.addActionListener(e -> exportGif());
+
         prevBtn.addActionListener(e -> { if (currentStep > 0) setStep(currentStep - 1); });
         nextBtn.addActionListener(e -> { if (!currentOps.isEmpty() && currentStep < currentOps.size() - 1) setStep(currentStep + 1); });
         playBtn.addActionListener(e -> togglePlay());
@@ -149,6 +189,8 @@ public class MuOpAnimationDialog extends JDialog {
         ctrlPanel.add(stepLabel);
         ctrlPanel.add(new JLabel(PropertyBroker.getMessageFromBundle("muop.speed.label")));
         ctrlPanel.add(speedSlider);
+        ctrlPanel.add(exportBtn);
+        ctrlPanel.add(exportGifBtn);
 
         bottomPanel.add(textPanel);
         bottomPanel.add(ctrlPanel);
@@ -178,12 +220,267 @@ public class MuOpAnimationDialog extends JDialog {
 
     private void loadMicrocode(Instruction insn) {
         if (timer.isRunning()) timer.stop();
+        this.currentInstruction = insn;
         currentOps = expandMultiCycle(MicrocodeGenerator.generate(insn));
         currentStep = -1;
         muOpLabel.setText(PropertyBroker.getMessageFromBundle("muop.prefix") + " " + PropertyBroker.getMessageFromBundle("muop.press.to.start"));
         signalsLabel.setText(PropertyBroker.getMessageFromBundle("muop.signals.prefix") + " ");
         stepLabel.setText(PropertyBroker.getMessageFromBundle("muop.step.counter", "0", String.valueOf(currentOps.size())));
         canvas.setHighlightedGroups(new ArrayList<>());
+    }
+
+    public void exportPng() {
+        exportPng(null);
+    }
+
+    public void exportPng(File targetFile) {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+
+        BufferedImage image = canvas.exportImage();
+        if (image == null) return;
+
+        if (targetFile == null) {
+            JFileChooser chooser = new JFileChooser();
+            String lastDir = SettingsController.getFileLastDir();
+            if (lastDir != null) {
+                File dir = new File(lastDir);
+                if (dir.exists()) {
+                    chooser.setCurrentDirectory(dir);
+                }
+            }
+            chooser.setSelectedFile(new File(getDefaultExportFileName()));
+            FileTypeFilter filter = new FileTypeFilter(".png", PropertyBroker.getMessageFromBundle("png.file"));
+            chooser.addChoosableFileFilter(filter);
+            chooser.setFileFilter(filter);
+
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+
+            File chosen = chooser.getSelectedFile();
+            if (chosen == null) return;
+
+            if (chosen.getParent() != null) {
+                SettingsController.setFileLastDir(chosen.getParent());
+            }
+
+            if (!chosen.getName().toLowerCase().endsWith(".png")) {
+                chosen = chosen.getParentFile() != null
+                        ? new File(chosen.getParentFile(), chosen.getName() + ".png")
+                        : new File(chosen.getName() + ".png");
+            }
+            targetFile = chosen;
+        }
+
+        try {
+            ImageIO.write(image, "PNG", targetFile);
+        } catch (Exception ex) {
+            if (!GraphicsEnvironment.isHeadless()) {
+                JOptionPane.showMessageDialog(this,
+                        PropertyBroker.getMessageFromBundle("file.error.while.saving.0", ex.getMessage()),
+                        PropertyBroker.getMessageFromBundle("dialog.error"),
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private String getDefaultExportFileName() {
+        StringBuilder sb = new StringBuilder();
+        if (currentInstruction != null) {
+            String sanitized = currentInstruction.toString()
+                    .replace("%", "")
+                    .replace("$", "")
+                    .trim()
+                    .replaceAll("[^a-zA-Z0-9]+", "_");
+            sb.append(sanitized);
+        } else {
+            sb.append("muop");
+        }
+        if (currentStep >= 0) {
+            sb.append("_step").append(currentStep + 1);
+        }
+        sb.append(".png");
+        return sb.toString();
+    }
+
+    public BufferedImage getCurrentFrameImage() {
+        return canvas.exportImage();
+    }
+
+    public JButton getExportButton() {
+        return exportBtn;
+    }
+
+    public void exportGif() {
+        exportGif(null);
+    }
+
+    public void exportGif(File targetFile) {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+
+        List<BufferedImage> frames = getAllAnimationFrames();
+        if (frames == null || frames.isEmpty()) return;
+
+        if (targetFile == null) {
+            JFileChooser chooser = new JFileChooser();
+            String lastDir = SettingsController.getFileLastDir();
+            if (lastDir != null) {
+                File dir = new File(lastDir);
+                if (dir.exists()) {
+                    chooser.setCurrentDirectory(dir);
+                }
+            }
+            chooser.setSelectedFile(new File(getDefaultExportGifFileName()));
+            FileTypeFilter filter = new FileTypeFilter(".gif", PropertyBroker.getMessageFromBundle("gif.file"));
+            chooser.addChoosableFileFilter(filter);
+            chooser.setFileFilter(filter);
+
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+
+            File chosen = chooser.getSelectedFile();
+            if (chosen == null) return;
+
+            if (chosen.getParent() != null) {
+                SettingsController.setFileLastDir(chosen.getParent());
+            }
+
+            if (!chosen.getName().toLowerCase().endsWith(".gif")) {
+                chosen = chosen.getParentFile() != null
+                        ? new File(chosen.getParentFile(), chosen.getName() + ".gif")
+                        : new File(chosen.getName() + ".gif");
+            }
+            targetFile = chosen;
+        }
+
+        int delayMs = speedSlider != null ? speedSlider.getValue() : 1000;
+        try {
+            writeAnimatedGif(targetFile, frames, delayMs);
+        } catch (Exception ex) {
+            if (!GraphicsEnvironment.isHeadless()) {
+                JOptionPane.showMessageDialog(this,
+                        PropertyBroker.getMessageFromBundle("file.error.while.saving.0", ex.getMessage()),
+                        PropertyBroker.getMessageFromBundle("dialog.error"),
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private String getDefaultExportGifFileName() {
+        StringBuilder sb = new StringBuilder();
+        if (currentInstruction != null) {
+            String sanitized = currentInstruction.toString()
+                    .replace("%", "")
+                    .replace("$", "")
+                    .trim()
+                    .replaceAll("[^a-zA-Z0-9]+", "_");
+            sb.append(sanitized);
+        } else {
+            sb.append("muop");
+        }
+        sb.append(".gif");
+        return sb.toString();
+    }
+
+    public List<BufferedImage> getAllAnimationFrames() {
+        List<BufferedImage> frames = new ArrayList<>();
+        if (currentOps == null || currentOps.isEmpty()) {
+            BufferedImage frame = canvas.exportImage();
+            if (frame != null) {
+                frames.add(frame);
+            }
+            return frames;
+        }
+
+        for (String op : currentOps) {
+            MuOpOverlayMapper.MuOpMapping mapping = MuOpOverlayMapper.map(op);
+            BufferedImage frame = canvas.exportImageForOverlays(mapping.overlays);
+            if (frame != null) {
+                frames.add(frame);
+            }
+        }
+        return frames;
+    }
+
+    public JButton getExportGifButton() {
+        return exportGifBtn;
+    }
+
+    public static void writeAnimatedGif(File file, List<BufferedImage> frames, int delayMs) throws IOException {
+        if (frames == null || frames.isEmpty()) {
+            return;
+        }
+
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("gif");
+        if (!writers.hasNext()) {
+            throw new IOException("No GIF ImageWriter found");
+        }
+        ImageWriter writer = writers.next();
+
+        try (ImageOutputStream ios = ImageIO.createImageOutputStream(file)) {
+            writer.setOutput(ios);
+            writer.prepareWriteSequence(null);
+
+            int delayHundredths = Math.max(1, delayMs / 10);
+
+            for (int i = 0; i < frames.size(); i++) {
+                BufferedImage frame = frames.get(i);
+                ImageTypeSpecifier spec = ImageTypeSpecifier.createFromRenderedImage(frame);
+                IIOMetadata meta = writer.getDefaultImageMetadata(spec, null);
+                String formatName = meta.getNativeMetadataFormatName();
+                IIOMetadataNode root = (IIOMetadataNode) meta.getAsTree(formatName);
+
+                // Configure GraphicControlExtension
+                IIOMetadataNode gce = null;
+                for (int j = 0; j < root.getLength(); j++) {
+                    if (root.item(j).getNodeName().equalsIgnoreCase("GraphicControlExtension")) {
+                        gce = (IIOMetadataNode) root.item(j);
+                        break;
+                    }
+                }
+                if (gce == null) {
+                    gce = new IIOMetadataNode("GraphicControlExtension");
+                    root.appendChild(gce);
+                }
+                gce.setAttribute("disposalMethod", "restoreToBackgroundColor");
+                gce.setAttribute("userInputFlag", "FALSE");
+                gce.setAttribute("transparentColorFlag", "FALSE");
+                gce.setAttribute("delayTime", String.valueOf(delayHundredths));
+                gce.setAttribute("transparentColorIndex", "0");
+
+                // Add Netscape looping extension on first frame
+                if (i == 0) {
+                    IIOMetadataNode appExts = null;
+                    for (int j = 0; j < root.getLength(); j++) {
+                        if (root.item(j).getNodeName().equalsIgnoreCase("ApplicationExtensions")) {
+                            appExts = (IIOMetadataNode) root.item(j);
+                            break;
+                        }
+                    }
+                    if (appExts == null) {
+                        appExts = new IIOMetadataNode("ApplicationExtensions");
+                        root.appendChild(appExts);
+                    }
+                    IIOMetadataNode appNode = new IIOMetadataNode("ApplicationExtension");
+                    appNode.setAttribute("applicationID", "NETSCAPE");
+                    appNode.setAttribute("authenticationCode", "2.0");
+                    appNode.setUserObject(new byte[]{1, 0, 0});
+                    appExts.appendChild(appNode);
+                }
+
+                meta.setFromTree(formatName, root);
+                writer.writeToSequence(new IIOImage(frame, null, meta), null);
+            }
+
+            writer.endWriteSequence();
+        } finally {
+            writer.dispose();
+        }
     }
 
     /**
@@ -193,9 +490,10 @@ public class MuOpAnimationDialog extends JDialog {
     private static List<String> expandMultiCycle(List<String> ops) {
         List<String> expanded = new ArrayList<>();
         for (String op : ops) {
-            if (op.equals("MDR \u2190 (MAR); RIP \u2190 RIP + 8")
-                    || op.equals("MDR \u2190 (MAR)")
-                    || op.equals("(MAR) \u2190 MDR")) {
+            String trimmed = op.trim();
+            if (trimmed.equals("MDR \u2190 (MAR); RIP \u2190 RIP + 8")
+                    || trimmed.equals("MDR \u2190 (MAR)")
+                    || trimmed.equals("(MAR) \u2190 MDR")) {
                 expanded.add(op + " [1/3]");
                 expanded.add(op + " [2/3]");
                 expanded.add(op + " [3/3]");
@@ -400,6 +698,7 @@ public class MuOpAnimationDialog extends JDialog {
         private Transformer transformer;
 
         public ArchitectureCanvas() {
+            setBackground(Color.WHITE);
             try {
                 // Parse the SVG into a W3C DOM
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -442,10 +741,15 @@ public class MuOpAnimationDialog extends JDialog {
          * Empty list = show the base diagram with no highlights.
          */
         public void setHighlightedGroups(List<String> groupIds) {
+            currentSvg = createSvgForOverlays(groupIds);
+            repaint();
+        }
+
+        private SVGDocument createSvgForOverlays(List<String> groupIds) {
             try {
                 if (groupIds == null || groupIds.isEmpty()) {
                     // Fast path: use cached base bytes
-                    currentSvg = loadSvgFromBytes(baseSvgBytes);
+                    return loadSvgFromBytes(baseSvgBytes);
                 } else {
                     // Clone the DOM and apply highlights
                     Document clone = (Document) baseSvgDom.cloneNode(true);
@@ -459,12 +763,12 @@ public class MuOpAnimationDialog extends JDialog {
                     }
 
                     byte[] modifiedBytes = serializeDom(clone);
-                    currentSvg = loadSvgFromBytes(modifiedBytes);
+                    return loadSvgFromBytes(modifiedBytes);
                 }
             } catch (Exception e) {
                 System.err.println("SVG highlight error: " + e.getMessage());
+                return currentSvg;
             }
-            repaint();
         }
 
         /**
@@ -581,6 +885,46 @@ public class MuOpAnimationDialog extends JDialog {
 
             currentSvg.render(this, g2);
             g2.dispose();
+        }
+
+        private BufferedImage renderSvgToImage(SVGDocument svgDoc) {
+            int pw = getWidth();
+            int ph = getHeight();
+            if (pw <= 0 || ph <= 0) {
+                pw = getPreferredSize() != null && getPreferredSize().width > 0 ? getPreferredSize().width : 1020;
+                ph = getPreferredSize() != null && getPreferredSize().height > 0 ? getPreferredSize().height : 700;
+            }
+            double scale = Math.min((double) pw / svgW, (double) ph / svgH);
+            int dw = (int) Math.round(svgW * scale);
+            int dh = (int) Math.round(svgH * scale);
+            if (dw <= 0) dw = 593;
+            if (dh <= 0) dh = 445;
+
+            BufferedImage img = new BufferedImage(dw, dh, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = img.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2.setColor(Color.WHITE);
+            g2.fillRect(0, 0, dw, dh);
+
+            if (svgDoc != null) {
+                Graphics2D gSvg = (Graphics2D) g2.create();
+                gSvg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                gSvg.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                gSvg.scale(scale, scale);
+                svgDoc.render(this, gSvg);
+                gSvg.dispose();
+            }
+            g2.dispose();
+            return img;
+        }
+
+        public BufferedImage exportImage() {
+            return renderSvgToImage(currentSvg);
+        }
+
+        public BufferedImage exportImageForOverlays(List<String> groupIds) {
+            return renderSvgToImage(createSvgForOverlays(groupIds));
         }
     }
 }

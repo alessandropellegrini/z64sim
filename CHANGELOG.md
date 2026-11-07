@@ -1,15 +1,11 @@
-## What's Changed
+## v1.2.1
 
-* Fix monospace font in the editor by @alessandropellegrini
-  in https://github.com/alessandropellegrini/z64sim/pull/41
-* Preserve indentation by @alessandropellegrini
-  in https://github.com/alessandropellegrini/z64sim/pull/43
-* Add find/replace capabilities to the editor by @alessandropellegrini
-  in https://github.com/alessandropellegrini/z64sim/pull/40
-* Introduce device examples by @alessandropellegrini
-  in https://github.com/alessandropellegrini/z64sim/pull/44
-* Fix hlt behaviour by @alessandropellegrini
-  in https://github.com/alessandropellegrini/z64sim/pull/42
+* Headless CLI mode for batch execution and automated testing
+* Headless execution support in Devices registry
+* JSON-driven device configuration and machine-readable execution report
+* Minor visibility updates in SimulatorController for headless integration
+* Small bugfixes to muops animations
+* Muops animations can be exported
 
+**Full Changelog**: https://github.com/alessandropellegrini/z64sim/compare/v1.0.0...v1.2.1
 
-**Full Changelog**: https://github.com/alessandropellegrini/z64sim/compare/v1.0.0...v1.1.0

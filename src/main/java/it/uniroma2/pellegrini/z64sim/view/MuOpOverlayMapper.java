@@ -159,21 +159,40 @@ public class MuOpOverlayMapper {
             String op = extractOp(muOp);
             ov.addAll(Arrays.asList("alu", "alu-out", "alu-shifter-flags-bus", "reg-write", "data-bus"));
             signals = "A_opcode = " + op + ", B_A = 1, W_RSP = 1";
-        } else if (muOp.startsWith("ALU_OUT[BIT_TEST]")) {
-            ov.addAll(Arrays.asList("alu", "flags-from-alu"));
-            signals = "A_opcode = BIT_TEST, B_FLAGSA = 1, W_FLAGS = 1";
-        } else if (muOp.startsWith("RAX \u2190 ALU_OUT[") || muOp.startsWith("RDX \u2190 ALU_OUT[")) {
+        } else if (muOp.startsWith("ALU_OUT[")) {
             String op = extractOp(muOp);
-            ov.addAll(Arrays.asList("alu", "alu-out", "alu-shifter-flags-bus", "reg-write", "data-bus"));
-            signals = "A_opcode = " + op;
+            ov.addAll(Arrays.asList("alu", "flags-from-alu"));
+            signals = "A_opcode = " + op + ", B_FLAGSA = 1, W_FLAGS = 1";
         }
         else if (muOp.contains("\u2190 ALU_OUT[")) {
             Matcher m = Pattern.compile("([A-Z0-9]+) \u2190 ALU_OUT\\[(.*?)\\]").matcher(muOp);
             if (m.find()) {
+                String dest = m.group(1);
                 String op = m.group(2);
-                ov.addAll(Arrays.asList("alu", "alu-out", "alu-shifter-flags-bus", "flags-from-alu", "data-bus"));
-                ov.addAll(Arrays.asList("reg-write", "smux", "regmux"));
-                signals = "A_opcode = " + op + ", B_A = 1, S_MUX = 2, REG_MUX = 1, W_M = 1, B_FLAGSA = 1, W_FLAGS = 1";
+                ov.addAll(Arrays.asList("alu", "alu-out", "alu-shifter-flags-bus", "data-bus"));
+                if (op.startsWith("Sign Extend") || op.startsWith("Zero Extend")) {
+                    // Data movement (movsX, movzX) or branch offset calc does NOT update flags
+                    if (dest.equals("MDR")) {
+                        ov.addAll(Arrays.asList("mdr-write-inside", "mdr-write"));
+                        signals = "A_opcode = " + op + ", B_A = 1, B_MDRIN = 1, W_MDR = 1";
+                    } else if (dest.equals("TEMP1")) {
+                        ov.add("t1-write");
+                        signals = "A_opcode = " + op + ", B_A = 1, W_T1 = 1";
+                    } else {
+                        ov.addAll(Arrays.asList("reg-write", "smux", "regmux"));
+                        signals = "A_opcode = " + op + ", B_A = 1, S_MUX = 2, REG_MUX = 1, W_M = 1";
+                    }
+                } else {
+                    // Logic/arithmetic instructions DO update flags
+                    ov.add("flags-from-alu");
+                    if (dest.equals("MDR")) {
+                        ov.addAll(Arrays.asList("mdr-write-inside", "mdr-write"));
+                        signals = "A_opcode = " + op + ", B_A = 1, B_MDRIN = 1, W_MDR = 1, B_FLAGSA = 1, W_FLAGS = 1";
+                    } else {
+                        ov.addAll(Arrays.asList("reg-write", "smux", "regmux"));
+                        signals = "A_opcode = " + op + ", B_A = 1, S_MUX = 2, REG_MUX = 1, W_M = 1, B_FLAGSA = 1, W_FLAGS = 1";
+                    }
+                }
             }
         }
         // Shifter
@@ -190,9 +209,15 @@ public class MuOpOverlayMapper {
                     ov.add("mar-write");
                     signals = "S_opcode = " + op + ", B_S = 1, W_MAR = 1";
                 } else {
-                    ov.add("flags-from-shifter");
                     ov.addAll(Arrays.asList("reg-write", "smux", "regmux"));
-                    signals = "S_opcode = " + op + ", B_S = 1, S_MUX = 2, REG_MUX = 1, W_M = 1, B_FLAGSS = 1, W_FLAGS = 1";
+                    if (op.equals("SHL, 0") || op.endsWith(", 0")) {
+                        // Data movement (e.g. movq %rax, %rcx) or 0-shift does NOT update flags
+                        signals = "S_opcode = " + op + ", B_S = 1, S_MUX = 2, REG_MUX = 1, W_M = 1";
+                    } else {
+                        // Shift/rotate instructions DO update flags
+                        ov.add("flags-from-shifter");
+                        signals = "S_opcode = " + op + ", B_S = 1, S_MUX = 2, REG_MUX = 1, W_M = 1, B_FLAGSS = 1, W_FLAGS = 1";
+                    }
                 }
             }
         }
@@ -212,6 +237,9 @@ public class MuOpOverlayMapper {
         } else if (muOp.equals("TEMP1 \u2190 RIP")) {
             ov.addAll(Arrays.asList("rip-read", "t1-write", "data-bus"));
             signals = "B_RIP = 1, W_T1 = 1";
+        } else if (muOp.equals("TEMP2 \u2190 RIP")) {
+            ov.addAll(Arrays.asList("rip-read", "t2-write", "data-bus"));
+            signals = "B_RIP = 1, W_T2 = 1";
         } else if (muOp.matches("TEMP2 \u2190 -?\\d+")) {
             ov.add("t2-write");
             signals = "W_T2 = 1";
