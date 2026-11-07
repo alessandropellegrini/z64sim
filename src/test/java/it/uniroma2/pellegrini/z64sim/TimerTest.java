@@ -142,6 +142,11 @@ public class TimerTest {
                 fired = true;
                 break;
             }
+
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignored) {
+            }
         }
 
         long elapsed = System.currentTimeMillis() - startTime;

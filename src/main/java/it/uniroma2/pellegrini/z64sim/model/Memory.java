@@ -150,7 +150,40 @@ public class Memory extends AbstractTableModel {
     }
 
     public static byte getValueAt(long address) {
-        return getInstance().program.getMemoryElementAt(address).getValue()[0]; // TODO: make it safer!
+        Program p = getInstance().program;
+        if(p == null) {
+            throw new NullPointerException("No program loaded");
+        }
+        if(address < 0 || address > 0xFFFFFFFFL) {
+            throw new NullPointerException("Address out of bounds: " + address);
+        }
+
+        MemoryElement elem = p.getMemoryElementAt(address);
+        if(elem != null) {
+            byte[] val = elem.getValue();
+            return (val != null && val.length > 0) ? val[0] : 0;
+        }
+
+        // Check if address falls inside a multi-byte instruction starting before address
+        for(int offset = 1; offset <= 15 && address - offset >= 0; offset++) {
+            MemoryElement prev = p.getMemoryElementAt(address - offset);
+            if(prev != null) {
+                if(prev.getSize() > offset) {
+                    byte[] bytes = prev.getValue();
+                    if(bytes != null && offset < bytes.length) {
+                        return bytes[offset];
+                    }
+                }
+                break;
+            }
+        }
+
+        // If address is within the allocated program bounds, uninitialized bytes default to 0
+        if(address <= p.getLargestAddress()) {
+            return 0;
+        }
+
+        throw new NullPointerException("Address out of bounds: " + address);
     }
 
     /**

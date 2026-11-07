@@ -152,8 +152,8 @@ public class SimulatorController extends Controller {
                         break;
                 }
             } catch(NullPointerException e) {
-                log.error("Memory access violation at address " + address);
-                throw new SimulatorException("Memory access violation at address " + address);
+                log.error("Memory access violation at address 0x" + Long.toHexString(address).toUpperCase());
+                throw new SimulatorException("Memory access violation at address 0x" + Long.toHexString(address).toUpperCase());
             }
 
             return memoryValue;

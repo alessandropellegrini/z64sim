@@ -152,7 +152,10 @@ public class InstructionClass2 extends Instruction {
     public String toString() {
         String insn;
         try {
-            insn = this.mnemonic + this.source.getSizeSuffix();
+            Operand sizingOperand = (this.destination != null && (this.mnemonic.equals("bt") || this.source instanceof OperandImmediate))
+                    ? this.destination
+                    : this.source;
+            insn = this.mnemonic + sizingOperand.getSizeSuffix();
         } catch(DisassembleException e) {
             throw new RuntimeException(e);
         }

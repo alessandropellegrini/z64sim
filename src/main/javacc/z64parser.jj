@@ -945,7 +945,11 @@ Instruction Instruction() :
         t = <INSN_BT> { size = getSuffixSize( t.image ); }
             i = FormatK() <COMMA> op2 = FormatE(size)
         {
+            if (size == -1 && op2 != null) {
+                size = op2.getSize();
+            }
             op1 = new OperandImmediate(i);
+            op1.setSize(size);
 
             // Shift instructions belong all to class 3
             insn = new InstructionClass2(stripSuffix(t.image), op1, op2);

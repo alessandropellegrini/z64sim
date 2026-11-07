@@ -359,4 +359,19 @@ public class InstructionClass2Test {
 
         assertFalse(SimulatorController.getCF());
     }
+
+    @Test
+    @DisplayName("bt disassembly uses destination size suffix (btb, btw, btl, btq)")
+    public void testBtDisassemblySuffix() {
+        OperandImmediate src = new OperandImmediate(0);
+        InstructionClass2 btb = new InstructionClass2("bt", src, new OperandRegister(Register.RAX, 1));
+        InstructionClass2 btw = new InstructionClass2("bt", src, new OperandRegister(Register.RAX, 2));
+        InstructionClass2 btl = new InstructionClass2("bt", src, new OperandRegister(Register.RAX, 4));
+        InstructionClass2 btq = new InstructionClass2("bt", src, new OperandRegister(Register.RAX, 8));
+
+        assertEquals("btb $0, %al", btb.toString());
+        assertEquals("btw $0, %ax", btw.toString());
+        assertEquals("btl $0, %eax", btl.toString());
+        assertEquals("btq $0, %rax", btq.toString());
+    }
 }
