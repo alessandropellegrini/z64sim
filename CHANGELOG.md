@@ -6,6 +6,8 @@
 * Minor visibility updates in SimulatorController for headless integration
 * Small bugfixes to muops animations
 * Muops animations can be exported
+* Fix a bug where unaligned memory access crashed the simulator
+* When restarting an already-assembled program, the CPU state is reset
 
 **Full Changelog**: https://github.com/alessandropellegrini/z64sim/compare/v1.0.0...v1.2.1
 

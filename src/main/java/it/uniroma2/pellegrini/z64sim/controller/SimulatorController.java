@@ -65,8 +65,8 @@ public class SimulatorController extends Controller {
         SimulatorController sc = getInstance();
         sc.program = program;
         Memory.setProgram(program);
-        sc.cpuState.setRIP(program._start.getTarget());
-        sc.cpuState.setRSP((long) program.getLargestAddress());
+        sc.stopDevices();
+        sc.resetCpuState();
     }
 
     public static SimulatorController getInstance() {
@@ -313,15 +313,8 @@ public class SimulatorController extends Controller {
                     SimulatorController sc = getInstance();
                     sc.program = assembledProgram;
                     Memory.setProgram(sc.program);
-
-                    long _start = sc.program._start.getTarget();
-                    // These fire PropertyChangeEvents that update the RegisterBank reactively
-                    sc.cpuState.setRIP(_start);
-                    sc.cpuState.setRSP((long) sc.program.getLargestAddress());
-                    sc.devicesStarted = false;
-
-                    // Scroll the memory table to the first instruction
-                    Memory.selectAddress(_start);
+                    sc.stopDevices();
+                    sc.resetCpuState();
                 }
             }
         }.execute();
@@ -349,22 +342,48 @@ public class SimulatorController extends Controller {
     }
 
     /**
+     * Reset the CPU state to initial values:
+     * all general-purpose registers to 0, flags to default (2L),
+     * halted to false, RSP to the top of memory, and RIP to the program entry point (_start).
+     */
+    public static void resetCpuState() {
+        SimulatorController sc = getInstance();
+        sc.cpuState.reset();
+        sc.halted = false;
+        if (sc.program != null && sc.program._start != null) {
+            long start = sc.program._start.getTarget();
+            sc.cpuState.setRIP(start);
+            sc.cpuState.setRSP((long) sc.program.getLargestAddress());
+            Memory.selectAddress(start);
+        }
+    }
+
+    /**
      * Run the program continuously using a Swing Timer.
      * Each timer tick executes one instruction on the EDT, then yields so the GUI
      * can process other events (button clicks, repaints, etc.). This keeps the
      * interface responsive and allows stop() to work via a normal button click.
+     *
+     * Calling run resets the CPU state before starting execution.
      */
     public static void run() {
         SimulatorController sc = getInstance();
         if (sc.program == null) return;
-        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) return;
+        if (sc.simulationTimer != null && sc.simulationTimer.isRunning()) {
+            sc.simulationTimer.stop();
+        }
 
+        sc.stopDevices();
+        sc.resetCpuState();
         sc.startDevicesIfNeeded();
 
         sc.simulationTimer = new Timer(sc.timerDelayMs, e -> {
             try {
                 sc.stepInstruction();
                 Memory.selectAddress(sc.cpuState.getRIP());
+                if (sc.halted && !sc.cpuState.getIF()) {
+                    sc.simulationTimer.stop();
+                }
             } catch (SimulatorException ex) {
                 sc.simulationTimer.stop();
                 sc.stopDevices();
@@ -405,6 +424,7 @@ public class SimulatorController extends Controller {
             sc.simulationTimer.stop();
         }
         sc.halted = false;
+        sc.cpuState.setHalted(false);
         sc.stopDevices();
     }
 
@@ -451,6 +471,7 @@ public class SimulatorController extends Controller {
             // CPU is halted — skip fetch/execute, but check for interrupts
             if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
                 halted = false;
+                cpuState.setHalted(false);
                 handleInterrupt();
             }
             return;
@@ -461,10 +482,12 @@ public class SimulatorController extends Controller {
 
         if (instruction.getMnemonic().equals("hlt")) {
             halted = true;
+            cpuState.setHalted(true);
             // RIP already points past hlt — the halted flag prevents
             // re-fetching. Check immediately for pending interrupts.
             if (cpuState.getIF() && Devices.getInstance().isIRQPending()) {
                 halted = false;
+                cpuState.setHalted(false);
                 handleInterrupt();
             }
             return;

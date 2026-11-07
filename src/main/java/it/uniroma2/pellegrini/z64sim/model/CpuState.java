@@ -82,7 +82,31 @@ public class CpuState implements Serializable {
     }
 
     public void setFlags(Long srcValue) {
+        Long oldValue = FlagsRegister.getQuadword();
         FlagsRegister.setQuadword(srcValue);
+        pcs.firePropertyChange(PROP_FLAGS, oldValue, srcValue);
+    }
+
+    public void reset() {
+        setRAX(0L);
+        setRCX(0L);
+        setRDX(0L);
+        setRBX(0L);
+        setRSP(0L);
+        setRBP(0L);
+        setRSI(0L);
+        setRDI(0L);
+        setR8(0L);
+        setR9(0L);
+        setR10(0L);
+        setR11(0L);
+        setR12(0L);
+        setR13(0L);
+        setR14(0L);
+        setR15(0L);
+        setRIP(0L);
+        setFlags(2L);
+        setHalted(false);
     }
 
     public void setRIP(Long newValue) {

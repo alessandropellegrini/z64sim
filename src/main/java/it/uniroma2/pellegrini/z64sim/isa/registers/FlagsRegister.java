@@ -23,6 +23,11 @@ public class FlagsRegister extends Register {
         this.value = 2L; // By default, bit 1 is always set in this register
     }
 
+    @Override
+    public void setQuadword(long val) {
+        super.setQuadword(val | 2L);
+    }
+
     private void setBit(int bit) {
         long oldValue = this.value;
         this.value = this.value | (long) bit;
