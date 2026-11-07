@@ -1,0 +1,1 @@
+{"sync": true, "stop_terminal": "Z64", "devices": [{"type": "Keyboard", "ivn": 1, "input": "Z64", "ports": {"INT_REQ": "0x20", "DATA": "0x21"}}, {"type": "Terminal", "ivn": -1, "ports": {"STATUS": "0x30", "DATA": "0x31"}}]}

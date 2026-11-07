@@ -8,6 +8,7 @@ import it.uniroma2.pellegrini.z64sim.PropertyBroker;
 import it.uniroma2.pellegrini.z64sim.devices.Dmac;
 
 import javax.swing.table.AbstractTableModel;
+import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -222,6 +223,7 @@ public class Devices extends AbstractTableModel {
      * Notify all registered devices that the simulation has started.
      */
     public void notifySimulationStart() {
+        if (GraphicsEnvironment.isHeadless()) return;
         for (DeviceMapping mapping : allDevicesOrdered) {
             mapping.getDevice().onSimulationStart();
         }
@@ -231,6 +233,7 @@ public class Devices extends AbstractTableModel {
      * Notify all registered devices that the simulation has stopped.
      */
     public void notifySimulationStop() {
+        if (GraphicsEnvironment.isHeadless()) return;
         for (DeviceMapping mapping : allDevicesOrdered) {
             mapping.getDevice().onSimulationStop();
         }

@@ -46,7 +46,7 @@ public class SimulatorController extends Controller {
     private Timer simulationTimer;
     private int timerDelayMs = 0;
     private boolean devicesStarted = false;
-    private boolean halted = false;
+    public boolean halted = false;
 
     private SimulatorController() {
     }
@@ -69,7 +69,7 @@ public class SimulatorController extends Controller {
         sc.cpuState.setRSP((long) program.getLargestAddress());
     }
 
-    private static SimulatorController getInstance() {
+    public static SimulatorController getInstance() {
         if(instance == null) init();
         return instance;
     }
@@ -444,7 +444,7 @@ public class SimulatorController extends Controller {
      *
      * @throws SimulatorException if an error occurs (e.g. RIP points to data)
      */
-    void stepInstruction() throws SimulatorException {
+    public void stepInstruction() throws SimulatorException {
         if(this.program == null) return;
 
         if (halted) {
